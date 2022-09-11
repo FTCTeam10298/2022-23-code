@@ -1,6 +1,7 @@
 package us.brainstormz.paddieMatrick
 
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import com.qualcomm.robotcore.hardware.HardwareMap
 import us.brainstormz.hardwareClasses.MecanumHardware
 
@@ -20,6 +21,8 @@ class PaddieMatrickHardware : MecanumHardware {
         rFDrive = hwMap["rFDrive"] as DcMotor
         lBDrive = hwMap["lBDrive"] as DcMotor
         rBDrive = hwMap["rBDrive"] as DcMotor
+        lFDrive.direction = DcMotorSimple.Direction.REVERSE
+        lBDrive.direction = DcMotorSimple.Direction.REVERSE
     }
 
 }
