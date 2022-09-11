@@ -17,24 +17,17 @@ class TseDetectorPM(private val console: TelemetryConsole) {
 
     private val tseThreshold = 135
 
-    lateinit var alliance: AutoTeleopTransitionLK.Alliance
-    private val redPlaces = listOf(Rect(Point(100.0, 240.0), Point(0.0, 100.0)),
-        Rect(Point(210.0, 100.0), Point(110.0, 240.0)),
-        Rect(Point(220.0, 100.0), Point(300.0, 240.0)))
 
     private val bluePlaces = listOf(Rect(Point(100.0, 240.0), Point(0.0, 100.0)),
         Rect(Point(210.0, 100.0), Point(110.0, 240.0)),
         Rect(Point(220.0, 100.0), Point(300.0, 240.0)))
 
-    private val actualPlaces = when (alliance) {
-        AutoTeleopTransitionLK.Alliance.Red -> redPlaces
-        AutoTeleopTransitionLK.Alliance.Blue -> bluePlaces
-    }
+
 
     private val regions = listOf(
-        TSEPosition.One to actualPlaces[1],
-        TSEPosition.Two to actualPlaces[2],
-        TSEPosition.Three to actualPlaces[3]
+        TSEPosition.One to bluePlaces[1],
+        TSEPosition.Two to bluePlaces[2],
+        TSEPosition.Three to bluePlaces[3]
     )
 
     private val colors = listOf(
@@ -65,26 +58,16 @@ class TseDetectorPM(private val console: TelemetryConsole) {
 
         var result = TSEPosition.Three
         var prevColor = 0
-        when (alliance){
-            AutoTeleopTransitionLK.Alliance.Blue -> {
-                submats.forEach {
-                    if (it.first != TSEPosition.Three) {
-                        val color = colorInRect(it.second)
-                        if (color >= tseThreshold)
-                            result = it.first
-                    }
-                }
-            }
-            AutoTeleopTransitionLK.Alliance.Red -> {
-                submats.forEach {
-                    val color = colorInRect(it.second)
-                    if (color > prevColor) {
-                        prevColor = color
-                        result = it.first
-                    }
-                }
+
+        submats.forEach {
+            val color = colorInRect(it.second)
+            if (color > prevColor) {
+                prevColor = color
+                result = it.first
             }
         }
+
+
 
         position = result
 
