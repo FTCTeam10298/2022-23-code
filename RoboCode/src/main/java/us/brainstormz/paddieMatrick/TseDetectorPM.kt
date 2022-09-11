@@ -59,13 +59,14 @@ class TseDetectorPM(private val console: TelemetryConsole) {
         var result = TSEPosition.Three
         var prevColor = 0
 
-        submats.forEach {
-            val color = colorInRect(it.second)
-            if (color > prevColor) {
-                prevColor = color
-                result = it.first
-            }
-        }
+// Todo: Finish this function.
+//        submats.forEach {
+//            val color = colorInRect(string foundColor, it.first)
+//            if (color > prevColor) {
+//                prevColor = color
+//                result = it.first
+//            }
+//        }
 
 
 
@@ -90,11 +91,9 @@ class TseDetectorPM(private val console: TelemetryConsole) {
      * This function takes the RGB frame, converts to YCrCb,
      * and extracts the Cb channel to the cb variable
      */
-    private var yCrCb = Mat()
-    private var cb = Mat()
-    private fun inputToCb(input: Mat?): Mat {
-        Imgproc.cvtColor(input, yCrCb, Imgproc.COLOR_RGB2YCrCb)
-        Core.extractChannel(yCrCb, cb, 1)
-        return cb
+    private var Channel = Mat()
+    private fun inputToCb(RGBInput: Mat?, colorToExtract: Int): Mat {
+        Core.extractChannel(RGBInput, Channel, colorToExtract)
+        return Channel
     }
 }
