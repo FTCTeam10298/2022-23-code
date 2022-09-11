@@ -20,6 +20,8 @@ android {
 }
 
 dependencies {
+    implementation project(':RoboCode')
     implementation project(':FtcRobotController')
     annotationProcessor files('lib/OpModeAnnotationProcessor.jar')
+    implementation 'com.github.Eeshwar-Krishnan:PhotonFTC:v1.0.3'
 }
