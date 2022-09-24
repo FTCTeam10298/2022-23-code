@@ -50,7 +50,7 @@ class TseDetectorPM(private val console: TelemetryConsole) {
 
     fun processFrame(frame: Mat): Mat {
 
-        cbFrame = inputToCb(frame)
+        cbFrame = inputToCb(frame, 0)
 
         submats = regions.map {
             it.first to cbFrame.submat(it.second)

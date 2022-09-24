@@ -98,9 +98,9 @@ class EncoderLocalizer(private val hardware: MecanumHardware): Localizer {
 //}
 
 class PhoHardware(): MecOdometry {
-    override val lOdom = PhoEnhancedDCMotor(PhoMotor())
-    override val rOdom = PhoEnhancedDCMotor(PhoMotor())
-    override val cOdom = PhoEnhancedDCMotor(PhoMotor())
+    override val lOdom = EnhancedDCMotor(PhoMotor())
+    override val rOdom = EnhancedDCMotor(PhoMotor())
+    override val cOdom = EnhancedDCMotor(PhoMotor())
 
     override val lFDrive = PhoMotor()
     override val rFDrive = PhoMotor()

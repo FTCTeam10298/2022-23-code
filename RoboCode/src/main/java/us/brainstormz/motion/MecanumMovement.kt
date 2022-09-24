@@ -10,7 +10,7 @@ import us.brainstormz.localizer.OdometryLocalizer
 import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.pid.PID
-import us.brainstormz.rataTony.RataTonyHardware
+//import us.brainstormz.rataTony.RataTonyHardware
 import us.brainstormz.telemetryWizard.GlobalConsole
 import kotlin.math.abs
 import kotlin.math.hypot
@@ -114,61 +114,61 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 }
 
 
-@TeleOp(name= "Odom Movement Test")
-class OdomMoveTest: LinearOpMode() {
-//    192.168.1.128
-//    192.168.43.45
-//    192.168.43.1
-    val hardware = RataTonyHardware()
-    val console = GlobalConsole.newConsole(telemetry)
-    val localizer = OdometryLocalizer(hardware)
-    val movement = MecanumMovement(localizer, hardware)
-//    val robot = MecanumDriveTrain(hardware)
-
-    var targetPos = PositionAndRotation(y= 10.0, x= 10.0, r= 90.0)
-
-    override fun runOpMode() {
-        hardware.init(hardwareMap)
-        localizer.setPositionAndRotation(0.0, 0.0, 0.0)
-//        distance between l & r odom wheels: 7 8/16 = 7.5
-        localizer.trackwidth = 7.5
-//        center of chassis: 10 6/16 = 10.375 / 2 = 5.1875
-//        center odom: 5 2/16 = 5.125
-//        forward offset: 5.1875 - 5.125 = 0.0625
-        localizer.forwardOffset = 0.0625
-        waitForStart()
-
-//        movement.setSpeedAll(0.0, 1.0, 0.0, 0.0, 0.5)
-//        sleep(500)
-
-        movement.goToPosition(targetPos, this, 0.0..0.5)
-
-//        movement.moveTowardTarget(targetPos, 0.0..0.2)
-//        sleep(1000)
-
-    }
-
-}
-
-fun main() {
-    val targetLocation = PositionAndRotation(0.0, 10.0, 0.0)
-
-    val hardware = PhoHardware()
-    val localizer = PhoLocalizer()
-    val movement = MecanumMovement(localizer, hardware)
-
-//    movement.setSpeedAll(1.0, 1.0, 1.0, 0.0, 1.0)
-    localizer.currentPositionAndRotation = PositionAndRotation()
-
-    val status1 = movement.moveTowardTarget(targetLocation)
-    println("status $status1")
-
-    localizer.currentPositionAndRotation = PositionAndRotation(y = 10.0)
-    println("current pos: ${localizer.currentPositionAndRotation}")
-
-    val status2 = movement.moveTowardTarget(targetLocation)
-    println("status $status2")
-}
+//@TeleOp(name= "Odom Movement Test")
+//class OdomMoveTest: LinearOpMode() {
+////    192.168.1.128
+////    192.168.43.45
+////    192.168.43.1
+//    val hardware = RataTonyHardware()
+//    val console = GlobalConsole.newConsole(telemetry)
+//    val localizer = OdometryLocalizer(hardware)
+//    val movement = MecanumMovement(localizer, hardware)
+////    val robot = MecanumDriveTrain(hardware)
+//
+//    var targetPos = PositionAndRotation(y= 10.0, x= 10.0, r= 90.0)
+//
+//    override fun runOpMode() {
+//        hardware.init(hardwareMap)
+//        localizer.setPositionAndRotation(0.0, 0.0, 0.0)
+////        distance between l & r odom wheels: 7 8/16 = 7.5
+//        localizer.trackwidth = 7.5
+////        center of chassis: 10 6/16 = 10.375 / 2 = 5.1875
+////        center odom: 5 2/16 = 5.125
+////        forward offset: 5.1875 - 5.125 = 0.0625
+//        localizer.forwardOffset = 0.0625
+//        waitForStart()
+//
+////        movement.setSpeedAll(0.0, 1.0, 0.0, 0.0, 0.5)
+////        sleep(500)
+//
+//        movement.goToPosition(targetPos, this, 0.0..0.5)
+//
+////        movement.moveTowardTarget(targetPos, 0.0..0.2)
+////        sleep(1000)
+//
+//    }
+//
+//}
+//
+//fun main() {
+//    val targetLocation = PositionAndRotation(0.0, 10.0, 0.0)
+//
+//    val hardware = PhoHardware()
+//    val localizer = PhoLocalizer()
+//    val movement = MecanumMovement(localizer, hardware)
+//
+////    movement.setSpeedAll(1.0, 1.0, 1.0, 0.0, 1.0)
+//    localizer.currentPositionAndRotation = PositionAndRotation()
+//
+//    val status1 = movement.moveTowardTarget(targetLocation)
+//    println("status $status1")
+//
+//    localizer.currentPositionAndRotation = PositionAndRotation(y = 10.0)
+//    println("current pos: ${localizer.currentPositionAndRotation}")
+//
+//    val status2 = movement.moveTowardTarget(targetLocation)
+//    println("status $status2")
+//}
 
 
 
