@@ -15,7 +15,7 @@ class Lift(private val motor1: DcMotorEx, private val motor2: DcMotorEx, private
 
     private val pid = PID()
 
-    fun goToPosition(targetInches: Double, linearOpMode: LinearOpMode) {
+    fun goToPositionBlocking(targetInches: Double, linearOpMode: LinearOpMode) {
         while (linearOpMode.opModeIsActive()) {
 
             val atTarget = setLiftPowerToward(targetInches)
@@ -26,15 +26,20 @@ class Lift(private val motor1: DcMotorEx, private val motor2: DcMotorEx, private
     }
 
     fun setLiftPowerToward(targetInches: Double): Boolean {
-        val averagedPosition = (motor1.currentPosition + motor2.currentPosition) / 2
-        val correctedPosition = correctPosition(averagedPosition)
-        val currentPosInches = encoderCountsToInches(correctedPosition)
+        val currentPosInches = currentPosInches()
 
         val powerPID = pid.calcPID(targetInches, currentPosInches)
         val constrainedPower = constrainPower(powerPID, targetInches)
 
         setLiftPower(constrainedPower)
+
         return currentPosInches in -positionAccuracyIn..positionAccuracyIn
+    }
+
+    fun currentPosInches(): Double {
+        val averagedPosition = (motor1.currentPosition + motor2.currentPosition) / 2
+        val correctedPosition = correctPosition(averagedPosition)
+        return encoderCountsToInches(correctedPosition)
     }
 
     private fun constrainPower(powerIn: Double, targetInches: Double): Double {
@@ -70,7 +75,7 @@ class Lift(private val motor1: DcMotorEx, private val motor2: DcMotorEx, private
 
     private fun encoderCountsToInches(counts: Int): Double = (counts / 150).toDouble()
 
-    private fun isLimitSwitchPressed(): Boolean {
+    fun isLimitSwitchPressed(): Boolean {
         return limitSwitch.voltage > 10
     }
 }
