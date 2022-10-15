@@ -1,12 +1,11 @@
 package us.brainstormz.paddieMatrick
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import us.brainstormz.pid.PID
 
-class Lift(private val motor1: DcMotorEx, private val motor2: DcMotorEx, private val limitSwitch: AnalogInput) {
+class Lift(private val leftMotor: DcMotorEx, private val rightMotor: DcMotorEx, private val limitSwitch: AnalogInput) {
 
     private val maxInches = 33.0
     private val minInches = 0.0
@@ -37,7 +36,7 @@ class Lift(private val motor1: DcMotorEx, private val motor2: DcMotorEx, private
     }
 
     fun currentPosInches(): Double {
-        val averagedPosition = (motor1.currentPosition + motor2.currentPosition) / 2
+        val averagedPosition = (leftMotor.currentPosition + rightMotor.currentPosition) / 2
         val correctedPosition = correctPosition(averagedPosition)
         return encoderCountsToInches(correctedPosition)
     }
@@ -69,8 +68,8 @@ class Lift(private val motor1: DcMotorEx, private val motor2: DcMotorEx, private
         else
             powerIn
 
-        motor1.power = powerOut
-        motor2.power = powerOut
+        leftMotor.power = powerOut
+        rightMotor.power = powerOut
     }
 
     private fun encoderCountsToInches(counts: Int): Double = (counts / 150).toDouble()
