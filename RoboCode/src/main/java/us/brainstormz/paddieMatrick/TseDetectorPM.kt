@@ -33,7 +33,7 @@ class TseDetectorPM(private val console: TelemetryConsole) {
         Cyan, Magenta, Yellow
     }
 
-    private val signalPlace = Rect(Point(100.0, 240.0), Point(0.0, 100.0))
+    private val signalPlace = Rect(Point(200.0, 150.0), Point(150.0, 100.0))
 
     private val tseToColors = listOf(
         TSESides.One to Hues.Cyan,
@@ -80,10 +80,9 @@ class TseDetectorPM(private val console: TelemetryConsole) {
         console.display(1, "cyanPercent: $cyanPercent \nmagentaPercent: $magentaPercent \nyellowPercent: $yellowPercent")
 
         result = when {
-            cyanPercent > magentaPercent && cyanPercent > yellowPercent -> TSESides.One
-//                tseToColors.first { it.second == Hues.Cyan }.first
-            magentaPercent > cyanPercent && magentaPercent > yellowPercent -> TSESides.Two
-            yellowPercent > magentaPercent && yellowPercent > cyanPercent -> TSESides.Three
+            yellowPercent > 1000 -> TSESides.Three
+            cyanPercent > 1000 -> TSESides.One
+            magentaPercent > 1000 -> TSESides.Two
             else -> TSESides.Three
         }
 
@@ -104,8 +103,8 @@ class TseDetectorPM(private val console: TelemetryConsole) {
 //    }
 //    val name: Type = value
 
-    private val lower_yellow_bounds: Scalar? = Scalar(200.0, 200.0, 0.0, 255.0)
-    private val upper_yellow_bounds = Scalar(255.0, 255.0, 130.0, 255.0)
+    private val lower_yellow_bounds: Scalar? = Scalar(200.0, 180.0, 0.0, 255.0)
+    private val upper_yellow_bounds = Scalar(255.0, 255.0, 140.0, 255.0)
     private val lower_cyan_bounds = Scalar(0.0, 200.0, 200.0, 255.0)
     private val upper_cyan_bounds = Scalar(150.0, 255.0, 255.0, 255.0)
     private val lower_magenta_bounds = Scalar(170.0, 0.0, 170.0, 255.0)
