@@ -77,6 +77,8 @@ class TseDetectorPM(private val console: TelemetryConsole) {
         val magentaPercent = quantifyMagenta(submat)
         val yellowPercent = quantifyYellow(submat)
 
+        console.display(1, "cyanPercent: $cyanPercent \nmagentaPercent: $magentaPercent \nyellowPercent: $yellowPercent")
+
         result = when {
             cyanPercent > magentaPercent && cyanPercent > yellowPercent -> TSESides.One
 //                tseToColors.first { it.second == Hues.Cyan }.first
@@ -154,7 +156,7 @@ class SignalCVTest: LinearOpMode() {
 //        opencv.cameraName = hardware.cameraName
 ////        opencv.cameraOrientation = OpenCvCameraRotation.SIDEWAYS_LEFT
 //
-//        opencv.onNewFrame(tseDetector::processFrame)
+        opencv.onNewFrame(tseDetector::processFrame)
 
         waitForStart()
         /** START PHASE */
