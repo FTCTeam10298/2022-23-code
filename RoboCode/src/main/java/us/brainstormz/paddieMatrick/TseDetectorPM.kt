@@ -147,18 +147,20 @@ class SignalCVTest: LinearOpMode() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
 
-        opencv.init(hardwareMap)
-        opencv.internalCamera = false
-        opencv.cameraName = hardware.cameraName
-//        opencv.cameraOrientation = OpenCvCameraRotation.SIDEWAYS_LEFT
 
-        opencv.onNewFrame(tseDetector::processFrame)
+
+        opencv.internalCamera = false
+        opencv.init(hardwareMap)
+//        opencv.cameraName = hardware.cameraName
+////        opencv.cameraOrientation = OpenCvCameraRotation.SIDEWAYS_LEFT
+//
+//        opencv.onNewFrame(tseDetector::processFrame)
 
         waitForStart()
         /** START PHASE */
 
         val tsePosition = tseDetector.rotation
-        opencv.stop()
+//        opencv.stop()
     }
 
 }
