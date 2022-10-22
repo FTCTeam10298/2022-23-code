@@ -2,8 +2,6 @@ package us.brainstormz.paddieMatrick
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
@@ -12,6 +10,7 @@ import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener
 import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
+import us.brainstormz.aprilTag.AprilTagDetectionPipeline
 import java.lang.Thread.sleep
 
 enum class SignalOrientation {one, two, three}
@@ -132,7 +131,7 @@ class monthOfApril: LinearOpMode(){
 
     override fun runOpMode() {
         aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
-        
+
     }
 
 
