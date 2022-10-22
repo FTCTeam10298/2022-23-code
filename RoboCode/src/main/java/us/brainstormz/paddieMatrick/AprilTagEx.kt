@@ -1,18 +1,22 @@
 package us.brainstormz.paddieMatrick
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.openftc.apriltag.AprilTagDetection
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener
 import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
+import java.lang.Thread.sleep
 
 enum class SignalOrientation {one, two, three}
 
-@TeleOp
-class AprilTagEx : LinearOpMode() {
+class AprilTagEx() {
     var camera: OpenCvCamera? = null
     private var aprilTagDetectionPipeline: AprilTagDetectionPipeline? = null
 
@@ -27,10 +31,12 @@ class AprilTagEx : LinearOpMode() {
 
     // UNITS ARE METERS
         var tagsize = 0.045
-    var ID_TAG_OF_INTEREST = 18 // Tag ID 18 from the 36h11 family
     var tagOfInterest: AprilTagDetection? = null
     public var signalOrientation: SignalOrientation? = null
-    override fun runOpMode() {
+
+
+
+    fun initAprilTag(hardwareMap: HardwareMap, telemetry: Telemetry, opmode: LinearOpMode){
         val cameraMonitorViewId = hardwareMap.appContext.resources.getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.packageName)
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName::class.java, "Webcam 1"), cameraMonitorViewId)
         aprilTagDetectionPipeline = AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy)
@@ -45,30 +51,31 @@ class AprilTagEx : LinearOpMode() {
         telemetry.msTransmissionInterval = 50
 
         /*
-         * The INIT-loop:
-         * This REPLACES waitForStart!
-         */while (!isStarted && !isStopRequested) {
+     * The INIT-loop:
+     * This REPLACES waitForStart!
+     */
+        while (!opmode.isStarted && !opmode.isStopRequested) {
             val currentDetections: ArrayList<AprilTagDetection> = aprilTagDetectionPipeline!!.getLatestDetections()
             if (currentDetections.size != 0) {
                 var tagFound = false
                 for (tag in currentDetections) {
-                    when {
-                        tag.id == 2 -> {
+                    when (tag.id) {
+                        2 -> {
                             tagFound = true
                             tagOfInterest = tag
                             signalOrientation = SignalOrientation.one
                         }
-                        tag.id == 1 -> {
+                        1 -> {
                             tagFound = true
                             tagOfInterest = tag
                             signalOrientation = SignalOrientation.two
                         }
-                        tag.id == 0 -> {
+                        0 -> {
                             tagFound = true
                             tagOfInterest = tag
                             signalOrientation = SignalOrientation.three
                         }
-//                            else -> null
+                        //                            else -> null
                     }
 //                    if (tag.id == ID_TAG_OF_INTEREST) {
 //                        tagOfInterest = tag
@@ -78,14 +85,14 @@ class AprilTagEx : LinearOpMode() {
                 }
                 if (tagFound) {
                     telemetry.addLine("Tag of interest is in sight!\n\nLocation data:")
-                    tagToTelemetry(tagOfInterest)
+                    tagToTelemetry(tagOfInterest, telemetry)
                 } else {
                     telemetry.addLine("Don't see tag of interest :(")
                     if (tagOfInterest == null) {
                         telemetry.addLine("(The tag has never been seen)")
                     } else {
                         telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:")
-                        tagToTelemetry(tagOfInterest)
+                        tagToTelemetry(tagOfInterest, telemetry)
                     }
                 }
             } else {
@@ -94,54 +101,15 @@ class AprilTagEx : LinearOpMode() {
                     telemetry.addLine("(The tag has never been seen)")
                 } else {
                     telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:")
-                    tagToTelemetry(tagOfInterest)
+                    tagToTelemetry(tagOfInterest, telemetry)
                 }
             }
             telemetry.update()
             sleep(20)
         }
-
-        /*
-         * The START command just came in: now work off the latest snapshot acquired
-         * during the init loop.
-         */
-
-        /* Update the telemetry */if (tagOfInterest != null) {
-            telemetry.addLine("Final AprilTag Input:\n")
-            tagToTelemetry(tagOfInterest)
-            telemetry.update()
-        } else {
-            telemetry.addLine("No tag snapshot available, it was never sighted during the init loop :(")
-            telemetry.update()
-        }
-
-        /* Actually do something useful */if (tagOfInterest == null) {
-            /*
-             * Insert your autonomous code here, presumably running some default configuration
-             * since the tag was never sighted during INIT
-             */
-        } else {
-            /*
-             * Insert your autonomous code here, probably using the tag pose to decide your configuration.
-             */
-
-            // e.g.
-            if (tagOfInterest!!.pose.x <= 20) {
-                // do something
-            } else if (tagOfInterest!!.pose.x >= 20 && tagOfInterest!!.pose.x <= 50) {
-                // do something else
-            } else if (tagOfInterest!!.pose.x >= 50) {
-                // do something else
-            }
-        }
-
-
-        /* You wouldn't have this in your autonomous, this is just to prevent the sample from ending */while (opModeIsActive()) {
-            sleep(20)
-        }
     }
 
-    fun tagToTelemetry(detection: AprilTagDetection?) {
+    fun tagToTelemetry(detection: AprilTagDetection?, telemetry: Telemetry) {
         telemetry.addLine(String.format("\nDetected tag ID=%d", detection!!.id))
         telemetry.addLine(String.format("Translation X: %.2f feet", detection.pose.x * FEET_PER_METER))
         telemetry.addLine(String.format("Translation Y: %.2f feet", detection.pose.y * FEET_PER_METER))
@@ -154,4 +122,18 @@ class AprilTagEx : LinearOpMode() {
     companion object {
         const val FEET_PER_METER = 3.28084
     }
+}
+
+@Autonomous
+
+class monthOfApril: LinearOpMode(){
+
+    var aprilTagGX = AprilTagEx()
+
+    override fun runOpMode() {
+        aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
+        
+    }
+
+
 }
