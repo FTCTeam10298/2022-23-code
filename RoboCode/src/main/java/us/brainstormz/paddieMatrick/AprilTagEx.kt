@@ -24,7 +24,7 @@ class AprilTagEx : LinearOpMode() {
     var cy = 221.506
 
     // UNITS ARE METERS
-    var tagsize = 0.166
+        var tagsize = 0.166
     var ID_TAG_OF_INTEREST = 18 // Tag ID 18 from the 36h11 family
     var tagOfInterest: AprilTagDetection? = null
     override fun runOpMode() {
