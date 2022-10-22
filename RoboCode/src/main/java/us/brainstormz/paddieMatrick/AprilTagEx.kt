@@ -9,6 +9,8 @@ import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener
 import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
 
+enum class SignalOrientation {one, two, three}
+
 @TeleOp
 class AprilTagEx : LinearOpMode() {
     var camera: OpenCvCamera? = null
@@ -24,9 +26,10 @@ class AprilTagEx : LinearOpMode() {
     var cy = 221.506
 
     // UNITS ARE METERS
-        var tagsize = 0.166
+        var tagsize = 0.045
     var ID_TAG_OF_INTEREST = 18 // Tag ID 18 from the 36h11 family
     var tagOfInterest: AprilTagDetection? = null
+    public var signalOrientation: SignalOrientation? = null
     override fun runOpMode() {
         val cameraMonitorViewId = hardwareMap.appContext.resources.getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.packageName)
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName::class.java, "Webcam 1"), cameraMonitorViewId)
@@ -49,11 +52,29 @@ class AprilTagEx : LinearOpMode() {
             if (currentDetections.size != 0) {
                 var tagFound = false
                 for (tag in currentDetections) {
-                    if (tag.id == ID_TAG_OF_INTEREST) {
-                        tagOfInterest = tag
-                        tagFound = true
-                        break
+                    when {
+                        tag.id == 2 -> {
+                            tagFound = true
+                            tagOfInterest = tag
+                            signalOrientation = SignalOrientation.one
+                        }
+                        tag.id == 1 -> {
+                            tagFound = true
+                            tagOfInterest = tag
+                            signalOrientation = SignalOrientation.two
+                        }
+                        tag.id == 0 -> {
+                            tagFound = true
+                            tagOfInterest = tag
+                            signalOrientation = SignalOrientation.three
+                        }
+//                            else -> null
                     }
+//                    if (tag.id == ID_TAG_OF_INTEREST) {
+//                        tagOfInterest = tag
+//                        tagFound = true
+//                        break
+//                    }
                 }
                 if (tagFound) {
                     telemetry.addLine("Tag of interest is in sight!\n\nLocation data:")
@@ -86,7 +107,7 @@ class AprilTagEx : LinearOpMode() {
          */
 
         /* Update the telemetry */if (tagOfInterest != null) {
-            telemetry.addLine("Tag snapshot:\n")
+            telemetry.addLine("Final AprilTag Input:\n")
             tagToTelemetry(tagOfInterest)
             telemetry.update()
         } else {
