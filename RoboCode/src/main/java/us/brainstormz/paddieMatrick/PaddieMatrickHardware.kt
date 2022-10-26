@@ -15,8 +15,8 @@ class PaddieMatrickHardware: MecanumHardware {
     lateinit var rightLift: DcMotorEx
 
     lateinit var encoder4Bar: AnalogInput
-    lateinit var left4Bar: Servo
-    lateinit var right4Bar: Servo
+    lateinit var left4Bar: CRServo
+    lateinit var right4Bar: CRServo
 
     lateinit var collectorSensor: RevColorSensorV3
     lateinit var collectorFront: CRServo
@@ -33,22 +33,28 @@ class PaddieMatrickHardware: MecanumHardware {
 //        collectorSensor = hwMap["color"] as RevColorSensorV3
 
         // 4 Bar
-        left4Bar = hwMap["left4Bar"] as Servo
-        right4Bar = hwMap["left4Bar"] as Servo
+        left4Bar = hwMap["left4Bar"] as CRServo
+        right4Bar = hwMap["right4Bar"] as CRServo
         encoder4Bar = hwMap["encoder"] as AnalogInput
+
+        left4Bar.direction = DcMotorSimple.Direction.FORWARD
+        right4Bar.direction = DcMotorSimple.Direction.REVERSE
 
         // Lift
         leftLift = hwMap["leftLift"] as DcMotorEx
         rightLift = hwMap["rightLift"] as DcMotorEx
-        liftLimitSwitch = hwMap["limitSwitch"] as AnalogInput
+//        liftLimitSwitch = hwMap["limitSwitch"] as AnalogInput
+
+        leftLift.direction = DcMotorSimple.Direction.FORWARD
+        rightLift.direction = DcMotorSimple.Direction.REVERSE
 
         // Drivetrain
-        lFDrive = hwMap["lFDrive"] as DcMotor
-        rFDrive = hwMap["rFDrive"] as DcMotor
-        lBDrive = hwMap["lBDrive"] as DcMotor
-        rBDrive = hwMap["rBDrive"] as DcMotor
-        lFDrive.direction = DcMotorSimple.Direction.REVERSE
-        lBDrive.direction = DcMotorSimple.Direction.REVERSE
+//        lFDrive = hwMap["lFDrive"] as DcMotor
+//        rFDrive = hwMap["rFDrive"] as DcMotor
+//        lBDrive = hwMap["lBDrive"] as DcMotor
+//        rBDrive = hwMap["rBDrive"] as DcMotor
+//        lFDrive.direction = DcMotorSimple.Direction.REVERSE
+//        lBDrive.direction = DcMotorSimple.Direction.REVERSE
     }
 
 }
