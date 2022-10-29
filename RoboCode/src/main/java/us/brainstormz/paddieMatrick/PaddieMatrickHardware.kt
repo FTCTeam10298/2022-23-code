@@ -19,8 +19,7 @@ class PaddieMatrickHardware: MecanumHardware {
     lateinit var right4Bar: CRServo
 
     lateinit var collectorSensor: RevColorSensorV3
-    lateinit var collectorFront: CRServo
-    lateinit var collectorBack: CRServo
+    lateinit var collector: CRServo
 
     override lateinit var hwMap: HardwareMap
 
@@ -28,8 +27,7 @@ class PaddieMatrickHardware: MecanumHardware {
         hwMap = ahwMap
 
         // Collector
-//        collectorFront = hwMap["collector1"] as CRServo
-//        collectorBack = hwMap["collector2"] as CRServo
+        collector = hwMap["collector"] as CRServo
 //        collectorSensor = hwMap["color"] as RevColorSensorV3
 
         // 4 Bar
@@ -47,6 +45,7 @@ class PaddieMatrickHardware: MecanumHardware {
         rightLift = hwMap["rightLift"] as DcMotorEx
         liftLimitSwitch = hwMap["limitSwitch"] as DigitalChannelImpl
 
+        rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         leftLift.direction = DcMotorSimple.Direction.FORWARD
         rightLift.direction = DcMotorSimple.Direction.REVERSE
 

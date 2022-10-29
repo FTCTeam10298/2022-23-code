@@ -53,47 +53,44 @@ class AprilTagEx() {
      * The INIT-loop:
      * This REPLACES waitForStart!
      */
-        while (!opmode.isStarted && !opmode.isStopRequested) {
-            val currentDetections: ArrayList<AprilTagDetection> = aprilTagDetectionPipeline!!.getLatestDetections()
-            if (currentDetections.size != 0) {
-                var tagFound = false
-                for (tag in currentDetections) {
-                    when (tag.id) {
-                        2 -> {
-                            tagFound = true
-                            tagOfInterest = tag
-                            signalOrientation = SignalOrientation.one
-                        }
-                        1 -> {
-                            tagFound = true
-                            tagOfInterest = tag
-                            signalOrientation = SignalOrientation.two
-                        }
-                        0 -> {
-                            tagFound = true
-                            tagOfInterest = tag
-                            signalOrientation = SignalOrientation.three
-                        }
-                        //                            else -> null
+//        while (!opmode.isStarted && !opmode.isStopRequested) {
+//
+//        }
+    }
+
+    fun runAprilTag(telemetry: Telemetry) {
+        telemetry.addLine("signalOrientation: ${signalOrientation}")
+        val currentDetections: ArrayList<AprilTagDetection> = aprilTagDetectionPipeline!!.getLatestDetections()
+        if (currentDetections.size != 0) {
+            var tagFound = false
+            for (tag in currentDetections) {
+                when (tag.id) {
+                    2 -> {
+                        tagFound = true
+                        tagOfInterest = tag
+                        signalOrientation = SignalOrientation.one
                     }
+                    1 -> {
+                        tagFound = true
+                        tagOfInterest = tag
+                        signalOrientation = SignalOrientation.two
+                    }
+                    0 -> {
+                        tagFound = true
+                        tagOfInterest = tag
+                        signalOrientation = SignalOrientation.three
+                    }
+                    //                            else -> null
+                }
 //                    if (tag.id == ID_TAG_OF_INTEREST) {
 //                        tagOfInterest = tag
 //                        tagFound = true
 //                        break
 //                    }
-                }
-                if (tagFound) {
-                    telemetry.addLine("Tag of interest is in sight!\n\nLocation data:")
-                    tagToTelemetry(tagOfInterest, telemetry)
-                } else {
-                    telemetry.addLine("Don't see tag of interest :(")
-                    if (tagOfInterest == null) {
-                        telemetry.addLine("(The tag has never been seen)")
-                    } else {
-                        telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:")
-                        tagToTelemetry(tagOfInterest, telemetry)
-                    }
-                }
+            }
+            if (tagFound) {
+                telemetry.addLine("Tag of interest is in sight!\n\nLocation data:")
+                tagToTelemetry(tagOfInterest, telemetry)
             } else {
                 telemetry.addLine("Don't see tag of interest :(")
                 if (tagOfInterest == null) {
@@ -103,9 +100,17 @@ class AprilTagEx() {
                     tagToTelemetry(tagOfInterest, telemetry)
                 }
             }
-            telemetry.update()
-            sleep(20)
+        } else {
+            telemetry.addLine("Don't see tag of interest :(")
+            if (tagOfInterest == null) {
+                telemetry.addLine("(The tag has never been seen)")
+            } else {
+                telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:")
+                tagToTelemetry(tagOfInterest, telemetry)
+            }
         }
+        telemetry.update()
+        sleep(20)
     }
 
     fun tagToTelemetry(detection: AprilTagDetection?, telemetry: Telemetry) {
@@ -131,7 +136,6 @@ class monthOfApril: LinearOpMode(){
 
     override fun runOpMode() {
         aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
-
     }
 
 
