@@ -56,19 +56,38 @@ class PaddieMatrickAuto: LinearOpMode() {
         movement.driveRobotStrafe(power = 1.0, inches = 20.0, smartAccel = true)
         movement.driveRobotTurn(power = 1.0, degree = 20.0, smartAccel = true)
 
-        Trajectory RedF2SignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(180.0))) //coords of Red Alliance Start 2
+        Trajectory RedSignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(180.0))) //coords of Red Alliance Start 2
                 .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
                 .lineTo(new Vector2d(43.2, -36.0))
                 .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
                 .build()
         );
 
-        Trajectory RedF2SignalTwo =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(180)))
+        Trajectory RedSignalTwo =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(180)))
             .lineTo(new Vector2d(42.8, -35.0))
             .build()
         );
 
-        Trajectory RedF2SignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, 180))
+        Trajectory RedSignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, 180))
+            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+            .lineTo(new Vector2d(43.2, -36.0))
+            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
+            .build()
+        );
+
+        Trajectory BlueSignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(0.0))) //coords of Red Alliance Start 2
+            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+            .lineTo(new Vector2d(43.2, -36.0))
+            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
+            .build()
+        );
+
+        Trajectory BlueSignalTwo =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(0.0)))
+            .lineTo(new Vector2d(42.8, -35.0))
+            .build()
+        );
+
+        Trajectory BlueSignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3), Math.toRadians(0.0)))
             .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
             .lineTo(new Vector2d(43.2, -36.0))
             .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
