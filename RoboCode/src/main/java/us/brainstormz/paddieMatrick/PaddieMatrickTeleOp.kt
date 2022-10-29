@@ -35,12 +35,22 @@ class PaddieMatrickTeleOp: OpMode() {
                                (y - x - r),
                                (y + x + r))
 
+        // Four bar
         val fourBarPower = gamepad2.right_stick_y.toDouble()
         hardware.left4Bar.power = fourBarPower
         hardware.right4Bar.power = fourBarPower
 
+        // Lift
         val liftPower = gamepad2.left_stick_y.toDouble()
         hardware.leftLift.power = liftPower
         hardware.rightLift.power = liftPower // Direction reversed in hardware map
+
+        // Collector
+        if (gamepad1.a || gamepad2.a)
+            hardware.collector.power = 1.0
+        else if (gamepad1.b || gamepad2.b)
+            hardware.collector.power = -1.0
+        else
+            hardware.collector.power = 0.0
     }
 }
