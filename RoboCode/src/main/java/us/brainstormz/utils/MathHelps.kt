@@ -20,7 +20,53 @@ object MathHelps {
             else -> 0
         }
     }
+    fun wrap360(degrees: Double): Double {
+        return if (degrees < 0)
+            360 - degrees
+        else
+            degrees % 360
+    }
+    fun smallestHeadingChange(currentHeading: Double, headingToMouse: Double): Double {
 
+        val absCurrentHeading = Math.abs(currentHeading)
+        val absHeadingToMouse = Math.abs(headingToMouse)
+
+
+        // console.log("degreesToMouse: " + headingToMouse)
+        // console.log("current angle : " + currentHeading)
+
+        // # 1 & 2
+        return when {
+            getSign(currentHeading) !== getSign(headingToMouse) -> {
+                 if ((Math.abs(currentHeading) + Math.abs(headingToMouse)) < (360 - absCurrentHeading - absHeadingToMouse)) {
+                    // #1
+                    // console.log("#1")
+
+                    -getSign(currentHeading) * (absCurrentHeading + absHeadingToMouse)
+                } else {
+                    // #2
+                    // console.log("#2")
+
+                    getSign(currentHeading) * (360 - absCurrentHeading - absHeadingToMouse)
+                }
+            }
+            absCurrentHeading !== absHeadingToMouse -> {
+                // console.log("#3")
+                 headingToMouse - currentHeading
+            }
+            absCurrentHeading === absHeadingToMouse ->  0.0
+            else -> 0.0
+        }
+
+    }
+
+    fun getSign(valu: Double):Int {
+        return when {
+            valu > 0 -> 1
+            valu < 0 -> -1
+            else -> 0
+        }
+    }
     fun calcVector(x: Double, y: Double, magnitude: Double, radians: Double): Point2D {
         val newX = (magnitude * cos(radians)) + x
         val newY = (magnitude * sin(radians)) + y

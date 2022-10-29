@@ -45,6 +45,7 @@ class PaddieMatrickHardware: MecanumHardware {
         rightLift = hwMap["rightLift"] as DcMotorEx
         liftLimitSwitch = hwMap["limitSwitch"] as DigitalChannelImpl
 
+        rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         leftLift.direction = DcMotorSimple.Direction.FORWARD
         rightLift.direction = DcMotorSimple.Direction.REVERSE
 
