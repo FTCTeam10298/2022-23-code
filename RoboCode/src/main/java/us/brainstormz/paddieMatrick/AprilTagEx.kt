@@ -54,6 +54,7 @@ class AprilTagEx() {
      * This REPLACES waitForStart!
      */
         while (!opmode.isStarted && !opmode.isStopRequested) {
+            telemetry.addLine("signalOrientation: ${signalOrientation}")
             val currentDetections: ArrayList<AprilTagDetection> = aprilTagDetectionPipeline!!.getLatestDetections()
             if (currentDetections.size != 0) {
                 var tagFound = false
@@ -131,7 +132,6 @@ class monthOfApril: LinearOpMode(){
 
     override fun runOpMode() {
         aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
-
     }
 
 

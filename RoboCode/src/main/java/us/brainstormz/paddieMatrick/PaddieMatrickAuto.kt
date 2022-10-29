@@ -1,24 +1,40 @@
 package us.brainstormz.paddieMatrick
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import us.brainstormz.hardwareClasses.EncoderDriveMovement
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
-//@Autonomous
-class PaddieMatrickAuto/** Change Depending on robot */: LinearOpMode() {
+@Autonomous
+class PaddieMatrickAuto: LinearOpMode() {
 
-    val hardware = PaddieMatrickHardware()/** Change Depending on robot */
+    val hardware = PaddieMatrickHardware()
     val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
+
+    var aprilTagGX = AprilTagEx()
 
     override fun runOpMode() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
 
+
+
+        aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
+
         waitForStart()
-        /** AUTONOMOUS  PHASE */
-        movement.driveRobotPosition(power = 1.0, inches = 20.0, smartAccel = true)
-        movement.driveRobotStrafe(power = 1.0, inches = 20.0, smartAccel = true)
-        movement.driveRobotTurn(power = 1.0, degree = 20.0, smartAccel = true)
+
+        when (aprilTagGX.signalOrientation) {
+            SignalOrientation.one -> {
+                movement.driveRobotPosition(0.8, 20.0, true)
+            }
+            SignalOrientation.two -> {
+                movement.driveRobotPosition(0.8, 20.0, true)
+            }
+            SignalOrientation.three -> {
+                movement.driveRobotPosition(0.8, 20.0, true)
+            }
+        }
+
     }
 
 }
