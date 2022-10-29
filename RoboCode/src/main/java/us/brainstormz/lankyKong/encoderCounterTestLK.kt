@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.HardwareMap
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.hardwareClasses.MecanumHardware
+import java.lang.Thread.sleep
 
 
 @TeleOp
@@ -25,13 +26,40 @@ class encoderCounterTestLK /** Change Depending on robot */: OpMode() {
     override fun loop() {
         /** TELE-OP PHASE */
 
-        // DRONE DRUNK
-        var lF = hardware.lFDrive.currentPosition
-        var lB = hardware.lBDrive.currentPosition
-        var rf = hardware.rFDrive.currentPosition
-        var rb = hardware.rBDrive.currentPosition
+        var lF: Int
+        var lB: Int
+        var rF: Int
+        var rB: Int
 
-        telemetry.addLine(" lF: $lF, lB: $lB, rF: $rf, rB: $rb")
+        // DRONE DRUNK
+        fun reportVals(){
+             lF = hardware.lFDrive.currentPosition
+             lB = hardware.lBDrive.currentPosition
+             rF = hardware.rFDrive.currentPosition
+             rB = hardware.rBDrive.currentPosition
+        }
+
+
+        hardware.rFDrive.power = 0.5
+        telemetry.addLine("rFDrive Moving")
+        sleep(5000)
+        reportVals()
+        hardware.rFDrive.power = 0.0
+        hardware.lFDrive.power = 0.5
+        telemetry.addLine("lFDrive Moving")
+        sleep(5000)
+        reportVals()
+        hardware.lFDrive.power = 0.0
+        hardware.rBDrive.power = 0.5
+        telemetry.addLine("rBDrive Moving")
+        sleep(5000)
+        reportVals()
+        hardware.rBDrive.power = 0.0
+        hardware.lBDrive.power = 0.5
+        telemetry.addLine("lBDrive moving")
+        sleep(5000)
+        reportVals()
+        hardware.lBDrive.power = 0.0
     }
 }
 
