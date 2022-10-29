@@ -23,9 +23,11 @@ class PaddieMatrickTeleOp: OpMode() {
     var liftTarget = 0.0
     val liftSpeed = 1200.0
     enum class LiftCounts(val counts: Int) {
-        PreCollection(600),
-        Collection(400),
-        HighJunction(3000)
+        PreCollection(480),
+        Collection(30),
+        HighJunction(4200),
+        MidJunction(2400),
+        LowJunction(800)
     }
 
     override fun init() {
@@ -79,6 +81,24 @@ class PaddieMatrickTeleOp: OpMode() {
         // Lift
         liftTarget += (-gamepad2.left_stick_y.toDouble() * liftSpeed / dt)
 
+        when {
+            gamepad1.dpad_up || gamepad2.dpad_up -> {
+                liftTarget = LiftCounts.HighJunction.counts.toDouble()
+            }
+            gamepad1.dpad_left || gamepad2.dpad_left -> {
+                liftTarget = LiftCounts.MidJunction.counts.toDouble()
+            }
+            gamepad1.dpad_down || gamepad2.dpad_down -> {
+                liftTarget = LiftCounts.LowJunction.counts.toDouble()
+            }
+            gamepad1.a || gamepad2.a -> {
+                liftTarget = LiftCounts.PreCollection.counts.toDouble()
+            }
+            gamepad1.x || gamepad2.x -> {
+                liftTarget = LiftCounts.Collection.counts.toDouble()
+            }
+        }
+
         liftTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
@@ -98,10 +118,6 @@ class PaddieMatrickTeleOp: OpMode() {
         // Collector
 
         when {
-            gamepad1.x || gamepad2.x -> {
-                hardware.collector.power = 1.0
-                liftTarget = LiftCounts.Collection.counts.toDouble()
-            }
             gamepad1.right_trigger > 0 || gamepad2.right_trigger > 0 -> {
                 hardware.collector.power = 1.0
             }
