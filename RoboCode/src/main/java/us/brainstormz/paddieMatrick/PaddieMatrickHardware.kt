@@ -10,7 +10,7 @@ class PaddieMatrickHardware: MecanumHardware {
     override lateinit var lBDrive: DcMotor
     override lateinit var rBDrive: DcMotor
 
-    lateinit var liftLimitSwitch: AnalogInput
+    lateinit var liftLimitSwitch: DigitalChannel
     lateinit var leftLift: DcMotorEx
     lateinit var rightLift: DcMotorEx
 
@@ -40,10 +40,12 @@ class PaddieMatrickHardware: MecanumHardware {
         left4Bar.direction = DcMotorSimple.Direction.FORWARD
         right4Bar.direction = DcMotorSimple.Direction.REVERSE
 
+        encoder4Bar.connectionInfo
+
         // Lift
         leftLift = hwMap["leftLift"] as DcMotorEx
         rightLift = hwMap["rightLift"] as DcMotorEx
-//        liftLimitSwitch = hwMap["limitSwitch"] as AnalogInput
+        liftLimitSwitch = hwMap["limitSwitch"] as DigitalChannelImpl
 
         leftLift.direction = DcMotorSimple.Direction.FORWARD
         rightLift.direction = DcMotorSimple.Direction.REVERSE

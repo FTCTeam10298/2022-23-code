@@ -10,15 +10,18 @@ class PaddieMatrickTeleOp: OpMode() {
 
     val hardware = PaddieMatrickHardware()
     val movement = MecanumDriveTrain(hardware)
+    val fourBar = FourBar(telemetry)
 
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
+        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
     }
 
     override fun loop() {
         /** TELE-OP PHASE */
 
+        telemetry.addLine("limit switch state: ${hardware.liftLimitSwitch.state}")
 //        // DRONE DRIVE
 //        val yInput = gamepad1.left_stick_y.toDouble()
 //        val xInput = gamepad1.left_stick_x.toDouble()
