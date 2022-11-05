@@ -37,24 +37,29 @@ class quackQuackQuackQuack /** Change Depending on robot */: LinearOpMode() {
         var rB: Int = 0
 
         // DRONE DRUNK
-        fun reportVals() {
-            lF = hardware.lFDrive.currentPosition
-            lB = hardware.lBDrive.currentPosition
-            rF = hardware.rFDrive.currentPosition
-            rB = hardware.rBDrive.currentPosition
-            telemetry.addLine("LF: $lF, LB: $lB, RF: $rF, RB: $rB")
-            telemetry.update()
-        }
+//        fun reportVals() {
+//            lF = hardware.lFDrive.currentPosition
+//            lB = hardware.lBDrive.currentPosition
+//            rF = hardware.rFDrive.currentPosition
+//            rB = hardware.rBDrive.currentPosition
+//            telemetry.addLine("LF: $lF, LB: $lB, RF: $rF, RB: $rB")
+//            telemetry.update()
+//        }
+//
+//        val motoring = listOf<DcMotor>(hardware.lFDrive, hardware.rFDrive, hardware.lBDrive, hardware.rBDrive)
+//        for (i in motoring) {
+//            i.power = 0.5
+//            telemetry.addLine("${i.portNumber} Moving")
+//            sleep(5000)
+//            i.power = 0.0
+//            reportVals()
+//            sleep(3000)
+//        }
 
-        val motoring = listOf<DcMotor>(hardware.lFDrive, hardware.rFDrive, hardware.lBDrive, hardware.rBDrive)
-        for (i in motoring) {
-            i.power = 0.5
-            telemetry.addLine("${i.portNumber} Moving")
-            sleep(5000)
-            i.power = 0.0
-            reportVals()
-            sleep(3000)
-        }
+        hardware.rFDrive.power = 0.5
+        hardware.lFDrive.power = 0.5
+        hardware.rBDrive.power = -0.5
+        hardware.lBDrive.power = -0.5
 
 
 
@@ -87,6 +92,10 @@ class quackQuackQuackQuack /** Change Depending on robot */: LinearOpMode() {
 //
 //        reportVals()
         sleep(5000)
+        hardware.rFDrive.power = 0.0
+        hardware.lFDrive.power = 0.0
+        hardware.rBDrive.power = 0.0
+        hardware.lBDrive.power = 0.0
     }
 
 
@@ -101,20 +110,20 @@ class quackQuackQuackQuack /** Change Depending on robot */: LinearOpMode() {
             hwMap = ahwMap
 
             //Drivetrain
-            lFDrive = hwMap["ctrl1"] as DcMotorEx // black
-            rFDrive = hwMap["ctrl0"] as DcMotorEx // pink
-            lBDrive = hwMap["ctrl2"] as DcMotorEx // blue
-            rBDrive = hwMap["ctrl3"] as DcMotorEx // green
+            lFDrive = hwMap["leftFront"] as DcMotorEx // black
+            rFDrive = hwMap["rightFront"] as DcMotorEx // pink
+            lBDrive = hwMap["leftRear"] as DcMotorEx // blue
+            rBDrive = hwMap["rightRear"] as DcMotorEx // green
 
             lFDrive.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             lBDrive.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             rFDrive.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             rBDrive.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
 
-            lFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            lBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            rFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            rBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            lFDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+            lBDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+            rFDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+            rBDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
 
             rBDrive.direction  =  DcMotorSimple.Direction.REVERSE
             lFDrive.direction  =  DcMotorSimple.Direction.REVERSE
