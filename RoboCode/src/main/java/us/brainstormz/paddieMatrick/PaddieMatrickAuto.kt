@@ -1,11 +1,8 @@
 package us.brainstormz.paddieMatrick
 
-<<<<<<< HEAD
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.trajectory.Trajectory
-=======
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
->>>>>>> bbb69c901aa0af194b3448b51698d0a522dd6f38
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import us.brainstormz.hardwareClasses.EncoderDriveMovement
 import us.brainstormz.pid.PID
@@ -50,7 +47,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         }
 
         waitForStart()
-<<<<<<< HEAD
+
         /** AUTONOMOUS  PHASE */
         movement.driveRobotPosition(power = 1.0, inches = 20.0, smartAccel = true)
         movement.driveRobotStrafe(power = 1.0, inches = 20.0, smartAccel = true)
@@ -63,7 +60,8 @@ class PaddieMatrickAuto: LinearOpMode() {
                 .build()
         );
 
-        Trajectory RedSignalTwo =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(180)))
+        Trajectory RedSignalTwo = drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(180)))
+            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
             .lineTo(new Vector2d(42.8, -35.0))
             .build()
         );
@@ -83,6 +81,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         );
 
         Trajectory BlueSignalTwo =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(0.0)))
+            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
             .lineTo(new Vector2d(42.8, -35.0))
             .build()
         );
@@ -113,12 +112,6 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         if(isStopRequested()) return;
 
-=======
-
-
-
-
->>>>>>> bbb69c901aa0af194b3448b51698d0a522dd6f38
     }
 }
 
