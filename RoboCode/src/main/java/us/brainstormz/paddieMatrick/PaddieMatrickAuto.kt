@@ -12,7 +12,7 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 class PaddieMatrickAuto: LinearOpMode() {
 
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
-    Drivetrain drive = new Drivetrain(hwMap);
+//    Drivetrain drive = new Drivetrain(hwMap);
     val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
 
     var aprilTagGX = AprilTagEx()
@@ -52,46 +52,46 @@ class PaddieMatrickAuto: LinearOpMode() {
         movement.driveRobotPosition(power = 1.0, inches = 20.0, smartAccel = true)
         movement.driveRobotStrafe(power = 1.0, inches = 20.0, smartAccel = true)
         movement.driveRobotTurn(power = 1.0, degree = 20.0, smartAccel = true)
-
-        Trajectory RedSignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(180.0))) //coords of Red Alliance Start 2
-                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-                .lineTo(new Vector2d(43.2, -36.0))
-                .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
-                .build()
-        );
-
-        Trajectory RedSignalTwo = drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(180)))
-            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-            .lineTo(new Vector2d(42.8, -35.0))
-            .build()
-        );
-
-        Trajectory RedSignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, 180))
-            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-            .lineTo(new Vector2d(43.2, -36.0))
-            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
-            .build()
-        );
-
-        Trajectory BlueSignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(0.0))) //coords of Red Alliance Start 2
-            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-            .lineTo(new Vector2d(43.2, -36.0))
-            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
-            .build()
-        );
-
-        Trajectory BlueSignalTwo =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(0.0)))
-            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-            .lineTo(new Vector2d(42.8, -35.0))
-            .build()
-        );
-
-        Trajectory BlueSignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3), Math.toRadians(0.0)))
-            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-            .lineTo(new Vector2d(43.2, -36.0))
-            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
-            .build()
-        );
+        //Definitions of RoadRunner Trajectories
+//        Trajectory RedSignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(180.0))) //coords of Red Alliance Start 2
+//                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+//                .lineTo(new Vector2d(43.2, -36.0))
+//                .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
+//                .build()
+//        );
+//
+//        Trajectory RedSignalTwo = drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(180)))
+//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+//            .lineTo(new Vector2d(42.8, -35.0))
+//            .build()
+//        );
+//
+//        Trajectory RedSignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, 180))
+//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+//            .lineTo(new Vector2d(43.2, -36.0))
+//            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
+//            .build()
+//        );
+//
+//        Trajectory BlueSignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(0.0))) //coords of Red Alliance Start 2
+//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+//            .lineTo(new Vector2d(43.2, -36.0))
+//            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
+//            .build()
+//        );
+//
+//        Trajectory BlueSignalTwo =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(0.0)))
+//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+//            .lineTo(new Vector2d(42.8, -35.0))
+//            .build()
+//        );
+//
+//        Trajectory BlueSignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3), Math.toRadians(0.0)))
+//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
+//            .lineTo(new Vector2d(43.2, -36.0))
+//            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
+//            .build()
+//        );
 
         //basic drive forward
         when (aprilTagGX.signalOrientation) {
@@ -113,8 +113,5 @@ class PaddieMatrickAuto: LinearOpMode() {
         if(isStopRequested()) return;
 
     }
-}
-
-}
 
 }
