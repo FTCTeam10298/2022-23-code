@@ -1,14 +1,5 @@
 package us.brainstormz.lankyKong
-// FL <-> FR
 
-/**
-Encoder Mappings
-fr ->
-fL -> !!
-bR ->
-bL ->
- **/
-//
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import us.brainstormz.examples.ExampleHardware
 
