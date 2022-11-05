@@ -116,8 +116,8 @@ class quackQuackQuackQuack /** Change Depending on robot */: LinearOpMode() {
             rFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
             rBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
+            rBDrive.direction  =  DcMotorSimple.Direction.REVERSE
             lFDrive.direction  =  DcMotorSimple.Direction.REVERSE
-            lBDrive.direction = DcMotorSimple.Direction.REVERSE
         }
     }
 }
