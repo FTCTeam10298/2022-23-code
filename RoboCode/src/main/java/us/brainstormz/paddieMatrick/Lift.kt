@@ -3,10 +3,11 @@ package us.brainstormz.paddieMatrick
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DigitalChannel
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import us.brainstormz.pid.PID
 import kotlin.math.PI
 
-class Lift() {
+class Lift(private val telemetry: Telemetry) {
 
     private lateinit var leftMotor: DcMotorEx
     private lateinit var rightMotor: DcMotorEx
@@ -45,17 +46,20 @@ class Lift() {
     fun setLiftPowerToward(targetInches: Double): Boolean {
         val currentPosInches = currentPosInches()
 
-        val pidPower = pid.calcPID(targetInches, currentPosInches)
+        val error = targetInches - currentPosInches
+
+        val pidPower = pid.calcPID(error)
 
         val constrainedPower = limitPowerForOutOfBounds(pidPower, targetInches)
 
         setLiftPower(constrainedPower)
 
-        return currentPosInches in -positionAccuracyIn..positionAccuracyIn
+        return error in -positionAccuracyIn..positionAccuracyIn
     }
 
     fun currentPosInches(): Double {
-        val averagedPosition = 0//rightMotor.currentPosition
+        val averagedPosition = rightMotor.currentPosition
+        telemetry.addLine("liftEncoderCounts: $averagedPosition")
         return encoderCountsToInches(averagedPosition)
 //        val correctedPosition = correctPosition(averagedPosition)
 //        return encoderCountsToInches(correctedPosition)
@@ -88,13 +92,18 @@ class Lift() {
         else
             powerIn
 
-//        correctPosition()
+        correctPosition()
+
+        telemetry.addLine("powerOut: $powerOut")
 
         leftMotor.power = powerOut
         rightMotor.power = powerOut
     }
 
-    private fun encoderCountsToInches(counts: Int): Double = counts / countsPerInch
+    private fun encoderCountsToInches(counts: Int): Double {
+        telemetry.addLine("countsPerMotorRotation: $countsPerMotorRotation\nrotationsPerMM: $rotationsPerMM\ncountsPerInch: $countsPerInch")
+        return counts * 0.006//* countsPerInch
+    }
 
     fun isLimitSwitchPressed(): Boolean {
         return !limitSwitch.state
