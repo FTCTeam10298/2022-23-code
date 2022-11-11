@@ -2,11 +2,12 @@ package us.brainstormz.paddieMatrick
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import us.brainstormz.hardwareClasses.EncoderDriveMovement
 import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
-@Autonomous
+@Autonomous(name= "PaddieMatrick Auto", group= "A")
 class PaddieMatrickAuto: LinearOpMode() {
 
     val hardware = PaddieMatrickHardware()
@@ -21,7 +22,6 @@ class PaddieMatrickAuto: LinearOpMode() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
 //        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-
 
         aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
 

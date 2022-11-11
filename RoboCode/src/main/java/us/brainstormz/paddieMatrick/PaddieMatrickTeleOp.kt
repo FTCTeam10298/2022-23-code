@@ -1,5 +1,6 @@
 package us.brainstormz.paddieMatrick
 
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -8,16 +9,20 @@ import us.brainstormz.pid.PID
 import us.brainstormz.utils.MathHelps
 import kotlin.math.abs
 
-@TeleOp
+@TeleOp(name= "PaddieMatrick Tele-op", group= "A")
 class PaddieMatrickTeleOp: OpMode() {
 
     val hardware = PaddieMatrickHardware()
     val movement = MecanumDriveTrain(hardware)
     val fourBar = FourBar(telemetry)
 
-    val fourBarPID = PID(kp= 0.03)//, ki= 0.000035)
+    val fourBarPID = PID(kp= 0.02)//, ki= 0.000035)
     var fourBarTarget = 0.0
     val fourBarSpeed = 200.0
+    companion object {
+        var centerPosition = 180.0
+    }
+    val fourBarRange = 180.0
 
     val liftPID = PID(kp= 0.003, ki= 0.0)
     var liftTarget = 0.0
@@ -53,27 +58,30 @@ class PaddieMatrickTeleOp: OpMode() {
         val antiTipModifier: Double = MathHelps.scaleBetween(hardware.rightLift.currentPosition.toDouble() + 1, 0.0..3000.0, 1.0..2.0)
         telemetry.addLine("antiTipModifier: $antiTipModifier")
 
-        val yInput = gamepad1.left_stick_y.toDouble()
-        val xInput = gamepad1.left_stick_x.toDouble()
+        val yInput = -gamepad1.left_stick_y.toDouble()
+        val xInput = -gamepad1.left_stick_x.toDouble()
         val rInput = gamepad1.right_stick_x.toDouble()
 
         val y = -yInput / antiTipModifier
         val x = xInput / antiTipModifier
-        val r = -rInput * abs(rInput) / antiTipModifier
+        val r = -rInput * abs(rInput)
         movement.driveSetPower((y + x - r),
                                (y - x + r),
                                (y - x - r),
                                (y + x + r))
 
         // Four bar
-        telemetry.addLine("fourbar: ${fourBar.current4BarDegrees()}")
-        fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt )
-        fourBarTarget = MathHelps.wrap360(fourBarTarget)
-        telemetry.addLine("fourBarTarget: $fourBarTarget")
+//        telemetry.addLine("fourbar: ${fourBar.current4BarDegrees()}")
+//        fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt )
+//        fourBarTarget = MathHelps.wrap360(fourBarTarget)
+//        telemetry.addLine("fourBarTarget: $fourBarTarget")
 
 
-        val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
+        val fourBarPower = gamepad2.right_stick_y.toDouble()
+//                fourBarPID.calcPID(MathHelps.wrap360(fourBarTarget - (fourBar.current4BarDegrees())))
+
         telemetry.addLine("fourBarPower: $fourBarPower")
+
 
         hardware.left4Bar.power = fourBarPower
         hardware.right4Bar.power = fourBarPower
@@ -136,4 +144,25 @@ class PaddieMatrickTeleOp: OpMode() {
         hardware.leftLift.power = power
         hardware.rightLift.power = power // Direction reversed in hardware map
     }
+}
+
+@TeleOp(name= "4bar Calibrator", group= "A")
+class fourBarCalibrator: LinearOpMode() {
+
+    val hardware = PaddieMatrickHardware()
+    val fourBar = FourBar(telemetry)
+
+    override fun runOpMode() {
+
+        hardware.init(hardwareMap)
+        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
+
+
+        while (!isStarted && opModeInInit()) {
+            telemetry.addLine("fourBar position: ${fourBar.current4BarDegrees()}")
+        }
+
+        PaddieMatrickTeleOp.centerPosition = fourBar.current4BarDegrees()
+    }
+
 }
