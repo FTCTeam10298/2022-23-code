@@ -1,34 +1,53 @@
 package us.brainstormz.paddieMatrick
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.hardware.AnalogInput
+import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import com.qualcomm.robotcore.hardware.DigitalChannel
 import us.brainstormz.pid.PID
+import kotlin.math.PI
 
-class Lift(private val leftMotor: DcMotorEx, private val rightMotor: DcMotorEx, private val limitSwitch: AnalogInput) {
+class Lift() {
 
-    private val maxInches = 33.0
+    private lateinit var leftMotor: DcMotorEx
+    private lateinit var rightMotor: DcMotorEx
+    private lateinit var limitSwitch: DigitalChannel
+
+    private val maxInches = 31.0
     private val minInches = 0.0
+    private val maxTravelRange = minInches .. maxInches
     private val outOfBoundsPower = 0.5
     private val positionAccuracyIn = 0.5
 
-    private val pid = PID()
 
-    fun goToPositionBlocking(targetInches: Double, linearOpMode: LinearOpMode) {
-        while (linearOpMode.opModeIsActive()) {
+    private val countsPerMotorRotation = 537.7
+    private val rotationsPerMM = 114 / PI
+    private val countsPerInch = countsPerMotorRotation * (rotationsPerMM * 25.4)
 
-            val atTarget = setLiftPowerToward(targetInches)
+    private val pid = PID(kp= 0.003, ki= 0.0)
 
-            if (atTarget)
-                break
-        }
+    fun init(leftMotor: DcMotorEx, rightMotor: DcMotorEx, limitSwitch: DigitalChannel) {
+        this.leftMotor = leftMotor
+        this.rightMotor = rightMotor
+        this.limitSwitch = limitSwitch
     }
+
+//    fun goToPositionBlocking(targetInches: Double, linearOpMode: LinearOpMode) {
+//        while (linearOpMode.opModeIsActive()) {
+//
+//            val atTarget = setLiftPowerToward(targetInches)
+//
+//            if (atTarget)
+//                break
+//        }
+//    }
+
 
     fun setLiftPowerToward(targetInches: Double): Boolean {
         val currentPosInches = currentPosInches()
 
-        val powerPID = pid.calcPID(targetInches, currentPosInches)
-        val constrainedPower = constrainPower(powerPID, targetInches)
+        val pidPower = pid.calcPID(targetInches, currentPosInches)
+
+        val constrainedPower = limitPowerForOutOfBounds(pidPower, targetInches)
 
         setLiftPower(constrainedPower)
 
@@ -36,30 +55,31 @@ class Lift(private val leftMotor: DcMotorEx, private val rightMotor: DcMotorEx, 
     }
 
     fun currentPosInches(): Double {
-        val averagedPosition = (leftMotor.currentPosition + rightMotor.currentPosition) / 2
-        val correctedPosition = correctPosition(averagedPosition)
-        return encoderCountsToInches(correctedPosition)
+        val averagedPosition = 0//rightMotor.currentPosition
+        return encoderCountsToInches(averagedPosition)
+//        val correctedPosition = correctPosition(averagedPosition)
+//        return encoderCountsToInches(correctedPosition)
     }
 
-    private fun constrainPower(powerIn: Double, targetInches: Double): Double {
-        val travelRange = minInches .. maxInches
-
-        return if (targetInches !in travelRange) {
-                powerIn.coerceIn(-outOfBoundsPower..outOfBoundsPower)
+    private fun limitPowerForOutOfBounds(powerIn: Double, targetInches: Double): Double {
+        return if (targetInches !in maxTravelRange) {
+            powerIn.coerceIn(-outOfBoundsPower..outOfBoundsPower)
         } else {
             powerIn
         }
     }
 
-    private var zeroCount = 0
+//    private var zeroCount = 0
     private var limitSwitchWasPressed = false
-    private fun correctPosition(currentCounts: Int): Int {
+    private fun correctPosition(/*currentCounts: Int*/) {
         if (isLimitSwitchPressed() && !limitSwitchWasPressed) {
-            zeroCount = currentCounts
+            rightMotor.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            rightMotor.mode = DcMotor.RunMode.RUN_USING_ENCODER
+//            zeroCount = currentCounts
         }
         limitSwitchWasPressed = isLimitSwitchPressed()
 
-        return currentCounts - zeroCount
+//        return currentCounts - zeroCount
     }
 
     private fun setLiftPower(powerIn: Double) {
@@ -68,13 +88,24 @@ class Lift(private val leftMotor: DcMotorEx, private val rightMotor: DcMotorEx, 
         else
             powerIn
 
+//        correctPosition()
+
         leftMotor.power = powerOut
         rightMotor.power = powerOut
     }
 
-    private fun encoderCountsToInches(counts: Int): Double = (counts / 150).toDouble()
+    private fun encoderCountsToInches(counts: Int): Double = counts / countsPerInch
 
     fun isLimitSwitchPressed(): Boolean {
-        return limitSwitch.voltage > 10
+        return !limitSwitch.state
     }
 }
+
+//fun main() {
+//    val lift = Lift()
+//
+//    val targetInches = 20.0
+//
+//    lift.setLiftPowerToward(targetInches)
+//
+//}
