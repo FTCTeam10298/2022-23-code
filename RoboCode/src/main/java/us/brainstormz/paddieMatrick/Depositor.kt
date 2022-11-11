@@ -58,7 +58,7 @@ class Depositor(private val lift: Lift, private val fourBar: FourBar, private va
 
         val liftAtTarget = lift.setLiftPowerToward(targetInches)
 
-        telemetry.addLine("targetAngle: $targetAngle\nliftOffset: $liftOffset\ntargetInches: $targetInches\nfourBarAtTarget: $fourBarAtTarget\nliftAtTarget: $liftAtTarget")
+        telemetry.addLine("inchesFromCenter: $inchesFromCenter\ninchesFromGround: $inchesFromGround\ntargetAngle: $targetAngle\nliftOffset: $liftOffset\ntargetInches: $targetInches\nfourBarAtTarget: $fourBarAtTarget\nliftAtTarget: $liftAtTarget")
         return when {
             fourBarAtTarget && liftAtTarget -> PositionalState.AtTarget
             fourBarAtTarget -> PositionalState.FourBarAtTarget
@@ -99,10 +99,17 @@ class DepositorTest: OpMode() {
         lift.init(hardware.leftLift, hardware.rightLift, hardware.liftLimitSwitch)
     }
 
+
+    var depositorY = 0.0
+    var depositorZ = 0.0
     override fun loop() {
         telemetry.addLine("lift inches: ${lift.currentPosInches()}")
         telemetry.addLine("4bar degrees: ${fourBar.current4BarDegrees()}")
-        depositor.powerEndEffectorToward(8.0, 9.0)
+
+        depositorY += -gamepad2.right_stick_y.toDouble()
+        depositorZ += -gamepad2.left_stick_y.toDouble()
+
+        depositor.powerEndEffectorToward(depositorY, depositorZ)
     }
 
 }

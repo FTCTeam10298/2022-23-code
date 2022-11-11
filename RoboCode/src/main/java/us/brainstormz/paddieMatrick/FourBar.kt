@@ -25,7 +25,7 @@ class FourBar(private val telemetry: Telemetry) {
     }
 
     private val pid = PID(kp= 0.005, ki= 0.00000001)
-    private val accuracyDegrees = 5.0
+    private val accuracyDegrees = 2.0
 
     val barLengthInch = 9.5
 
