@@ -1,11 +1,16 @@
 package us.brainstormz.paddieMatrick
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import kotlin.math.asin
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 class Depositor(private val lift: Lift, private val fourBar: FourBar, private val collector: Collector) {
+
+    private val fourBarMountHeightIn = 10.5
 
     enum class PositionalState {
         AtTarget,
@@ -29,16 +34,16 @@ class Depositor(private val lift: Lift, private val fourBar: FourBar, private va
         Terminal(33.0)
     }
 
-    fun moveEndEffectorBlocking(inchesFromCenter: Double, inchesFromGround: Double, linearOpMode: LinearOpMode, angleBarUp: Boolean = true) {
-        while (linearOpMode.opModeIsActive()) {
-            val depositorState = powerEndEffectorToward(inchesFromCenter, inchesFromGround, angleBarUp)
+//    fun moveEndEffectorBlocking(inchesFromCenter: Double, inchesFromGround: Double, linearOpMode: LinearOpMode, angleBarUp: Boolean = true) {
+//        while (linearOpMode.opModeIsActive()) {
+//            val depositorState = powerEndEffectorToward(inchesFromCenter, inchesFromGround, angleBarUp)
+//
+//            if (depositorState == PositionalState.AtTarget)
+//                break
+//        }
+//    }
 
-            if (depositorState == PositionalState.AtTarget)
-                break
-        }
-    }
-
-    fun powerEndEffectorToward(inchesFromCenter: Double, inchesFromGround: Double, angleBarUp: Boolean = true /*whether the bar should be angled up or down*/): PositionalState {
+    fun powerEndEffectorToward(inchesFromCenter: Double, inchesFromGround: Double): PositionalState {
         val constrainedInFromCenter = inchesFromCenter.coerceIn(-fourBar.barLengthInch..fourBar.barLengthInch)
 
 
@@ -46,12 +51,10 @@ class Depositor(private val lift: Lift, private val fourBar: FourBar, private va
 
         val fourBarAtTarget = fourBar.goToPosition(targetAngle)
 
-
-        val liftOffset = calcLiftOffset(constrainedInFromCenter) * if (angleBarUp) 1 else -1
+        val liftOffset = calcLiftOffset(constrainedInFromCenter) * if (inchesFromGround > fourBarMountHeightIn) 1 else -1
         val targetInches = inchesFromGround - liftOffset + collector.heightInch
 
         val liftAtTarget = lift.setLiftPowerToward(targetInches)
-
 
         return when {
             fourBarAtTarget && liftAtTarget -> PositionalState.AtTarget
@@ -62,7 +65,7 @@ class Depositor(private val lift: Lift, private val fourBar: FourBar, private va
     }
 
 
-    private fun calc4barAngle(inchesFromCenter: Double): Double = asin(inchesFromCenter/fourBar.barLengthInch)
+    private fun calc4barAngle(inchesFromCenter: Double): Double = Math.toDegrees(asin(inchesFromCenter/fourBar.barLengthInch))
     private fun calcLiftOffset(inchesFromCenter: Double): Double = sqrt(fourBar.barLengthInch.pow(2) - inchesFromCenter.pow(2))
 
 
@@ -72,4 +75,29 @@ class Depositor(private val lift: Lift, private val fourBar: FourBar, private va
 //
 //        return true
 //    }
+}
+
+@TeleOp(name="Depositor Test", group="1")
+class DepositorTest: OpMode() {
+
+    val hardware = PaddieMatrickHardware()
+    val movement = MecanumDriveTrain(hardware)
+
+    val collector = Collector()
+    val fourBar = FourBar(telemetry)
+    val lift = Lift()
+    val depositor = Depositor(lift, fourBar, collector)
+
+    override fun init() {
+        hardware.init(hardwareMap)
+
+        collector.init(hardware.collector)
+        fourBar.init(hardware.left4Bar, hardware.right4Bar, hardware.encoder4Bar)
+        lift.init(hardware.leftLift, hardware.rightLift, hardware.liftLimitSwitch)
+    }
+
+    override fun loop() {
+        depositor.powerEndEffectorToward(8.0, 15.0)
+    }
+
 }
