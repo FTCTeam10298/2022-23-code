@@ -2,11 +2,14 @@ package us.brainstormz.paddieMatrick
 
 import com.qualcomm.robotcore.hardware.CRServo
 
-class Collector(private val frontServo: CRServo, private val backServo: CRServo) {
+class Collector() {
+    private lateinit var servo: CRServo
 
-    val heightInch = 4
+    val heightInch = 4.0
 
-    val servos = listOf(frontServo, backServo)
+    fun init(frontServo: CRServo) {
+        this.servo = frontServo
+    }
 
     enum class Powers(val power: Double) {
         Intaking(1.0),
@@ -14,8 +17,6 @@ class Collector(private val frontServo: CRServo, private val backServo: CRServo)
     }
 
     fun manipulate(action: Powers) {
-        servos.forEach{
-            it.power = action.power
-        }
+        servo.power = action.power
     }
 }
