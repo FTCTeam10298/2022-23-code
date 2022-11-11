@@ -21,10 +21,10 @@ object MathHelps {
         }
     }
     fun wrap360(degrees: Double): Double {
-        return if (degrees < 0)
-            360 - degrees
-        else
-            degrees % 360
+//        return if (degrees < 0)
+//            360 - degrees
+//        else
+           return degrees % 360
     }
     fun smallestHeadingChange(currentHeading: Double, headingToMouse: Double): Double {
 
