@@ -21,11 +21,11 @@ class FourBar(private val telemetry: Telemetry) {
     }
 
     companion object {
-        var degreesWhenVertical: Double = 180.0
+        var degreesWhenVertical: Double = -110.0
     }
 
-    private val pid = PID(kp= 0.02)
-    private val accuracyDegrees = 1.0
+    private val pid = PID(kp= 0.005, ki= 0.00000001)
+    private val accuracyDegrees = 5.0
 
     val barLengthInch = 9.5
 
@@ -34,7 +34,8 @@ class FourBar(private val telemetry: Telemetry) {
 
     fun goToPosition(targetDegrees: Double): Boolean {
         val wrappedTarget = MathHelps.wrap360(targetDegrees)
-        val wrappedError = MathHelps.wrap360(wrappedTarget - 1.0)//current4BarDegrees())
+        val wrappedError = MathHelps.wrap360(wrappedTarget - current4BarDegrees())
+//        telemetry.addLine("wrappedTarget: $wrappedTarget\nwrappedError: $wrappedError")
 
         val power = pid.calcPID(wrappedError)
 
@@ -54,24 +55,26 @@ class FourBar(private val telemetry: Telemetry) {
     }
 
     fun current4BarDegrees(): Double {
+        val degrees = encoderDegrees()
+//        telemetry.addLine("degrees: $degrees")
+//        telemetry.addLine("degreesWhenVertical: $degreesWhenVertical")
+
+        return MathHelps.wrap360(degrees - degreesWhenVertical)
+    }
+
+    fun encoderDegrees(): Double {
         //https://www.andymark.com/products/ma3-absolute-encoder-with-cable
         //0* = 0V
         //360* = 3.3V
 //        telemetry.addLine("voltage: ${encoder.voltage}")
-        val degrees = encoder.voltage * 109.091
+        val degrees = encoder.voltage * -109.091
 //        telemetry.addLine("degrees: $degrees")
         return degrees
     }
 }
 
-fun main() {
-    val phoTelem = PhoHardware.PhoTelemetry()
-    val fourBar = FourBar(phoTelem)
 
-    fourBar.goToPosition(40.0)
-}
-
-@TeleOp
+@TeleOp(name= "Calibrate 4bar", group="!")
 class CalibrateFourBar(): LinearOpMode() {
 
     val hardware = PaddieMatrickHardware()
@@ -84,10 +87,12 @@ class CalibrateFourBar(): LinearOpMode() {
 
         while (this.opModeInInit()) {
 
-            telemetry.addLine("4 Bar position: ${fourBar.current4BarDegrees()}")
+            telemetry.addLine("4 Bar position: ${fourBar.encoderDegrees()}")
+            telemetry.update()
         }
+
         waitForStart()
-        FourBar.degreesWhenVertical = fourBar.current4BarDegrees()
+        FourBar.degreesWhenVertical = fourBar.encoderDegrees()
     }
 
 }
