@@ -5,7 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.CRServo
 import org.firstinspires.ftc.robotcore.external.Telemetry
-import java.lang.Thread.sleep
+import us.brainstormz.localizer.PhoHardware
+import us.brainstormz.pid.PID
+import us.brainstormz.utils.MathHelps
 
 class FourBar(private val telemetry: Telemetry) {
     private lateinit var leftServo: CRServo
@@ -22,57 +24,51 @@ class FourBar(private val telemetry: Telemetry) {
         var degreesWhenVertical: Double = 180.0
     }
 
-    val barLengthInch = 10.0
+    private val pid = PID(kp= 0.02)
+    private val accuracyDegrees = 1.0
 
-//    private val maxServoTravel = 300
-    private val centerPosition = 180
-    private val servoToBarRatio = 48/48
-    private val max4BarTravel = 250//maxServoTravel * servoToBarRatio //250 degrees
+    val barLengthInch = 9.5
 
-    private val barRangeDegrees = -(max4BarTravel / 2)..(max4BarTravel / 2) //puts 0 as vertical
-
-    fun goToPositionBlocking(targetDegrees: Double) {
-        goToPosition(targetDegrees)
-        while (!is4BarAtPosition(targetDegrees)) {
-            sleep(200)
-        }
-    }
+    private val servoToBarRatio = 1/4
+    private val max4BarTravel = 250
 
     fun goToPosition(targetDegrees: Double): Boolean {
-        val degreesFromZero = targetDegrees + max4BarTravel / 2
-        val servoPosition = degreesToServoPosition(degreesFromZero)
+        val wrappedTarget = MathHelps.wrap360(targetDegrees)
+        val wrappedError = MathHelps.wrap360(wrappedTarget - 1.0)//current4BarDegrees())
 
-        setServoPosition(servoPosition)
+        val power = pid.calcPID(wrappedError)
+
+        setServoPower(power)
 
         return is4BarAtPosition(targetDegrees)
     }
 
-    fun setServoPosition(position: Double) {
-//        leftServo.position = position
-//        rightServo.position = position
+    fun setServoPower(power: Double) {
+        leftServo.power = power
+        rightServo.power = power
     }
 
     fun is4BarAtPosition(targetPos: Double): Boolean {
-        val accuracyDegrees = 1.0
-        return targetPos in -accuracyDegrees..accuracyDegrees
+        val positionError = targetPos - current4BarDegrees()
+        return positionError in -accuracyDegrees..accuracyDegrees
     }
-
-    private fun degreesToServoPosition(degrees: Double): Double {
-        return degrees / 70
-    }
-
-//    private val encoderToServoRatio = 30/40
-//    fun current4BarDegrees(): Double = convertEncoderToDegrees() * encoderToServoRatio * servoToBarRatio //doesn't account for wrap
 
     fun current4BarDegrees(): Double {
         //https://www.andymark.com/products/ma3-absolute-encoder-with-cable
         //0* = 0V
         //360* = 3.3V
 //        telemetry.addLine("voltage: ${encoder.voltage}")
-        val degrees = encoder.voltage * 109.090909090909091
+        val degrees = encoder.voltage * 109.091
 //        telemetry.addLine("degrees: $degrees")
         return degrees
     }
+}
+
+fun main() {
+    val phoTelem = PhoHardware.PhoTelemetry()
+    val fourBar = FourBar(phoTelem)
+
+    fourBar.goToPosition(40.0)
 }
 
 @TeleOp
