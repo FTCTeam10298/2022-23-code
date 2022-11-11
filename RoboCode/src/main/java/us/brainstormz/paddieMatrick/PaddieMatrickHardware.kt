@@ -28,6 +28,7 @@ class PaddieMatrickHardware: MecanumHardware {
 
         // Collector
         collector = hwMap["collector"] as CRServo
+        collector.direction = DcMotorSimple.Direction.REVERSE
 //        collectorSensor = hwMap["color"] as RevColorSensorV3
 
         // 4 Bar
@@ -35,10 +36,9 @@ class PaddieMatrickHardware: MecanumHardware {
         right4Bar = hwMap["right4Bar"] as CRServo
         encoder4Bar = hwMap["encoder"] as AnalogInput
 
-        left4Bar.direction = DcMotorSimple.Direction.FORWARD
-        right4Bar.direction = DcMotorSimple.Direction.REVERSE
+        left4Bar.direction = DcMotorSimple.Direction.REVERSE
+        right4Bar.direction = DcMotorSimple.Direction.FORWARD
 
-        encoder4Bar.connectionInfo
 
         // Lift
         leftLift = hwMap["leftLift"] as DcMotorEx

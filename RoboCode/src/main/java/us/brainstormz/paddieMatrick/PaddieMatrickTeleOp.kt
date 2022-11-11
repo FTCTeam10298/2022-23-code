@@ -20,7 +20,7 @@ class PaddieMatrickTeleOp: OpMode() {
     var fourBarTarget = 0.0
     val fourBarSpeed = 200.0
     companion object {
-        var centerPosition = 180.0
+        var centerPosition = 110.0
     }
     val fourBarRange = 180.0
 
@@ -71,13 +71,13 @@ class PaddieMatrickTeleOp: OpMode() {
                                (y + x + r))
 
         // Four bar
-//        telemetry.addLine("fourbar: ${fourBar.current4BarDegrees()}")
+        telemetry.addLine("fourbar position: ${fourBar.current4BarDegrees()}")
 //        fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt )
 //        fourBarTarget = MathHelps.wrap360(fourBarTarget)
 //        telemetry.addLine("fourBarTarget: $fourBarTarget")
 
 
-        val fourBarPower = gamepad2.right_stick_y.toDouble()
+        val fourBarPower = -gamepad2.right_stick_y.toDouble()
 //                fourBarPID.calcPID(MathHelps.wrap360(fourBarTarget - (fourBar.current4BarDegrees())))
 
         telemetry.addLine("fourBarPower: $fourBarPower")
@@ -146,7 +146,7 @@ class PaddieMatrickTeleOp: OpMode() {
     }
 }
 
-@TeleOp(name= "4bar Calibrator", group= "A")
+//@TeleOp(name= "4bar Calibrator", group= "A")
 class fourBarCalibrator: LinearOpMode() {
 
     val hardware = PaddieMatrickHardware()
