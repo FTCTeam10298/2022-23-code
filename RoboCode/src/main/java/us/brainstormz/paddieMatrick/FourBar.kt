@@ -45,8 +45,8 @@ class FourBar(private val telemetry: Telemetry) {
     }
 
     fun setServoPower(power: Double) {
-        leftServo.power = power
-        rightServo.power = power
+//        leftServo.power = power
+//        rightServo.power = power
     }
 
     fun is4BarAtPosition(targetPos: Double): Boolean {
@@ -59,7 +59,7 @@ class FourBar(private val telemetry: Telemetry) {
 //        telemetry.addLine("degrees: $degrees")
 //        telemetry.addLine("degreesWhenVertical: $degreesWhenVertical")
 
-        return MathHelps.wrap360(degrees - degreesWhenVertical)
+        return -MathHelps.wrap360(degrees)// - degreesWhenVertical)
     }
 
     fun encoderDegrees(): Double {
@@ -67,7 +67,7 @@ class FourBar(private val telemetry: Telemetry) {
         //0* = 0V
         //360* = 3.3V
 //        telemetry.addLine("voltage: ${encoder.voltage}")
-        val degrees = encoder.voltage * -109.091
+        val degrees = encoder.voltage * 109.091
 //        telemetry.addLine("degrees: $degrees")
         return degrees
     }
