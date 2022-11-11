@@ -9,7 +9,7 @@ import us.brainstormz.pid.PID
 import us.brainstormz.utils.MathHelps
 import kotlin.math.abs
 
-@TeleOp(name= "PaddieMatrick Tele-op", group= "A")
+@TeleOp(name= "PaddieMatrick Tele-op", group= "!")
 class PaddieMatrickTeleOp: OpMode() {
 
     val hardware = PaddieMatrickHardware()
@@ -55,11 +55,11 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("limit switch state: ${hardware.liftLimitSwitch.state}")
 
         // DRONE DRIVE
-        val antiTipModifier: Double = MathHelps.scaleBetween(hardware.rightLift.currentPosition.toDouble() + 1, 0.0..3000.0, 1.0..2.0)
+        val antiTipModifier: Double = MathHelps.scaleBetween(hardware.rightLift.currentPosition.toDouble() + 1, 0.0..3000.0, 1.0..1.8)
         telemetry.addLine("antiTipModifier: $antiTipModifier")
 
-        val yInput = -gamepad1.left_stick_y.toDouble()
-        val xInput = -gamepad1.left_stick_x.toDouble()
+        val yInput = gamepad1.left_stick_y.toDouble()
+        val xInput = gamepad1.left_stick_x.toDouble()
         val rInput = gamepad1.right_stick_x.toDouble()
 
         val y = -yInput / antiTipModifier
@@ -99,9 +99,9 @@ class PaddieMatrickTeleOp: OpMode() {
             gamepad1.dpad_down || gamepad2.dpad_down -> {
                 liftTarget = LiftCounts.LowJunction.counts.toDouble()
             }
-            gamepad1.a || gamepad2.a -> {
-                liftTarget = LiftCounts.PreCollection.counts.toDouble()
-            }
+//            gamepad1.a || gamepad2.a -> {
+//                liftTarget = LiftCounts.PreCollection.counts.toDouble()
+//            }
             gamepad1.x || gamepad2.x -> {
                 liftTarget = LiftCounts.Collection.counts.toDouble()
             }
