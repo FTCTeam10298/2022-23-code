@@ -11,6 +11,7 @@ import us.brainstormz.hardwareClasses.EncoderDriveMovement
 import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
+import us.brainstormz.telemetryWizard.TelemetryWizard
 
 @Autonomous(name= "PaddieMatrick Auto", group= "!")
 class PaddieMatrickAuto: LinearOpMode() {
@@ -18,6 +19,9 @@ class PaddieMatrickAuto: LinearOpMode() {
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
 //    Drivetrain drive = new Drivetrain(hwMap);
     val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
+
+    val console = TelemetryConsole(telemetry)
+    val wizard = TelemetryWizard(console, this)
 
     var aprilTagGX = AprilTagEx()
 
@@ -48,8 +52,18 @@ class PaddieMatrickAuto: LinearOpMode() {
 
 //        val fourBarTarget = fourBar.current4BarDegrees() - 70
 
+//        wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
+        wizard.newMenu("program", "Which auto are we starting?", listOf("Cycle Auto", "Park Auto"), firstMenu = true)
+
+        var hasWizardRun = false
+
         while (!isStarted && !isStopRequested) {
             aprilTagGX.runAprilTag(telemetry)
+
+            if (aprilTagGX.signalOrientation != null && !hasWizardRun) {
+                wizard.summonWizard(gamepad1)
+                hasWizardRun = true
+            }
 //            val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
 //            hardware.left4Bar.power = fourBarPower
 //            hardware.right4Bar.power = fourBarPower
@@ -58,7 +72,43 @@ class PaddieMatrickAuto: LinearOpMode() {
         waitForStart()
         /** AUTONOMOUS  PHASE */
         val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
+//
+//        when (wizard.wasItemChosen("alliance", "Red")) {
+//            true -> {
+        if (wizard.wasItemChosen("program", "Cycle Auto")) {
+            cycleAuto(aprilTagGXOutput)
+        }
+        if (wizard.wasItemChosen("program", "Park Auto")) {
+            val drivePower = 0.5
+            val forwardDistance = 25.0
+            val sideDistance = 30.0
+            when (aprilTagGXOutput) {
+                SignalOrientation.One -> {
+                    movement.driveRobotPosition(0.8, 20.0, true)
+                    movement.driveRobotPosition(drivePower, forwardDistance, true)
+                    movement.driveRobotStrafe(drivePower, sideDistance, true)
+                }
+                SignalOrientation.Two -> {
+                    movement.driveRobotPosition(0.8, 20.0, true)
+                    movement.driveRobotPosition(drivePower, forwardDistance, true)
+                }
+                SignalOrientation.Three -> {
+                    movement.driveRobotPosition(0.8, 20.0, true)
+                    movement.driveRobotPosition(drivePower, forwardDistance, true)
+                    movement.driveRobotStrafe(drivePower, -sideDistance, true)
+                }
+            }
+        }
+//            }
+//            false -> {
+//                if (wizard.wasItemChosen("program", "Cycle Auto")) {
+//
+//                }
+//            }
+//        }
+    }
 
+    fun cycleAuto(aprilTagGXOutput: SignalOrientation) {
 
         //TriagonAuto (blue only)
         hardware.collector.power = 0.1
@@ -89,10 +139,10 @@ class PaddieMatrickAuto: LinearOpMode() {
         }
 
 //        for(i in 1..2) {
-            //moves to stack
-            movement.driveRobotStrafeWithTask(trigonStrafePower, 11.5, true) {
-                fourBar.goToPosition(180.0)
-            }
+        //moves to stack
+        movement.driveRobotStrafeWithTask(trigonStrafePower, 11.5, true) {
+            fourBar.goToPosition(180.0)
+        }
 //            println("*prepares collector*")
 //            movement.driveRobotPositionWithTask(trigonPower, 20.0, true) {
 //                fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
