@@ -18,6 +18,11 @@ class PaddieMatrickTeleOp: OpMode() {
 
     var fourBarTarget = 0.0
     val fourBarSpeed = 120.0
+    enum class fourBarModes {
+        FOURBAR_PID,
+        FOURBAR_MANUAL
+    }
+    var fourBarMode = fourBarModes.FOURBAR_PID
     companion object {
         var centerPosition = 110.0
     }
@@ -102,20 +107,37 @@ class PaddieMatrickTeleOp: OpMode() {
 
         when {
             gamepad2.x -> {
+                fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.Horizontal.degrees
             }
             gamepad2.y -> {
+                fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.Depositing.degrees
             }
             gamepad2.right_bumper -> {
+                fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.Collecting.degrees
+            }
+            abs(gamepad2.right_stick_y) > 0.1 -> {
+                fourBarMode = fourBarModes.FOURBAR_MANUAL
+            }
+            abs(gamepad2.right_stick_y) < 0.1 && fourBarMode == fourBarModes.FOURBAR_MANUAL -> {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = fourBar.current4BarDegrees()
             }
         }
 
-        fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt)
+        //fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt)
 
-        fourBarTarget = MathHelps.wrap360(fourBarTarget).coerceIn(50.0..300.0)
-        fourBar.goToPosition(fourBarTarget)
+        if (fourBarMode == fourBarModes.FOURBAR_PID) {
+            fourBarTarget = MathHelps.wrap360(fourBarTarget).coerceIn(50.0..300.0)
+            fourBar.goToPosition(fourBarTarget)
+            telemetry.addLine("fourBarMode: PID")
+        }
+        else { // (fourBarMode == fourBarModes.FOURBAR_MANUAL
+            fourBar.setServoPower(gamepad2.right_stick_y.toDouble())
+            telemetry.addLine("fourBarMode: Manual")
+        }
 
 //        val fourBarPower = -gamepad2.right_stick_y.toDouble()
 //                fourBarPID.calcPID(MathHelps.wrap360(fourBarTarget - (fourBar.current4BarDegrees())))
