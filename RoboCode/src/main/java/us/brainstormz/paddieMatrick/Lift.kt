@@ -23,7 +23,7 @@ class Lift(private val telemetry: Telemetry) {
     private val rotationsPerMM = 114 / PI
     private val countsPerInch = countsPerMotorRotation * (rotationsPerMM * 25.4)
 
-    private val pid = PID(kp= 0.007, ki= 0.0)
+    private val pid = PID(kp= 0.02, ki= 0.0)
 
     fun init(leftMotor: DcMotorEx, rightMotor: DcMotorEx, limitSwitch: DigitalChannel) {
         this.leftMotor = leftMotor
