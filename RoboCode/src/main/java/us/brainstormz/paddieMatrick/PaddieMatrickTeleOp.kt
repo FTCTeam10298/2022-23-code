@@ -69,19 +69,19 @@ class PaddieMatrickTeleOp: OpMode() {
 //        val xInput =
         val rInput = gamepad1.right_stick_x.toDouble()
         val yInput = when {
-            gamepad1.dpad_up || gamepad2.dpad_up -> {
+            gamepad1.dpad_up -> {
                 slowSpeed
             }
-            gamepad1.dpad_down || gamepad2.dpad_down -> {
+            gamepad1.dpad_down -> {
                 -slowSpeed
             }
             else -> -gamepad1.left_stick_y.toDouble()
         }
         val xInput = when {
-            gamepad1.dpad_left || gamepad2.dpad_left -> {
+            gamepad1.dpad_left -> {
                 slowSpeed
             }
-            gamepad1.dpad_right || gamepad2.dpad_right -> {
+            gamepad1.dpad_right -> {
                 -slowSpeed
             }
             else -> -gamepad1.left_stick_x.toDouble()
@@ -127,14 +127,17 @@ class PaddieMatrickTeleOp: OpMode() {
 
         // Lift
         when {
-            gamepad1.dpad_up || gamepad2.dpad_up -> {
+            gamepad2.dpad_up -> {
                 liftTarget = LiftCounts.HighJunction.counts.toDouble()
             }
-            gamepad1.dpad_left || gamepad2.dpad_left -> {
+            gamepad2.dpad_left -> {
                 liftTarget = LiftCounts.MidJunction.counts.toDouble()
             }
-            gamepad1.dpad_down || gamepad2.dpad_down -> {
+            gamepad2.dpad_down -> {
                 liftTarget = LiftCounts.LowJunction.counts.toDouble()
+            }
+            gamepad2.left_bumper -> {
+                liftTarget += (-0.5 * liftSpeed / dt)
             }
         }
 
