@@ -23,7 +23,7 @@ class PaddieMatrickTeleOp: OpMode() {
     }
     enum class FourBarDegrees(val degrees: Double) {
         Horizontal(100.0),
-        Depositing(200.0),
+        Depositing(220.0),
         Collecting(90.0)
     }
 
@@ -31,13 +31,13 @@ class PaddieMatrickTeleOp: OpMode() {
     val liftPID = PID(kp= 0.003, ki= 0.0)
     var liftTarget = 0.0
     val liftSpeed = 1200.0
-//    enum class LiftCounts(val counts: Int) {
-//        PreCollection(480),
-//        Collection(30),
-//        HighJunction(4200),
-//        MidJunction(2400),
-//        LowJunction(800)
-//    }
+    enum class LiftCounts(val counts: Int) {
+        PreCollection(0),
+        Collection(0),
+        HighJunction(3900),
+        MidJunction(2400),
+        LowJunction(0)
+    }
 
     override fun init() {
         /** INIT PHASE */
@@ -75,7 +75,7 @@ class PaddieMatrickTeleOp: OpMode() {
             gamepad1.dpad_down || gamepad2.dpad_down -> {
                 -slowSpeed
             }
-            else -> gamepad1.left_stick_y.toDouble()
+            else -> -gamepad1.left_stick_y.toDouble()
         }
         val xInput = when {
             gamepad1.dpad_left || gamepad2.dpad_left -> {
@@ -84,7 +84,7 @@ class PaddieMatrickTeleOp: OpMode() {
             gamepad1.dpad_right || gamepad2.dpad_right -> {
                 -slowSpeed
             }
-            else -> gamepad1.left_stick_x.toDouble()
+            else -> -gamepad1.left_stick_x.toDouble()
         }
 
 
@@ -126,25 +126,19 @@ class PaddieMatrickTeleOp: OpMode() {
 //        hardware.right4Bar.power = fourBarPower
 
         // Lift
-        liftTarget += (-gamepad2.left_stick_y.toDouble() * liftSpeed / dt)
+        when {
+            gamepad1.dpad_up || gamepad2.dpad_up -> {
+                liftTarget = LiftCounts.HighJunction.counts.toDouble()
+            }
+            gamepad1.dpad_left || gamepad2.dpad_left -> {
+                liftTarget = LiftCounts.MidJunction.counts.toDouble()
+            }
+            gamepad1.dpad_down || gamepad2.dpad_down -> {
+                liftTarget = LiftCounts.LowJunction.counts.toDouble()
+            }
+        }
 
-//        when {
-//            gamepad1.dpad_up || gamepad2.dpad_up -> {
-//                liftTarget = LiftCounts.HighJunction.counts.toDouble()
-//            }
-//            gamepad1.dpad_left || gamepad2.dpad_left -> {
-//                liftTarget = LiftCounts.MidJunction.counts.toDouble()
-//            }
-//            gamepad1.dpad_down || gamepad2.dpad_down -> {
-//                liftTarget = LiftCounts.LowJunction.counts.toDouble()
-//            }
-////            gamepad1.a || gamepad2.a -> {
-////                liftTarget = LiftCounts.PreCollection.counts.toDouble()
-////            }
-//            gamepad1.x || gamepad2.x -> {
-//                liftTarget = LiftCounts.Collection.counts.toDouble()
-//            }
-//        }
+        liftTarget += (-gamepad2.left_stick_y.toDouble() * liftSpeed / dt)
 
         liftTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
