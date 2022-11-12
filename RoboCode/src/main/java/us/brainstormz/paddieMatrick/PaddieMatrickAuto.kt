@@ -59,11 +59,12 @@ class PaddieMatrickAuto: LinearOpMode() {
         /** AUTONOMOUS  PHASE */
         val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
 
+
         //TriagonAuto (blue only)
         hardware.collector.power = 0.1
         //pull out & enter orientation (2 ft. per tile!)
 
-        movement.driveRobotPositionWithTask(0.7, -50.0, false) {
+        movement.driveRobotPositionWithTask(0.7, -50.5, false) {
             fourBar.goToPosition(180.0)
             lift(1500)
         }
@@ -89,7 +90,7 @@ class PaddieMatrickAuto: LinearOpMode() {
 
 //        for(i in 1..2) {
             //moves to stack
-            movement.driveRobotStrafeWithTask(trigonStrafePower, 11.0, true) {
+            movement.driveRobotStrafeWithTask(trigonStrafePower, 11.5, true) {
                 fourBar.goToPosition(180.0)
             }
 //            println("*prepares collector*")
@@ -116,8 +117,21 @@ class PaddieMatrickAuto: LinearOpMode() {
 //        while (!fourBar.goToPosition(180.0)) {sleep(50)}
 //        fourBar.setServoPower(0.0)
 //        sleep(1000)
-        prepareToCollect()
+//        prepareToCollect()
+//        while (opModeIsActive()) {
+//            val liftAtPos = lift(0)
+//            val barAtPos = fourBar.goToPosition(180.0)
+//
+//            if (liftAtPos)
+//                break
+//        }
 
+        hardware.leftLift.power = -0.6
+        hardware.rightLift.power = -0.6
+
+//        hardware.leftLift.power = 0.0
+//        hardware.rightLift.power = 0.0
+//        fourBar.setServoPower(0.0)
 //        movement.driveRobotStrafe(trigonStrafePower, 14.0, true)
 
         //basic drive forward
@@ -132,6 +146,9 @@ class PaddieMatrickAuto: LinearOpMode() {
                 movement.driveRobotPosition(trigonPower, -21.0, true)
             }
         }
+
+        hardware.leftLift.power = 0.0
+        hardware.rightLift.power = 0.0
 
         telemetry.addLine("opmode over")
         telemetry.update()
