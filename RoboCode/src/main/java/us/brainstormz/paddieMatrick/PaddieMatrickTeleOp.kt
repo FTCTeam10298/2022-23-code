@@ -17,6 +17,7 @@ class PaddieMatrickTeleOp: OpMode() {
     val fourBar = FourBar(telemetry)
 
     var fourBarTarget = 0.0
+    val allowedZone = 50.0..300.0
     val fourBarSpeed = 120.0
     enum class fourBarModes {
         FOURBAR_PID,
@@ -27,9 +28,9 @@ class PaddieMatrickTeleOp: OpMode() {
         var centerPosition = 110.0
     }
     enum class FourBarDegrees(val degrees: Double) {
-        Horizontal(100.0),
-        Depositing(220.0),
-        Collecting(90.0)
+        Horizontal(110.0),
+        Depositing(210.0),
+//        Collecting(90.0)
     }
 
 
@@ -41,7 +42,7 @@ class PaddieMatrickTeleOp: OpMode() {
         Collection(0),
         HighJunction(3900),
         MidJunction(2400),
-        LowJunction(0)
+        LowJunction(100)
     }
 
     override fun init() {
@@ -130,7 +131,7 @@ class PaddieMatrickTeleOp: OpMode() {
         //fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt)
 
         if (fourBarMode == fourBarModes.FOURBAR_PID) {
-            fourBarTarget = MathHelps.wrap360(fourBarTarget).coerceIn(50.0..300.0)
+            fourBarTarget = MathHelps.wrap360(fourBarTarget).coerceIn(allowedZone)
             fourBar.goToPosition(fourBarTarget)
             telemetry.addLine("fourBarMode: PID")
         }
@@ -151,12 +152,27 @@ class PaddieMatrickTeleOp: OpMode() {
         when {
             gamepad2.dpad_up -> {
                 liftTarget = LiftCounts.HighJunction.counts.toDouble()
+
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Depositing.degrees
             }
             gamepad2.dpad_left -> {
                 liftTarget = LiftCounts.MidJunction.counts.toDouble()
+
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Depositing.degrees
+            }
+            gamepad2.dpad_right -> {
+                liftTarget = LiftCounts.LowJunction.counts.toDouble()
+
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Depositing.degrees
             }
             gamepad2.dpad_down -> {
                 liftTarget = LiftCounts.LowJunction.counts.toDouble()
+
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Horizontal.degrees
             }
             gamepad2.left_bumper -> {
                 liftTarget += (-0.5 * liftSpeed / dt)
