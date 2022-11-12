@@ -28,7 +28,7 @@ class PaddieMatrickTeleOp: OpMode() {
         var centerPosition = 110.0
     }
     enum class FourBarDegrees(val degrees: Double) {
-        Horizontal(110.0),
+        PreCollection(110.0),
         Depositing(210.0),
 //        Collecting(90.0)
     }
@@ -41,8 +41,8 @@ class PaddieMatrickTeleOp: OpMode() {
         PreCollection(0),
         Collection(0),
         HighJunction(3900),
-        MidJunction(2400),
-        LowJunction(100)
+        MidJunction(2200),
+        LowJunction(650)
     }
 
     override fun init() {
@@ -109,16 +109,16 @@ class PaddieMatrickTeleOp: OpMode() {
         when {
             gamepad2.x -> {
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Horizontal.degrees
+                fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
             gamepad2.y -> {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.Depositing.degrees
             }
-            gamepad2.right_bumper -> {
-                fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Collecting.degrees
-            }
+//            gamepad2.right_bumper -> {
+//                fourBarMode = fourBarModes.FOURBAR_PID
+//                fourBarTarget = FourBarDegrees.Collecting.degrees
+//            }
             abs(gamepad2.right_stick_y) > 0.1 -> {
                 fourBarMode = fourBarModes.FOURBAR_MANUAL
             }
@@ -172,7 +172,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 liftTarget = LiftCounts.LowJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Horizontal.degrees
+                fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
             gamepad2.left_bumper -> {
                 liftTarget += (-0.5 * liftSpeed / dt)
