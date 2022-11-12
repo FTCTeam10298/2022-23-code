@@ -13,7 +13,7 @@ import org.openftc.easyopencv.OpenCvCameraRotation
 import us.brainstormz.aprilTag.AprilTagDetectionPipeline
 import java.lang.Thread.sleep
 
-enum class SignalOrientation {one, two, three}
+enum class SignalOrientation {One, Two, Three}
 
 class AprilTagEx() {
     var camera: OpenCvCamera? = null
@@ -68,17 +68,17 @@ class AprilTagEx() {
                     2 -> {
                         tagFound = true
                         tagOfInterest = tag
-                        signalOrientation = SignalOrientation.one
+                        signalOrientation = SignalOrientation.One
                     }
                     1 -> {
                         tagFound = true
                         tagOfInterest = tag
-                        signalOrientation = SignalOrientation.two
+                        signalOrientation = SignalOrientation.Two
                     }
                     0 -> {
                         tagFound = true
                         tagOfInterest = tag
-                        signalOrientation = SignalOrientation.three
+                        signalOrientation = SignalOrientation.Three
                     }
                     //                            else -> null
                 }

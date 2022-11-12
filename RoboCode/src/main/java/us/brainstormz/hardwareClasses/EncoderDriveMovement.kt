@@ -115,6 +115,69 @@ class EncoderDriveMovement(private val hardware: MecanumHardware, private val co
     }
 
 
+    fun driveRobotPositionWithTask(power: Double, inches: Double, smartAccel: Boolean, syncTask: ()->Unit) {
+
+        var state = 0 // 0 = NONE, 1 = ACCEL, 2 = DRIVE, 3 = DECEL
+        val position: Double = inches * COUNTS_PER_INCH
+
+
+        if (smartAccel && power > 0.25) {
+            drivePowerAll(0.25) // Use abs() to make sure power is positive
+            state = 1 // ACCEL
+        } else {
+            drivePowerAll(abs(power)) // Use abs() to make sure power is positive
+        }
+        val flOrigTarget: Int = hardware.lFDrive.targetPosition
+        val frOrigTarget: Int = hardware.rFDrive.targetPosition
+        val blOrigTarget: Int = hardware.lBDrive.targetPosition
+        val brOrigTarget: Int = hardware.rBDrive.targetPosition
+        driveSetRunToPosition()
+        driveAddTargetPosition(position.toInt(), position.toInt(), position.toInt(), position.toInt())
+        for (i in 0..4) {    // Repeat check 5 times, sleeping 10ms between,
+            // as isBusy can be a bit unreliable
+            while (driveAllAreBusy()) {
+                val flDrive: Int = hardware.lFDrive.currentPosition
+                val frDrive: Int = hardware.rFDrive.currentPosition
+                val blDrive: Int = hardware.lBDrive.currentPosition
+                val brDrive: Int = hardware.rBDrive.currentPosition
+//                console.display(3, "Front left encoder: $flDrive")
+//                console.display(4, "Front right encoder: $frDrive")
+//                console.display(5, "Back left encoder: $blDrive")
+//                console.display(6, "Back right encoder $brDrive")
+//                console.display(7, "Front left target: ${hardware.lFDrive.targetPosition}")
+//                console.display(8, "Front right target: ${hardware.rFDrive.targetPosition}")
+//                console.display(9, "Back left target: ${hardware.lBDrive.targetPosition}")
+//                console.display(10, "Back right target ${hardware.rBDrive.targetPosition}")
+
+                // State magic
+                if (state == 1 &&
+                        (abs(flDrive - flOrigTarget) > 2 * COUNTS_PER_INCH || abs(frDrive - frOrigTarget) > 2 * COUNTS_PER_INCH || abs(blDrive - blOrigTarget) > 2 * COUNTS_PER_INCH || abs(brDrive - brOrigTarget) > 2 * COUNTS_PER_INCH)) {
+                    // We have gone 2 inches, go to full power
+                    drivePowerAll(abs(power)) // Use abs() to make sure power is positive
+                    state = 2
+                } else if (state == 2 &&
+                        (abs(flDrive - flOrigTarget) > COUNTS_PER_INCH * (abs(inches) - 2) || abs(frDrive - frOrigTarget) > COUNTS_PER_INCH * (abs(inches) - 2) || abs(blDrive - blOrigTarget) > COUNTS_PER_INCH * (abs(inches) - 2) || abs(brDrive - brOrigTarget) > COUNTS_PER_INCH * (abs(inches) - 2))) {
+                    // Cut power by half to DECEL
+                    drivePowerAll(abs(power) / 2) // Use abs() to make sure power is positive
+                    state = 3 // We are DECELing now
+                }
+//                console.display(7, "State: $state (0=NONE,1=ACCEL,2=DRIVING,3=DECEL")
+
+
+                syncTask()
+            }
+            Thread.sleep(10)
+        }
+        drivePowerAll(0.0)
+        // Clear used section of dashboard
+//        console.display(3, "")
+//        console.display(4, "")
+//        console.display(5, "")
+//        console.display(6, "")
+//        console.display(7, "")
+    }
+
+
     override fun driveRobotTurn(power: Double, degree: Double, smartAccel: Boolean) {
 
         val position: Double = degree * COUNTS_PER_DEGREE
@@ -159,6 +222,65 @@ class EncoderDriveMovement(private val hardware: MecanumHardware, private val co
                     state = 3 // We are DECELing now
                 }
 //                console.display(7, "State: $state (0=NONE,1=ACCEL,2=DRIVING,3=DECEL")
+            }
+            Thread.sleep(10)
+        }
+        drivePowerAll(0.0)
+        // Clear used section of dashboard
+//        console.display(3, "")
+//        console.display(4, "")
+//        console.display(5, "")
+//        console.display(6, "")
+//        console.display(7, "")
+    }
+
+
+    fun driveRobotTurnWithTask(power: Double, degree: Double, smartAccel: Boolean, task: ()->Unit) {
+
+        val position: Double = degree * COUNTS_PER_DEGREE
+        var state = 0 // 0 = NONE, 1 = ACCEL, 2 = DRIVE, 3 = DECEL
+
+        console.display(15, "target angle: $position")
+
+        driveSetRunToPosition()
+        if (smartAccel) {
+            state = 1
+            driveSetPower(power * 0.5, -power * 0.5, power * 0.5, -power * 0.5)
+        } else {
+            driveSetPower(power, -power, power, -power)
+        }
+        val flOrigTarget: Int = hardware.lFDrive.targetPosition
+        val frOrigTarget: Int = hardware.rFDrive.targetPosition
+        val blOrigTarget: Int = hardware.lBDrive.targetPosition
+        val brOrigTarget: Int = hardware.rBDrive.targetPosition
+        driveAddTargetPosition(position.toInt(), -position.toInt(), position.toInt(), -position.toInt())
+        for (i in 0..4) {    // Repeat check 5 times, sleeping 10ms between,
+            // as isBusy can be a bit unreliable
+            while (driveAllAreBusy()) {
+                val flDrive: Int = hardware.lFDrive.currentPosition
+                val frDrive: Int = hardware.rFDrive.currentPosition
+                val blDrive: Int = hardware.lBDrive.currentPosition
+                val brDrive: Int = hardware.rBDrive.currentPosition
+//                console.display(3, "Front left encoder: $flDrive")
+//                console.display(4, "Front right encoder: $frDrive")
+//                console.display(5, "Back left encoder: $blDrive")
+//                console.display(6, "Back right encoder: $brDrive")
+
+                // State magic
+                if (state == 1 &&
+                        (abs(flDrive - flOrigTarget) > COUNTS_PER_DEGREE * 10 || abs(frDrive - frOrigTarget) > COUNTS_PER_DEGREE * 10 || abs(blDrive - blOrigTarget) > COUNTS_PER_DEGREE * 10 || abs(brDrive - brOrigTarget) > COUNTS_PER_DEGREE * 10)) {
+                    // We have rotated 10 degrees, go to full power
+                    drivePowerAll(abs(power)) // Use abs() to make sure power is positive
+                    state = 2
+                } else if (state == 2 &&
+                        (abs(flDrive - flOrigTarget) > COUNTS_PER_DEGREE * (abs(degree) - 10) || abs(frDrive - frOrigTarget) > COUNTS_PER_DEGREE * (abs(degree) - 10) || abs(blDrive - blOrigTarget) > COUNTS_PER_DEGREE * (abs(degree) - 10) || abs(brDrive - brOrigTarget) > COUNTS_PER_DEGREE * (abs(degree) - 10))) {
+                    // We are within 10 degrees of our destination, cut power by half to DECEL
+                    drivePowerAll(abs(power) / 2) // Use abs() to make sure power is positive
+                    state = 3 // We are DECELing now
+                }
+//                console.display(7, "State: $state (0=NONE,1=ACCEL,2=DRIVING,3=DECEL")
+
+                task()
             }
             Thread.sleep(10)
         }
@@ -234,6 +356,69 @@ class EncoderDriveMovement(private val hardware: MecanumHardware, private val co
 //        console.display(6, "")
 //        console.display(7, "")
     }
+
+
+    fun driveRobotStrafeWithTask(power: Double, inches: Double, smartAccel: Boolean, task: ()->Unit) {
+
+        var state = 0 // 0 = NONE, 1 = ACCEL, 2 = DRIVE, 3 = DECEL
+        val position: Double = inches * COUNTS_PER_INCH
+
+        if (smartAccel && power > 0.25) {
+            drivePowerAll(0.25) // Use abs() to make sure power is positive
+            state = 1 // ACCEL
+        } else {
+            drivePowerAll(abs(power)) // Use abs() to make sure power is positive
+        }
+        val flOrigTarget: Int = hardware.lFDrive.targetPosition
+        val frOrigTarget: Int = hardware.rFDrive.targetPosition
+        val blOrigTarget: Int = hardware.lBDrive.targetPosition
+        val brOrigTarget: Int = hardware.rBDrive.targetPosition
+
+        driveSetRunToPosition()
+        driveAddTargetPosition(-position.toInt(), position.toInt(), position.toInt(), -position.toInt())
+        for (i in 0..4) {    // Repeat check 5 times, sleeping 10ms between,
+            // as isBusy can be a bit unreliable
+            while (driveAllAreBusy()) {
+                val flDrive: Int = hardware.lFDrive.currentPosition
+                val frDrive: Int = hardware.rFDrive.currentPosition
+                val blDrive: Int = hardware.lBDrive.currentPosition
+                val brDrive: Int = hardware.rBDrive.currentPosition
+//                console.display(3, "Front left encoder: $flDrive")
+//                console.display(4, "Front right encoder: $frDrive")
+//                console.display(5, "Back left encoder: $blDrive")
+//                console.display(6, "Back right encoder $brDrive")
+//                console.display(7, "Front left target: ${hardware.lFDrive.targetPosition}")
+//                console.display(8, "Front right target: ${hardware.rFDrive.targetPosition}")
+//                console.display(9, "Back left target: ${hardware.lBDrive.targetPosition}")
+//                console.display(10, "Back right target ${hardware.rBDrive.targetPosition}")
+
+                // State magic
+                if (state == 1 &&
+                        (abs(flDrive - flOrigTarget) > 2 * COUNTS_PER_INCH || abs(frDrive - frOrigTarget) > 2 * COUNTS_PER_INCH || abs(blDrive - blOrigTarget) > 2 * COUNTS_PER_INCH || abs(brDrive - brOrigTarget) > 2 * COUNTS_PER_INCH)) {
+                    // We have gone 2 inches, go to full power
+                    drivePowerAll(abs(power)) // Use abs() to make sure power is positive
+                    state = 2
+                } else if (state == 2 &&
+                        (abs(flDrive - flOrigTarget) > COUNTS_PER_INCH * (abs(inches) - 2) || abs(frDrive - frOrigTarget) > COUNTS_PER_INCH * (abs(inches) - 2) || abs(blDrive - blOrigTarget) > COUNTS_PER_INCH * (abs(inches) - 2) || abs(brDrive - brOrigTarget) > COUNTS_PER_INCH * (abs(inches) - 2))) {
+                    // Cut power by half to DECEL
+                    drivePowerAll(abs(power) / 2) // Use abs() to make sure power is positive
+                    state = 3 // We are DECELing now
+                }
+//                console.display(7, "State: $state (0=NONE,1=ACCEL,2=DRIVING,3=DECEL")
+
+                task()
+            }
+            Thread.sleep(10)
+        }
+        drivePowerAll(0.0)
+        // Clear used section of dashboard
+//        console.display(3, "")
+//        console.display(4, "")
+//        console.display(5, "")
+//        console.display(6, "")
+//        console.display(7, "")
+    }
+
 
     /**
      * DriveSidewaysTime makes the robot drive sideways for the specified time and power.

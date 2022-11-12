@@ -2,14 +2,15 @@ package us.brainstormz.paddieMatrick
 
 //2 ft = 1 Square
 
-import com.acmerobotics.roadrunner.geometry.Pose2d
-import com.acmerobotics.roadrunner.trajectory.Trajectory
+//import com.acmerobotics.roadrunner.geometry.Pose2d
+//import com.acmerobotics.roadrunner.trajectory.Trajectory
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.DcMotor
 import us.brainstormz.hardwareClasses.EncoderDriveMovement
 import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
+import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
 
 @Autonomous(name= "PaddieMatrick Auto", group= "A")
 class PaddieMatrickAuto: LinearOpMode() {
@@ -22,6 +23,9 @@ class PaddieMatrickAuto: LinearOpMode() {
 
     val fourBarPID = PID(kp= 0.03)
     val fourBar = FourBar(telemetry)
+
+    val lift = Lift(telemetry)
+    val liftPID = PID(kp= 0.003, ki= 0.0)
 
     val drivePower = 0.5
     val forwardDistance = 12.0
@@ -36,7 +40,8 @@ class PaddieMatrickAuto: LinearOpMode() {
     override fun runOpMode() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
-//        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
+        lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
+        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
 
         aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
 
@@ -45,8 +50,6 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         while (!isStarted && !isStopRequested) {
             aprilTagGX.runAprilTag(telemetry)
-
-
 //            val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
 //            hardware.left4Bar.power = fourBarPower
 //            hardware.right4Bar.power = fourBarPower
@@ -54,91 +57,126 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         waitForStart()
         /** AUTONOMOUS  PHASE */
-        val aprilTagGXOutput = aprilTagGX.signalOrientation
-        movement.driveRobotPosition(power = 1.0, inches = 20.0, smartAccel = true)
-        movement.driveRobotStrafe(power = 1.0, inches = 20.0, smartAccel = true)
-        movement.driveRobotTurn(power = 1.0, degree = 20.0, smartAccel = true)
-        //Definitions of RoadRunner Trajectories
-//        Trajectory RedSignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(180.0))) //coords of Red Alliance Start 2
-//                .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-//                .lineTo(new Vector2d(43.2, -36.0))
-//                .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
-//                .build()
-//        );
-//
-//        Trajectory RedSignalTwo = drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(180)))
-//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-//            .lineTo(new Vector2d(42.8, -35.0))
-//            .build()
-//        );
-//
-//        Trajectory RedSignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, 180))
-//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-//            .lineTo(new Vector2d(43.2, -36.0))
-//            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
-//            .build()
-//        );
-//
-//        Trajectory BlueSignalOne = drive.trajectoryBuilder(Pose2d(61.3, -35.3, Math.toRadians(0.0))) //coords of Red Alliance Start 2
-//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-//            .lineTo(new Vector2d(43.2, -36.0))
-//            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
-//            .build()
-//        );
-//
-//        Trajectory BlueSignalTwo =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3, Math.toRadians(0.0)))
-//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-//            .lineTo(new Vector2d(42.8, -35.0))
-//            .build()
-//        );
-//
-//        Trajectory BlueSignalThree =  drive.trajectoryBuilder(new Pose2d(61.3, -35.3), Math.toRadians(0.0)))
-//            .setConstraints(60, 60, Math.toRadians(180), Math.toRadians(180), 15)
-//            .lineTo(new Vector2d(43.2, -36.0))
-//            .splineTo(new Vector2d(34.8, -59.5), Math.toRadians(180.0))
-//            .build()
-//        );
+        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
 
-        //TriagonAuto (red only)
+        //TriagonAuto (blue only)
+        hardware.collector.power = 1.0
         //pull out & enter orientation (2 ft. per tile!)
 
-        movement.driveRobotPosition(trigonPower, 72.0, true)
-        movement.driveRobotTurn(power = trigonTurnPower, degree = 90.0, smartAccel = true)
-        println("*drops thing*")
-
-        for(i in 0..3) {
-            //probably broken  -  moves to cone
-            movement.driveRobotStrafe(trigonStrafePower, -12.0, true)
-            //to pile
-            println("*prepares collector*")
-            movement.driveRobotPosition(trigonPower, -36.0, true)
-            //to stop
-            println("*rear-collects thing*")
-            movement.driveRobotPosition(trigonPower, 36.0, true)
-            movement.driveRobotStrafe(trigonStrafePower, -12.0, true)
-            println("*drops thing*")
+        movement.driveRobotPositionWithTask(0.7, -50.0, true) {
+            fourBar.goToPosition(180.0)
         }
+
+        movement.driveRobotTurnWithTask(power = trigonTurnPower, degree = 88.0, smartAccel = true) {
+            fourBar.goToPosition(180.0)
+        }
+
+        sleep(500)
+        movement.driveRobotStrafeWithTask(trigonStrafePower, -12.0, true) {
+            fourBar.goToPosition(180.0)
+        }
+
+        println("*drops thing*")
+        deposit(){
+            movement.driveRobotPosition(trigonPower, -8.0, true)
+        }
+
+        for(i in 1..2) {
+            //moves to stack
+            movement.driveRobotStrafeWithTask(trigonStrafePower, 12.0, true) {
+                fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+            }
+            println("*prepares collector*")
+            movement.driveRobotPositionWithTask(trigonPower, 20.0, true) {
+                prepareToCollect()
+            }
+            //collect
+            println("*rear-collects thing*")
+            sleep(2000)
+            //to pole
+            movement.driveRobotPosition(trigonPower, -20.0, true)
+            movement.driveRobotStrafe(trigonStrafePower, -12.0, true)
+            //deposit
+            println("*drops thing*")
+            deposit(){
+                movement.driveRobotPosition(trigonPower, -8.0, true)
+            }
+        }
+
+        movement.driveRobotStrafe(trigonStrafePower, 14.0, true)
 
         //basic drive forward
         when (aprilTagGXOutput) {
-            SignalOrientation.one -> {
-                movement.driveRobotStrafe(drivePower, sideDistance, true)
-                movement.driveRobotPosition(drivePower, -forwardDistance, true)
+            SignalOrientation.One -> {
+                movement.driveRobotPosition(trigonPower, 23.0, true)
+            }
+            SignalOrientation.Two -> {
 
             }
-            SignalOrientation.two -> {
-                movement.driveRobotStrafe(drivePower, sideDistance, true)
-            }
-            SignalOrientation.three -> {
-                movement.driveRobotStrafe(drivePower, sideDistance, true)
-                movement.driveRobotPosition(drivePower, forwardDistance, true)
+            SignalOrientation.Three -> {
+                movement.driveRobotPosition(trigonPower, -23.0, true)
             }
         }
 
-        waitForStart();
+    }
 
-        if(isStopRequested()) return;
+    fun prepareToCollect() {
+            val liftAtPos = lift(0)
+            val barAtPos = fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+    }
 
+    fun deposit(preEjectTask: ()->Unit) {
+        val preDepositDegrees = FourBarDegrees.Depositing.degrees
+        while (opModeIsActive()) {
+            val liftAtPos = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            val barAtPos = fourBar.goToPosition(preDepositDegrees)
+
+            if (liftAtPos && barAtPos)
+                break
+        }
+
+        telemetry.addLine("depo move 1 done")
+
+        preEjectTask()
+
+        val depositDegrees = 30 + FourBarDegrees.Depositing.degrees
+        while (opModeIsActive()) {
+            val liftAtPos = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            val barAtPos = fourBar.goToPosition(depositDegrees)
+
+            if (liftAtPos && barAtPos) {
+                hardware.collector.power = -1.0
+                sleep(200)
+                hardware.collector.power = 0.2
+                sleep(200)
+                hardware.collector.power = -1.0
+                sleep(800)
+                hardware.collector.power = 0.0
+
+                break
+            }
+        }
+
+        fourBar.setServoPower(0.0)
+    }
+
+    fun lift(targetCounts: Int): Boolean {
+        val liftPos = if (!hardware.liftLimitSwitch.state) {
+            hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            targetCounts.coerceAtLeast(hardware.rightLift.currentPosition)
+        } else {
+            targetCounts
+        }
+
+        val error = liftPos-hardware.rightLift.currentPosition
+
+        val liftPower = liftPID.calcPID(error.toDouble())
+
+        hardware.leftLift.power = liftPower
+        hardware.rightLift.power = liftPower
+
+        return error in -300..300
     }
 
 }
