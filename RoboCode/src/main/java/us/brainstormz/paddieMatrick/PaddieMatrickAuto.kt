@@ -12,7 +12,7 @@ import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
 
-@Autonomous(name= "PaddieMatrick Auto", group= "A")
+@Autonomous(name= "PaddieMatrick Auto", group= "!")
 class PaddieMatrickAuto: LinearOpMode() {
 
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
@@ -60,20 +60,26 @@ class PaddieMatrickAuto: LinearOpMode() {
         val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
 
         //TriagonAuto (blue only)
-        hardware.collector.power = 1.0
+        hardware.collector.power = 0.1
         //pull out & enter orientation (2 ft. per tile!)
 
-        movement.driveRobotPositionWithTask(0.7, -50.0, true) {
+        movement.driveRobotPositionWithTask(0.7, -50.0, false) {
             fourBar.goToPosition(180.0)
+            lift(1500)
         }
+
+        hardware.collector.power = 0.0
 
         movement.driveRobotTurnWithTask(power = trigonTurnPower, degree = 88.0, smartAccel = true) {
             fourBar.goToPosition(180.0)
+            lift(2000)
         }
 
+
         sleep(500)
-        movement.driveRobotStrafeWithTask(trigonStrafePower, -12.0, true) {
+        movement.driveRobotStrafeWithTask(trigonStrafePower, -12.5, true) {
             fourBar.goToPosition(180.0)
+            lift(2500)
         }
 
         println("*drops thing*")
@@ -81,29 +87,38 @@ class PaddieMatrickAuto: LinearOpMode() {
             movement.driveRobotPosition(trigonPower, -8.0, true)
         }
 
-        for(i in 1..2) {
+//        for(i in 1..2) {
             //moves to stack
-            movement.driveRobotStrafeWithTask(trigonStrafePower, 12.0, true) {
-                fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+            movement.driveRobotStrafeWithTask(trigonStrafePower, 11.0, true) {
+                fourBar.goToPosition(180.0)
             }
-            println("*prepares collector*")
-            movement.driveRobotPositionWithTask(trigonPower, 20.0, true) {
-                prepareToCollect()
-            }
-            //collect
-            println("*rear-collects thing*")
-            sleep(2000)
-            //to pole
-            movement.driveRobotPosition(trigonPower, -20.0, true)
-            movement.driveRobotStrafe(trigonStrafePower, -12.0, true)
-            //deposit
-            println("*drops thing*")
-            deposit(){
-                movement.driveRobotPosition(trigonPower, -8.0, true)
-            }
-        }
+//            println("*prepares collector*")
+//            movement.driveRobotPositionWithTask(trigonPower, 20.0, true) {
+//                fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+//            }
+//            //collect
+//            println("*rear-collects thing*")
+//            sleep(2000)
+//            //to pole
+//            movement.driveRobotPosition(trigonPower, -20.0, true)
+//            movement.driveRobotStrafe(trigonStrafePower, -12.0, true)
+//            //deposit
+//            println("*drops thing*")
+//            deposit(){
+//                movement.driveRobotPosition(trigonPower, -8.0, true)
+//            }
+//        }
 
-        movement.driveRobotStrafe(trigonStrafePower, 14.0, true)
+
+        telemetry.addLine("hi there")
+        telemetry.update()
+
+//        while (!fourBar.goToPosition(180.0)) {sleep(50)}
+//        fourBar.setServoPower(0.0)
+//        sleep(1000)
+        prepareToCollect()
+
+//        movement.driveRobotStrafe(trigonStrafePower, 14.0, true)
 
         //basic drive forward
         when (aprilTagGXOutput) {
@@ -114,15 +129,26 @@ class PaddieMatrickAuto: LinearOpMode() {
 
             }
             SignalOrientation.Three -> {
-                movement.driveRobotPosition(trigonPower, -23.0, true)
+                movement.driveRobotPosition(trigonPower, -21.0, true)
             }
         }
 
+        telemetry.addLine("opmode over")
+        telemetry.update()
     }
 
     fun prepareToCollect() {
+        while (opModeIsActive()) {
             val liftAtPos = lift(0)
-            val barAtPos = fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+            val barAtPos = fourBar.goToPosition(180.0)
+
+            if (liftAtPos)
+                break
+        }
+
+        hardware.leftLift.power = 0.0
+        hardware.rightLift.power = 0.0
+        fourBar.setServoPower(0.0)
     }
 
     fun deposit(preEjectTask: ()->Unit) {
@@ -145,12 +171,13 @@ class PaddieMatrickAuto: LinearOpMode() {
             val barAtPos = fourBar.goToPosition(depositDegrees)
 
             if (liftAtPos && barAtPos) {
+                sleep(500)
                 hardware.collector.power = -1.0
                 sleep(200)
-                hardware.collector.power = 0.2
+                hardware.collector.power = 0.0
                 sleep(200)
                 hardware.collector.power = -1.0
-                sleep(800)
+                sleep(1000)
                 hardware.collector.power = 0.0
 
                 break
@@ -171,12 +198,18 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         val error = liftPos-hardware.rightLift.currentPosition
 
-        val liftPower = liftPID.calcPID(error.toDouble())
+        val pidPower = liftPID.calcPID(error.toDouble())
+
+        val liftPower = if (hardware.liftLimitSwitch.state)
+            pidPower.coerceAtLeast(0.0)
+        else
+            pidPower
 
         hardware.leftLift.power = liftPower
         hardware.rightLift.power = liftPower
 
-        return error in -300..300
+        val accuracy = 500
+        return error in -accuracy..accuracy
     }
 
 }
