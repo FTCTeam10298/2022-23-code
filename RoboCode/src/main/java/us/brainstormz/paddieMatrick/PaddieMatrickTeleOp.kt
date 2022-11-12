@@ -16,29 +16,40 @@ class PaddieMatrickTeleOp: OpMode() {
     val movement = MecanumDriveTrain(hardware)
     val fourBar = FourBar(telemetry)
 
-    val fourBarPID = PID(kp= 0.02)//, ki= 0.000035)
     var fourBarTarget = 0.0
-    val fourBarSpeed = 200.0
+    val allowedZone = 50.0..300.0
+    val fourBarSpeed = 120.0
+    enum class fourBarModes {
+        FOURBAR_PID,
+        FOURBAR_MANUAL
+    }
+    var fourBarMode = fourBarModes.FOURBAR_PID
     companion object {
         var centerPosition = 110.0
     }
-    val fourBarRange = 180.0
+    enum class FourBarDegrees(val degrees: Double) {
+        PreCollection(110.0),
+        Depositing(210.0),
+//        Collecting(90.0)
+    }
+
 
     val liftPID = PID(kp= 0.003, ki= 0.0)
     var liftTarget = 0.0
     val liftSpeed = 1200.0
     enum class LiftCounts(val counts: Int) {
-        PreCollection(480),
-        Collection(30),
-        HighJunction(4200),
-        MidJunction(2400),
-        LowJunction(800)
+        PreCollection(0),
+        Collection(0),
+        HighJunction(3900),
+        MidJunction(2200),
+        LowJunction(650)
     }
 
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
+        fourBarTarget = fourBar.current4BarDegrees()
     }
 
     override fun start() {
@@ -58,9 +69,30 @@ class PaddieMatrickTeleOp: OpMode() {
         val antiTipModifier: Double = MathHelps.scaleBetween(hardware.rightLift.currentPosition.toDouble() + 1, 0.0..3000.0, 1.0..1.8)
         telemetry.addLine("antiTipModifier: $antiTipModifier")
 
-        val yInput = gamepad1.left_stick_y.toDouble()
-        val xInput = gamepad1.left_stick_x.toDouble()
+        val slowSpeed = 0.3
+
+//        val yInput = gamepad1.left_stick_y.toDouble()
+//        val xInput =
         val rInput = gamepad1.right_stick_x.toDouble()
+        val yInput = when {
+            gamepad1.dpad_up -> {
+                slowSpeed
+            }
+            gamepad1.dpad_down -> {
+                -slowSpeed
+            }
+            else -> -gamepad1.left_stick_y.toDouble()
+        }
+        val xInput = when {
+            gamepad1.dpad_left -> {
+                slowSpeed
+            }
+            gamepad1.dpad_right -> {
+                -slowSpeed
+            }
+            else -> -gamepad1.left_stick_x.toDouble()
+        }
+
 
         val y = -yInput / antiTipModifier
         val x = xInput / antiTipModifier
@@ -72,40 +104,82 @@ class PaddieMatrickTeleOp: OpMode() {
 
         // Four bar
         telemetry.addLine("fourbar position: ${fourBar.current4BarDegrees()}")
-//        fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt )
-//        fourBarTarget = MathHelps.wrap360(fourBarTarget)
-//        telemetry.addLine("fourBarTarget: $fourBarTarget")
-
-
-        val fourBarPower = -gamepad2.right_stick_y.toDouble()
-//                fourBarPID.calcPID(MathHelps.wrap360(fourBarTarget - (fourBar.current4BarDegrees())))
-
-        telemetry.addLine("fourBarPower: $fourBarPower")
-
-
-        hardware.left4Bar.power = fourBarPower
-        hardware.right4Bar.power = fourBarPower
-
-        // Lift
-        liftTarget += (-gamepad2.left_stick_y.toDouble() * liftSpeed / dt)
+        telemetry.addLine("fourBarTarget: $fourBarTarget")
 
         when {
-            gamepad1.dpad_up || gamepad2.dpad_up -> {
-                liftTarget = LiftCounts.HighJunction.counts.toDouble()
+            gamepad2.x -> {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
-            gamepad1.dpad_left || gamepad2.dpad_left -> {
-                liftTarget = LiftCounts.MidJunction.counts.toDouble()
+            gamepad2.y -> {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Depositing.degrees
             }
-            gamepad1.dpad_down || gamepad2.dpad_down -> {
-                liftTarget = LiftCounts.LowJunction.counts.toDouble()
-            }
-//            gamepad1.a || gamepad2.a -> {
-//                liftTarget = LiftCounts.PreCollection.counts.toDouble()
+//            gamepad2.right_bumper -> {
+//                fourBarMode = fourBarModes.FOURBAR_PID
+//                fourBarTarget = FourBarDegrees.Collecting.degrees
 //            }
-            gamepad1.x || gamepad2.x -> {
-                liftTarget = LiftCounts.Collection.counts.toDouble()
+            abs(gamepad2.right_stick_y) > 0.1 -> {
+                fourBarMode = fourBarModes.FOURBAR_MANUAL
+            }
+            abs(gamepad2.right_stick_y) < 0.1 && fourBarMode == fourBarModes.FOURBAR_MANUAL -> {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = fourBar.current4BarDegrees()
             }
         }
+
+        //fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt)
+
+        if (fourBarMode == fourBarModes.FOURBAR_PID) {
+            fourBarTarget = MathHelps.wrap360(fourBarTarget).coerceIn(allowedZone)
+            fourBar.goToPosition(fourBarTarget)
+            telemetry.addLine("fourBarMode: PID")
+        }
+        else { // (fourBarMode == fourBarModes.FOURBAR_MANUAL
+            fourBar.setServoPower(gamepad2.right_stick_y.toDouble())
+            telemetry.addLine("fourBarMode: Manual")
+        }
+
+//        val fourBarPower = -gamepad2.right_stick_y.toDouble()
+//                fourBarPID.calcPID(MathHelps.wrap360(fourBarTarget - (fourBar.current4BarDegrees())))
+
+//        telemetry.addLine("fourBarPower: $fourBarPower")
+
+//        hardware.left4Bar.power = fourBarPower
+//        hardware.right4Bar.power = fourBarPower
+
+        // Lift
+        when {
+            gamepad2.dpad_up -> {
+                liftTarget = LiftCounts.HighJunction.counts.toDouble()
+
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Depositing.degrees
+            }
+            gamepad2.dpad_left -> {
+                liftTarget = LiftCounts.MidJunction.counts.toDouble()
+
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Depositing.degrees
+            }
+            gamepad2.dpad_right -> {
+                liftTarget = LiftCounts.LowJunction.counts.toDouble()
+
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Depositing.degrees
+            }
+            gamepad2.dpad_down -> {
+                liftTarget = LiftCounts.LowJunction.counts.toDouble()
+
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.PreCollection.degrees
+            }
+            gamepad2.left_bumper -> {
+                liftTarget += (-0.5 * liftSpeed / dt)
+            }
+        }
+
+        liftTarget += (-gamepad2.left_stick_y.toDouble() * liftSpeed / dt)
 
         liftTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER

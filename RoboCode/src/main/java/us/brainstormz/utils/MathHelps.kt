@@ -1,10 +1,7 @@
 package us.brainstormz.utils
 
 import locationTracking.PosAndRot
-import kotlin.math.cos
-import kotlin.math.pow
-import kotlin.math.sin
-import kotlin.math.sqrt
+import kotlin.math.*
 
 object MathHelps {
     fun scaleBetween(value: Double, range1: ClosedRange<Double>, range2: ClosedRange<Double>): Double {
@@ -26,10 +23,10 @@ object MathHelps {
 //        else
            return degrees % 360
     }
-    fun smallestHeadingChange(currentHeading: Double, headingToMouse: Double): Double {
+    fun smallestHeadingChange(currentHeading: Double, targetHeading: Double): Double {
 
-        val absCurrentHeading = Math.abs(currentHeading)
-        val absHeadingToMouse = Math.abs(headingToMouse)
+        val absCurrentHeading = abs(currentHeading)
+        val absHeadingToMouse = abs(targetHeading)
 
 
         // console.log("degreesToMouse: " + headingToMouse)
@@ -37,8 +34,8 @@ object MathHelps {
 
         // # 1 & 2
         return when {
-            getSign(currentHeading) !== getSign(headingToMouse) -> {
-                 if ((Math.abs(currentHeading) + Math.abs(headingToMouse)) < (360 - absCurrentHeading - absHeadingToMouse)) {
+            getSign(currentHeading) != getSign(targetHeading) -> {
+                 if ((abs(currentHeading) + abs(targetHeading)) < (360 - absCurrentHeading - absHeadingToMouse)) {
                     // #1
                     // console.log("#1")
 
@@ -50,11 +47,11 @@ object MathHelps {
                     getSign(currentHeading) * (360 - absCurrentHeading - absHeadingToMouse)
                 }
             }
-            absCurrentHeading !== absHeadingToMouse -> {
+            absCurrentHeading != absHeadingToMouse -> {
                 // console.log("#3")
-                 headingToMouse - currentHeading
+                 targetHeading - currentHeading
             }
-            absCurrentHeading === absHeadingToMouse ->  0.0
+            absCurrentHeading == absHeadingToMouse ->  0.0
             else -> 0.0
         }
 
