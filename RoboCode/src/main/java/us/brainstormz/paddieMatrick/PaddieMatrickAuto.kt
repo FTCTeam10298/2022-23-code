@@ -80,20 +80,17 @@ class PaddieMatrickAuto: LinearOpMode() {
         }
         if (wizard.wasItemChosen("program", "Park Auto")) {
             val drivePower = 0.5
-            val forwardDistance = 25.0
+            val forwardDistance = -25.0
             val sideDistance = 30.0
             when (aprilTagGXOutput) {
                 SignalOrientation.One -> {
-                    movement.driveRobotPosition(0.8, 20.0, true)
                     movement.driveRobotPosition(drivePower, forwardDistance, true)
                     movement.driveRobotStrafe(drivePower, sideDistance, true)
                 }
                 SignalOrientation.Two -> {
-                    movement.driveRobotPosition(0.8, 20.0, true)
                     movement.driveRobotPosition(drivePower, forwardDistance, true)
                 }
                 SignalOrientation.Three -> {
-                    movement.driveRobotPosition(0.8, 20.0, true)
                     movement.driveRobotPosition(drivePower, forwardDistance, true)
                     movement.driveRobotStrafe(drivePower, -sideDistance, true)
                 }
