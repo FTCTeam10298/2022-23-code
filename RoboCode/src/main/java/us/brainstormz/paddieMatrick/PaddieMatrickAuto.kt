@@ -85,14 +85,14 @@ class PaddieMatrickAuto: LinearOpMode() {
             when (aprilTagGXOutput) {
                 SignalOrientation.One -> {
                     movement.driveRobotPosition(drivePower, forwardDistance, true)
-                    movement.driveRobotStrafe(drivePower, sideDistance, true)
+                    movement.driveRobotStrafe(drivePower, -sideDistance, true)
                 }
                 SignalOrientation.Two -> {
                     movement.driveRobotPosition(drivePower, forwardDistance, true)
                 }
                 SignalOrientation.Three -> {
                     movement.driveRobotPosition(drivePower, forwardDistance, true)
-                    movement.driveRobotStrafe(drivePower, -sideDistance, true)
+                    movement.driveRobotStrafe(drivePower, sideDistance, true)
                 }
             }
         }
