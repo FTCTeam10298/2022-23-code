@@ -1,5 +1,7 @@
 package us.brainstormz.paddieMatrick
 
+//2 ft = 1 Square
+
 import com.acmerobotics.roadrunner.geometry.Pose2d
 import com.acmerobotics.roadrunner.trajectory.Trajectory
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
@@ -22,10 +24,13 @@ class PaddieMatrickAuto: LinearOpMode() {
     val fourBar = FourBar(telemetry)
 
     val drivePower = 0.5
-    val forwardDistance = 25.0
-    val sideDistance = 30.0
+    val forwardDistance = 12.0
+    val sideDistance = 12.0
 
-//    val F4Coords
+    val trigonPower = 0.5
+    val trigonTurnPower = 0.5
+    val trigonStrafePower = 0.25
+
 
 
     override fun runOpMode() {
@@ -41,14 +46,15 @@ class PaddieMatrickAuto: LinearOpMode() {
         while (!isStarted && !isStopRequested) {
             aprilTagGX.runAprilTag(telemetry)
 
+
 //            val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
 //            hardware.left4Bar.power = fourBarPower
 //            hardware.right4Bar.power = fourBarPower
         }
 
         waitForStart()
-
         /** AUTONOMOUS  PHASE */
+        val aprilTagGXOutput = aprilTagGX.signalOrientation
         movement.driveRobotPosition(power = 1.0, inches = 20.0, smartAccel = true)
         movement.driveRobotStrafe(power = 1.0, inches = 20.0, smartAccel = true)
         movement.driveRobotTurn(power = 1.0, degree = 20.0, smartAccel = true)
@@ -93,18 +99,39 @@ class PaddieMatrickAuto: LinearOpMode() {
 //            .build()
 //        );
 
+        //TriagonAuto (red only)
+        //pull out & enter orientation (2 ft. per tile!)
+
+        movement.driveRobotPosition(trigonPower, 72.0, true)
+        movement.driveRobotTurn(power = trigonTurnPower, degree = 90.0, smartAccel = true)
+        println("*drops thing*")
+
+        for(i in 0..3) {
+            //probably broken  -  moves to cone
+            movement.driveRobotStrafe(trigonStrafePower, -12.0, true)
+            //to pile
+            println("*prepares collector*")
+            movement.driveRobotPosition(trigonPower, -36.0, true)
+            //to stop
+            println("*rear-collects thing*")
+            movement.driveRobotPosition(trigonPower, 36.0, true)
+            movement.driveRobotStrafe(trigonStrafePower, -12.0, true)
+            println("*drops thing*")
+        }
+
         //basic drive forward
-        when (aprilTagGX.signalOrientation) {
+        when (aprilTagGXOutput) {
             SignalOrientation.one -> {
-                movement.driveRobotPosition(drivePower, forwardDistance, true)
                 movement.driveRobotStrafe(drivePower, sideDistance, true)
+                movement.driveRobotPosition(drivePower, -forwardDistance, true)
+
             }
             SignalOrientation.two -> {
-                movement.driveRobotPosition(drivePower, forwardDistance, true)
+                movement.driveRobotStrafe(drivePower, sideDistance, true)
             }
             SignalOrientation.three -> {
+                movement.driveRobotStrafe(drivePower, sideDistance, true)
                 movement.driveRobotPosition(drivePower, forwardDistance, true)
-                movement.driveRobotStrafe(drivePower, -sideDistance, true)
             }
         }
 

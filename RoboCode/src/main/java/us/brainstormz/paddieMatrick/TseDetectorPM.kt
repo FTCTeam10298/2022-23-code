@@ -1,3 +1,6 @@
+//From Gabe, your Aperture Science Enrichment Center Education Advocate, who would still like to remind you that turrets are your friends.
+//DEPRECATED by AprilTagEX.
+
 package us.brainstormz.paddieMatrick
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
