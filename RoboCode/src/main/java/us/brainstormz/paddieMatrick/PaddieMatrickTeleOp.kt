@@ -50,6 +50,7 @@ class PaddieMatrickTeleOp: OpMode() {
         hardware.init(hardwareMap)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         fourBarTarget = fourBar.current4BarDegrees()
+        fourBar.pid = PID(kp= 0.005, ki= 0.00000001)
     }
 
     override fun start() {
@@ -169,7 +170,8 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarTarget = FourBarDegrees.Depositing.degrees
             }
             gamepad2.dpad_down -> {
-                liftTarget = LiftCounts.LowJunction.counts.toDouble()
+
+                liftTarget = LiftCounts.Collection.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreCollection.degrees
@@ -184,7 +186,7 @@ class PaddieMatrickTeleOp: OpMode() {
         liftTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            liftTarget.coerceAtLeast(hardware.rightLift.currentPosition.toDouble())
+            liftTarget.coerceAtLeast(0.0)
         } else {
             liftTarget
         }
