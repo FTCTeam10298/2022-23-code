@@ -2,6 +2,7 @@ package us.brainstormz.paddieMatrick
 
 import androidx.annotation.FloatRange
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.AnalogInput
 import com.qualcomm.robotcore.hardware.CRServo
@@ -10,7 +11,9 @@ import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.pid.PID
 import us.brainstormz.utils.MathHelps
 import us.brainstormz.utils.MathHelps.smallestHeadingChange
+import java.lang.Math.pow
 import kotlin.math.abs
+import kotlin.math.pow
 
 class FourBar(private val telemetry: Telemetry) {
     private lateinit var leftServo: CRServo
@@ -27,7 +30,7 @@ class FourBar(private val telemetry: Telemetry) {
         var degreesWhenVertical: Double = -110.0
     }
 
-    var pid = PID(kp= 0.0015, ki= 0.0000005, kd= 0.0000000001)
+    var pid = PID(kp= 0.0043, ki= 0.000695, kd= 0.00048)
     private val accuracyDegrees = 5.0
 
     val mountHeightInch = 10.5
@@ -132,6 +135,80 @@ class CalibrateFourBar(): LinearOpMode() {
 
         waitForStart()
         FourBar.degreesWhenVertical = fourBar.encoderDegrees()
+    }
+
+}
+
+
+@TeleOp(name= "Tune PID", group="!")
+class TuneFourBarPID(): OpMode() {
+
+    val hardware = PaddieMatrickHardware()
+    val fourBar = FourBar(telemetry)
+
+    override fun init() {
+        hardware.init(hardwareMap)
+        fourBar.init(encoder = hardware.encoder4Bar, leftServo = hardware.left4Bar, rightServo = hardware.right4Bar)
+    }
+
+    var kp = 0.0043
+    var ki = 0.000696// * 10.0.pow(-4.0)
+    var kd = 0.00043
+    enum class Pid {
+        KP,
+        KI,
+        KD
+    }
+    override fun loop() {
+        telemetry.addLine("pid values: $kp, $ki, $kd")
+
+        fourBar.pid = PID(kp, ki, kd)
+
+        when {
+            gamepad1.x -> {
+                fourBar.goToPosition(270.0)
+                telemetry.addLine("target: 180")
+            }
+            gamepad1.y -> {
+                fourBar.goToPosition(90.0)
+                telemetry.addLine("target: 90")
+            }
+            gamepad1.b -> {
+                fourBar.setServoPower(0.0)
+                telemetry.addLine("power: 0.0")
+            }
+        }
+
+        var incrementAmount = 0.000001
+        var changingVariable = Pid.KP
+        when {
+                gamepad1.right_bumper -> {
+                changingVariable = Pid.KP
+            }
+                gamepad1.left_bumper -> {
+                changingVariable = Pid.KI
+            }
+                gamepad1.left_trigger > 0 -> {
+                changingVariable = Pid.KD
+            }
+        }
+
+        when {
+            gamepad1.dpad_up -> {
+                when (changingVariable) {
+                    Pid.KP -> kp += incrementAmount
+                    Pid.KI -> ki += incrementAmount
+                    Pid.KD -> kd += incrementAmount
+                }
+            }
+            gamepad1.dpad_down -> {
+                when (changingVariable) {
+                    Pid.KP -> kp -= incrementAmount
+                    Pid.KI -> ki -= incrementAmount
+                    Pid.KD -> kd -= incrementAmount
+                }
+            }
+        }
     }
 
 }
