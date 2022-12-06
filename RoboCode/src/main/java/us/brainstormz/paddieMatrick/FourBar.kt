@@ -140,7 +140,7 @@ class CalibrateFourBar(): LinearOpMode() {
 }
 
 
-@TeleOp(name= "Tune PID", group="!")
+@TeleOp(name= "Four Bar Test And Tune", group="!")
 class TuneFourBarPID(): OpMode() {
 
     val hardware = PaddieMatrickHardware()
@@ -151,14 +151,16 @@ class TuneFourBarPID(): OpMode() {
         fourBar.init(encoder = hardware.encoder4Bar, leftServo = hardware.left4Bar, rightServo = hardware.right4Bar)
     }
 
-    var kp = 0.0043
-    var ki = 0.000696// * 10.0.pow(-4.0)
-    var kd = 0.00043
+    var kp = 0.011
+    var ki = 0.00000000//1// * 10.0.pow(-4.0)
+    var kd = 0.0//02
     enum class Pid {
         KP,
         KI,
         KD
     }
+
+    var target = 180.0
     override fun loop() {
         telemetry.addLine("pid values: $kp, $ki, $kd")
 
@@ -166,20 +168,27 @@ class TuneFourBarPID(): OpMode() {
 
         when {
             gamepad1.x -> {
-                fourBar.goToPosition(270.0)
-                telemetry.addLine("target: 180")
+                target = 270.0
+                telemetry.addLine("target: 270")
             }
             gamepad1.y -> {
-                fourBar.goToPosition(90.0)
+                target = 90.0
                 telemetry.addLine("target: 90")
             }
-            gamepad1.b -> {
-                fourBar.setServoPower(0.0)
-                telemetry.addLine("power: 0.0")
+            gamepad1.a && !gamepad1.start -> {
+                target = 180.0
+                telemetry.addLine("target: 180.0")
             }
         }
 
-        var incrementAmount = 0.000001
+        if (gamepad1.b) {
+            fourBar.setServoPower(0.0)
+            telemetry.addLine("power: 0.0")
+        } else {
+            fourBar.goToPosition(target)
+        }
+
+        var incrementAmount = 0.001
         var changingVariable = Pid.KP
         when {
                 gamepad1.right_bumper -> {
