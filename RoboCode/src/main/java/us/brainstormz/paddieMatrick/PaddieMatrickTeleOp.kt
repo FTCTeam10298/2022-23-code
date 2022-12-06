@@ -50,7 +50,7 @@ class PaddieMatrickTeleOp: OpMode() {
         hardware.init(hardwareMap)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         fourBarTarget = fourBar.current4BarDegrees()
-        fourBar.pid = PID(kp= 0.005, ki= 0.00000001)
+        fourBar.pid = PID(kp= 0.011, kd= 0.0001)//0000001)
     }
 
     override fun start() {

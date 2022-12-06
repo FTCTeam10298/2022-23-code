@@ -29,7 +29,7 @@ class PaddieMatrickAuto: LinearOpMode() {
     val fourBar = FourBar(telemetry)
 
     val lift = Lift(telemetry)
-    val liftPID = PID(kp= 0.003, ki= 0.0)
+    val liftPID = PID(kp= 0.011, ki= 0.0)
 
     val drivePower = 0.5
     val forwardDistance = 12.0
