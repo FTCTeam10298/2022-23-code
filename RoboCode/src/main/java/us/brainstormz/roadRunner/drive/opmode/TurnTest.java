@@ -12,7 +12,7 @@ import us.brainstormz.roadRunner.drive.SampleMecanumDrive;
 @Config
 @Autonomous(group = "drive")
 public class TurnTest extends LinearOpMode {
-    public static double ANGLE = 90; // deg
+    public static double ANGLE = 180; // deg (should turn 90 :())
 
     @Override
     public void runOpMode() throws InterruptedException {
