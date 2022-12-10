@@ -123,7 +123,7 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         hardware.collector.power = 0.05
 
-        movement.driveRobotPositionWithTask(movementSpeed, -50.5, true) {
+        movement.driveRobotPositionWithTask(movementSpeed, -51.0, true) {
             fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
             lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
             hardware.collector.power = 0.0
@@ -144,7 +144,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         hardware.collector.power = 0.0
 
         sleep(100)
-        movement.driveRobotPositionWithTask(0.2, -3.9, true) {
+        movement.driveRobotPositionWithTask(0.2, -4.1, true) {
             fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
             lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
         }
