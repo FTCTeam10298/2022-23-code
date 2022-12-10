@@ -129,7 +129,7 @@ class PaddieMatrickAuto: LinearOpMode() {
             lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
         }
 
-        movement.driveRobotStrafeWithTask(movementSpeed, 16.3, true) {
+        movement.driveRobotStrafeWithTask(movementSpeed, 16.4, true) {
             fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
             lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
         }
@@ -174,7 +174,14 @@ class PaddieMatrickAuto: LinearOpMode() {
             lift(10)
         }
 
-        movement.driveRobotPositionWithTask(movementSpeed, 21.0, true) {
+        val parkDistance = 22.0
+        val parkDrivePhoInches = when (aprilTagGXOutput) {
+            SignalOrientation.One -> -parkDistance
+            SignalOrientation.Two -> 0.0
+            SignalOrientation.Three -> parkDistance
+        }
+
+        movement.driveRobotPositionWithTask(movementSpeed, parkDrivePhoInches, true) {
             fourBar.goToPosition(180.0)
             lift(10)
         }
