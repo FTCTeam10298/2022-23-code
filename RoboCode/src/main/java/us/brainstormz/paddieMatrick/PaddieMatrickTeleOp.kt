@@ -97,7 +97,7 @@ class PaddieMatrickTeleOp: OpMode() {
 
         val y = -yInput / antiTipModifier
         val x = xInput / antiTipModifier
-        val r = -rInput * abs(rInput)
+        val r = -rInput * abs(rInput) //square the number and keep the sign
         movement.driveSetPower((y + x - r),
                                (y - x + r),
                                (y - x - r),
