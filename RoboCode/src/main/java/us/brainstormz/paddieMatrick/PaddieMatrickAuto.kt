@@ -53,7 +53,9 @@ class PaddieMatrickAuto: LinearOpMode() {
 //        val fourBarTarget = fourBar.current4BarDegrees() - 70
 
 //        wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
-        wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto", "New Cycle Auto", "Old Cycle Auto"), firstMenu = true)
+        wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto" to null, "New Cycle Auto" to "startPos"), firstMenu = true)
+//        wizard.newMenu("alliance", "Which alliance are we on?", listOf("Blue", "Red"), nextMenu = "startPos")
+        wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
 
         var hasWizardRun = false
 
@@ -78,10 +80,14 @@ class PaddieMatrickAuto: LinearOpMode() {
 //            true -> {
         when {
             wizard.wasItemChosen("program", "New Cycle Auto") -> {
-                cycleAuto(aprilTagGXOutput)
-            }
-            wizard.wasItemChosen("program", "Old Cycle Auto") -> {
-                oldCycleAuto(aprilTagGXOutput)
+                when {
+                    wizard.wasItemChosen("startPos", "Right") -> {
+                        blueTerminalsCycleAuto(aprilTagGXOutput)
+                    }
+                    wizard.wasItemChosen("startPos", "Left") -> {
+                        redTerminalsCycleAuto(aprilTagGXOutput)
+                    }
+                }
             }
             wizard.wasItemChosen("program", "Park Auto") -> {
                 val drivePower = 0.5
@@ -110,7 +116,88 @@ class PaddieMatrickAuto: LinearOpMode() {
 //            }
 //        }
     }
-    fun cycleAuto(aprilTagGXOutput: SignalOrientation) {
+
+    fun redTerminalsCycleAuto(aprilTagGXOutput: SignalOrientation) {
+
+        val movementSpeed = 0.5
+
+        hardware.collector.power = 0.05
+
+        movement.driveRobotPositionWithTask(movementSpeed, -50.5, true) {
+            fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
+            hardware.collector.power = 0.0
+        }
+
+        hardware.collector.power = 0.05
+
+        movement.driveRobotTurnWithTask(movementSpeed, 89.0, true) {
+            fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+        }
+
+        movement.driveRobotStrafeWithTask(movementSpeed, -16.4, true) {
+            fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+        }
+
+        hardware.collector.power = 0.0
+
+        sleep(100)
+        movement.driveRobotPositionWithTask(0.2, -3.9, true) {
+            fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+        }
+
+        while (!isStopRequested) {
+            if (fourBar.goToPosition(FourBarDegrees.Depositing.degrees + 35))
+                break
+        }
+
+        while (!isStopRequested) {
+            if (lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts - 300)) {
+                hardware.leftLift.power = 0.0
+                hardware.rightLift.power = 0.0
+                break
+            }
+        }
+
+        hardware.collector.power = -1.0
+        sleep(1000)
+        hardware.collector.power = 0.0
+
+        while (!isStopRequested) {
+            if (fourBar.goToPosition(180.0))
+                break
+        }
+
+        movement.driveRobotPositionWithTask(movementSpeed, 4.0, true) {
+            fourBar.goToPosition(180.0)
+            lift(10)
+        }
+
+        movement.driveRobotStrafeWithTask(movementSpeed, 16.0, true) {
+            fourBar.goToPosition(180.0)
+            lift(10)
+        }
+
+        val parkDistance = 22.0
+        val parkDrivePhoInches = when (aprilTagGXOutput) {
+            SignalOrientation.One -> parkDistance
+            SignalOrientation.Two -> 0.0
+            SignalOrientation.Three -> -parkDistance
+        }
+
+        movement.driveRobotPositionWithTask(movementSpeed, parkDrivePhoInches, true) {
+            fourBar.goToPosition(180.0)
+            lift(10)
+        }
+
+        telemetry.addLine("opmode over")
+        telemetry.update()
+    }
+
+    fun blueTerminalsCycleAuto(aprilTagGXOutput: SignalOrientation) {
 
         val movementSpeed = 0.5
 
