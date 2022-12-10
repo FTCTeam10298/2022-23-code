@@ -29,7 +29,7 @@ class PaddieMatrickAuto: LinearOpMode() {
     val fourBar = FourBar(telemetry)
 
     val lift = Lift(telemetry)
-    val liftPID = PID(kp= 0.02, ki= 0.0)
+    val liftPID = PID(kp= 0.006, ki= 0.0)
 
     val drivePower = 0.5
     val forwardDistance = 12.0
@@ -147,10 +147,12 @@ class PaddieMatrickAuto: LinearOpMode() {
                 break
         }
 
-
         while (!isStopRequested) {
-            if (lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts - 600))
+            if (lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts - 300)) {
+                hardware.leftLift.power = 0.0
+                hardware.rightLift.power = 0.0
                 break
+            }
         }
 
         hardware.collector.power = -1.0
@@ -343,7 +345,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         val pidPower = liftPID.calcPID(error.toDouble())
         telemetry.addLine("pidPower: $pidPower")
 
-        val liftPower = if (hardware.liftLimitSwitch.state)
+        val liftPower = if (!hardware.liftLimitSwitch.state)
             pidPower.coerceAtLeast(0.0)
         else
             pidPower
