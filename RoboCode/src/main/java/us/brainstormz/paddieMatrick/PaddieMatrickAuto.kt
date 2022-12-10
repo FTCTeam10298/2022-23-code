@@ -29,7 +29,7 @@ class PaddieMatrickAuto: LinearOpMode() {
     val fourBar = FourBar(telemetry)
 
     val lift = Lift(telemetry)
-    val liftPID = PID(kp= 0.011, ki= 0.0)
+    val liftPID = PID(kp= 0.02, ki= 0.0)
 
     val drivePower = 0.5
     val forwardDistance = 12.0
@@ -53,11 +53,12 @@ class PaddieMatrickAuto: LinearOpMode() {
 //        val fourBarTarget = fourBar.current4BarDegrees() - 70
 
 //        wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
-        wizard.newMenu("program", "Which auto are we starting?", listOf("Cycle Auto", "Park Auto"), firstMenu = true)
+        wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto", "New Cycle Auto", "Old Cycle Auto"), firstMenu = true)
 
         var hasWizardRun = false
 
         while (!isStarted && !isStopRequested) {
+            println("i'm a runnin'")
             aprilTagGX.runAprilTag(telemetry)
 
             if (aprilTagGX.signalOrientation != null && !hasWizardRun) {
@@ -75,24 +76,29 @@ class PaddieMatrickAuto: LinearOpMode() {
 //
 //        when (wizard.wasItemChosen("alliance", "Red")) {
 //            true -> {
-        if (wizard.wasItemChosen("program", "Cycle Auto")) {
-            cycleAuto(aprilTagGXOutput)
-        }
-        if (wizard.wasItemChosen("program", "Park Auto")) {
-            val drivePower = 0.5
-            val forwardDistance = -25.0
-            val sideDistance = 30.0
-            when (aprilTagGXOutput) {
-                SignalOrientation.One -> {
-                    movement.driveRobotPosition(drivePower, forwardDistance, true)
-                    movement.driveRobotStrafe(drivePower, -sideDistance, true)
-                }
-                SignalOrientation.Two -> {
-                    movement.driveRobotPosition(drivePower, forwardDistance, true)
-                }
-                SignalOrientation.Three -> {
-                    movement.driveRobotPosition(drivePower, forwardDistance, true)
-                    movement.driveRobotStrafe(drivePower, sideDistance, true)
+        when {
+            wizard.wasItemChosen("program", "New Cycle Auto") -> {
+                cycleAuto(aprilTagGXOutput)
+            }
+            wizard.wasItemChosen("program", "Old Cycle Auto") -> {
+                oldCycleAuto(aprilTagGXOutput)
+            }
+            wizard.wasItemChosen("program", "Park Auto") -> {
+                val drivePower = 0.5
+                val forwardDistance = -25.0
+                val sideDistance = 30.0
+                when (aprilTagGXOutput) {
+                    SignalOrientation.One -> {
+                        movement.driveRobotPosition(drivePower, forwardDistance, true)
+                        movement.driveRobotStrafe(drivePower, -sideDistance, true)
+                    }
+                    SignalOrientation.Two -> {
+                        movement.driveRobotPosition(drivePower, forwardDistance, true)
+                    }
+                    SignalOrientation.Three -> {
+                        movement.driveRobotPosition(drivePower, forwardDistance, true)
+                        movement.driveRobotStrafe(drivePower, sideDistance, true)
+                    }
                 }
             }
         }
@@ -104,8 +110,78 @@ class PaddieMatrickAuto: LinearOpMode() {
 //            }
 //        }
     }
-
     fun cycleAuto(aprilTagGXOutput: SignalOrientation) {
+
+        val movementSpeed = 0.5
+
+        hardware.collector.power = 0.05
+
+        movement.driveRobotPositionWithTask(movementSpeed, -50.5, true) {
+            fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
+            hardware.collector.power = 0.0
+        }
+
+        hardware.collector.power = 0.05
+
+        movement.driveRobotTurnWithTask(movementSpeed, -89.0, true) {
+            fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+        }
+
+        movement.driveRobotStrafeWithTask(movementSpeed, 16.3, true) {
+            fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+        }
+
+        hardware.collector.power = 0.0
+
+        sleep(100)
+        movement.driveRobotPositionWithTask(0.2, -3.9, true) {
+            fourBar.goToPosition(FourBarDegrees.Depositing.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+        }
+
+        while (!isStopRequested) {
+            if (fourBar.goToPosition(FourBarDegrees.Depositing.degrees + 35))
+                break
+        }
+
+
+        while (!isStopRequested) {
+            if (lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts - 600))
+                break
+        }
+
+        hardware.collector.power = -1.0
+        sleep(1000)
+        hardware.collector.power = 0.0
+
+        while (!isStopRequested) {
+            if (fourBar.goToPosition(180.0))
+                break
+        }
+
+        movement.driveRobotPositionWithTask(movementSpeed, 4.0, true) {
+            fourBar.goToPosition(180.0)
+            lift(10)
+        }
+
+        movement.driveRobotStrafeWithTask(movementSpeed, -16.0, true) {
+            fourBar.goToPosition(180.0)
+            lift(10)
+        }
+
+        movement.driveRobotPositionWithTask(movementSpeed, 21.0, true) {
+            fourBar.goToPosition(180.0)
+            lift(10)
+        }
+
+        telemetry.addLine("opmode over")
+        telemetry.update()
+    }
+
+    fun oldCycleAuto(aprilTagGXOutput: SignalOrientation) {
 
         //TriagonAuto (blue only)
         hardware.collector.power = 0.1
@@ -252,22 +328,27 @@ class PaddieMatrickAuto: LinearOpMode() {
     }
 
     fun lift(targetCounts: Int): Boolean {
-        val liftPos = if (!hardware.liftLimitSwitch.state) {
+        val adjustedTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
             targetCounts.coerceAtLeast(hardware.rightLift.currentPosition)
         } else {
             targetCounts
         }
+        telemetry.addLine("adjustedTarget: $adjustedTarget")
 
-        val error = liftPos-hardware.rightLift.currentPosition
+        val error = adjustedTarget-hardware.rightLift.currentPosition
+        telemetry.addLine("error: $error")
 
         val pidPower = liftPID.calcPID(error.toDouble())
+        telemetry.addLine("pidPower: $pidPower")
 
         val liftPower = if (hardware.liftLimitSwitch.state)
             pidPower.coerceAtLeast(0.0)
         else
             pidPower
+        telemetry.addLine("liftPower: $liftPower")
+        telemetry.update()
 
         hardware.leftLift.power = liftPower
         hardware.rightLift.power = liftPower
