@@ -155,7 +155,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         }
 
         while (!isStopRequested) {
-            if (lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts - 300)) {
+            if (lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts - 500)) {
                 hardware.leftLift.power = 0.0
                 hardware.rightLift.power = 0.0
                 break
@@ -235,7 +235,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         }
 
         while (!isStopRequested) {
-            if (lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts - 300)) {
+            if (lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts - 500)) {
                 hardware.leftLift.power = 0.0
                 hardware.rightLift.power = 0.0
                 break
