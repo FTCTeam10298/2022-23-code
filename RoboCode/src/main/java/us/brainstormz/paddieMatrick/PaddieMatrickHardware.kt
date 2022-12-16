@@ -18,6 +18,8 @@ class PaddieMatrickHardware: MecanumHardware {
     lateinit var left4Bar: CRServo
     lateinit var right4Bar: CRServo
     lateinit var rightOdomEncoder: DcMotor
+    lateinit var leftOdomEncoder: DcMotor
+    lateinit var centerOdomEncoder: DcMotor
 
     lateinit var collectorSensor: RevColorSensorV3
     lateinit var collector: CRServo
@@ -50,11 +52,16 @@ class PaddieMatrickHardware: MecanumHardware {
         leftLift.direction = DcMotorSimple.Direction.FORWARD
         rightLift.direction = DcMotorSimple.Direction.REVERSE
 
-        //Encoders
+        //Encoders/Deadwheels
         //3 = R; 2 = C; 1 = L
         //on D4-5 (Digital 4-5
         rightOdomEncoder = leftLift// plugged in to the encoder port for the motor input that we are also using for the lift
-//        centerOdomEncoder = hwMap["cEncoder"] as DcMotor
+        centerOdomEncoder = hwMap["cEncoder"] as DcMotor // empty motor port used for encoder/deadwheel
+        leftOdomEncoder = hwMap["lEncoder"] as DcMotor
+
+        rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
 
 
         // Drivetrain

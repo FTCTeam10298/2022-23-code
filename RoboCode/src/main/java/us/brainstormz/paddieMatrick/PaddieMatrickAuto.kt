@@ -15,7 +15,6 @@ import us.brainstormz.telemetryWizard.TelemetryWizard
 
 @Autonomous(name= "PaddieMatrick Auto", group= "!")
 class PaddieMatrickAuto: LinearOpMode() {
-
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
 //    Drivetrain drive = new Drivetrain(hwMap);
     val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
@@ -48,6 +47,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
 
         aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
+
 
 
 //        val fourBarTarget = fourBar.current4BarDegrees() - 70
