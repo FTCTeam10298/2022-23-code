@@ -1,3 +1,14 @@
+
+//X (mean avg of distances, see LRR) x =  -2.8417
+//dist1: 50/ -29.662793399551123
+//dist2: 50/ -20.15522013354858
+//dist3: 50/ -11.47110710175644
+
+//(same) y = 0.058967
+//dist1:  50/ 845.9061912983248
+//dist2: ans + 50/ 858.2465632298844
+//dist3: ans + 50/ 840.5327050224676
+
 package us.brainstormz.roadRunner.drive;
 
 import androidx.annotation.NonNull;
@@ -34,8 +45,8 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
     public static double TICKS_PER_REV = 8192;
     public static double WHEEL_RADIUS = 1.3779527559/2; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
-    public static double X_MULTIPLIER = 1; // Multiplier in the X direction
-    public static double Y_MULTIPLIER = 1; // Multiplier in the Y direction
+    public static double X_MULTIPLIER = -2.8417; // Multiplier in the X direction
+    public static double Y_MULTIPLIER = 0.058967; // Multiplier in the X direction
 
     public static double LATERAL_DISTANCE = 10.5; // in; distance between the left and right wheels
     public static double FORWARD_OFFSET = 0.21875; // in; offset of the lateral wheel
