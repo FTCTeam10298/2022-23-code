@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.hardware.*
 import us.brainstormz.hardwareClasses.MecanumHardware
 
 private const val s = "rEncoder"
+private const val freeMove = false //for debugging. puts motors in float when stopped.
 
 class PaddieMatrickHardware: MecanumHardware {
     override lateinit var lFDrive: DcMotor
@@ -72,14 +73,18 @@ class PaddieMatrickHardware: MecanumHardware {
         rFDrive = hwMap["rFDrive"] as DcMotor
         lBDrive = hwMap["lBDrive"] as DcMotor
         rBDrive = hwMap["rBDrive"] as DcMotor
-        lFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        rFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        lBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        rBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        lFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        rFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        lBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        rBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        if(freeMove){
+            lFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            rFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            lBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            rBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        }
+        else{
+            lFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            rFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            lBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+            rBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        }
         rFDrive.direction = DcMotorSimple.Direction.REVERSE
         rBDrive.direction = DcMotorSimple.Direction.REVERSE
     }

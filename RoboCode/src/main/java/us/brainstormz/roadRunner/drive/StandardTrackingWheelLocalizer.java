@@ -1,13 +1,12 @@
 
-//X (mean avg of distances, see LRR) x =  -2.8417
-//dist1: 50/ -29.662793399551123
-//dist2: 50/ -20.15522013354858
-//dist3: 50/ -11.47110710175644
+//X Correction (mean avg of distances, see LRR) x =  3.0263
+//calc (this EQ is designed for Gnu Octave) (dist1+dist2+dist3: f = 50; f /49.41997375943151 + f/49.6002709249511 + f/49.67584577487027; ans/3
+//dist2: ans + 37/ 37.37377747309522
+//dist3: ans + / 37.44794675168949
 
-//(same) y = 0.058967
-//dist1:  50/ 845.9061912983248
-//dist2: ans + 50/ 858.2465632298844
-//dist3: ans + 50/ 840.5327050224676
+//(same) yCorrectionCoefficient = -1.0142
+//calc (this EQ is designed for Gnu Octave) (dist1+dist2+dist3/3): f = 50; f/-49.40326614704213 + f/-49.148253710294895 + f/-49.34904516339453; ans/3
+
 
 package us.brainstormz.roadRunner.drive;
 
@@ -45,8 +44,8 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
     public static double TICKS_PER_REV = 8192;
     public static double WHEEL_RADIUS = 1.3779527559/2; // in
     public static double GEAR_RATIO = 1; // output (wheel) speed / input (encoder) speed
-    public static double X_MULTIPLIER = -2.8417; // Multiplier in the X direction
-    public static double Y_MULTIPLIER = 0.058967; // Multiplier in the X direction
+    public static double X_MULTIPLIER = -1.0088;//-1.8417; // Multiplier in the X direction
+    public static double Y_MULTIPLIER = -1.0142;//0.058967; // Multiplier in the Y direction (central odom)
 
     public static double LATERAL_DISTANCE = 10.5; // in; distance between the left and right wheels
     public static double FORWARD_OFFSET = 0.21875; // in; offset of the lateral wheel
@@ -65,7 +64,7 @@ public class StandardTrackingWheelLocalizer extends ThreeTrackingWheelLocalizer 
         frontEncoder = new Encoder(hardwareMap.get(DcMotorEx.class, "cEncoder"));
 
         // TODO: reverse any encoders using Encoder.setDirection(Encoder.Direction.REVERSE)
-        leftEncoder.setDirection(Encoder.Direction.REVERSE);
+        rightEncoder.setDirection(Encoder.Direction.REVERSE);
     }
 
     public static double encoderTicksToInches(double ticks) {
