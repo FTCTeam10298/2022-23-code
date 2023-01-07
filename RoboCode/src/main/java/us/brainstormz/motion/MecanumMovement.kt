@@ -1,13 +1,10 @@
 package us.brainstormz.motion
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.util.Range
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.hardwareClasses.MecanumHardware
 import us.brainstormz.localizer.Localizer
-import us.brainstormz.localizer.OdometryLocalizer
-import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.pid.PID
 //import us.brainstormz.rataTony.RataTonyHardware
@@ -20,7 +17,8 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
     private val console = GlobalConsole.console
 
-    override var movementPID = PID(0.17, 0.000002, 0.00)
+    var translationPID = PID(0.17, 0.000002, 0.00)
+    var rotationPID = PID(0.17, 0.000002, 0.00)
     override var precisionInches: Double = 0.5
     override var precisionDegrees: Double = 1.0
 
@@ -63,7 +61,8 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         }
 
 
-        val speed = movementPID.calcPID((posError.x + posError.y + posError.r) / 3)
+        val speed = translationPID.calcPID((posError.x + posError.y + posError.r) / 3)
+
         println("speed $speed")
         setSpeedAll(-posError.x, posError.y, -posError.r, powerRange.start, min(speed, powerRange.endInclusive))
 
@@ -172,21 +171,21 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
 
 
-class PhoLocalizer(): Localizer {
-
-    var currentPositionAndRotation = PositionAndRotation()
-    override fun currentPositionAndRotation(): PositionAndRotation = currentPositionAndRotation
-
-    override fun recalculatePositionAndRotation() {
-        TODO("Not yet implemented")
-    }
-
-    override fun setPositionAndRotation(x: Double?, y: Double?, r: Double?) {
-        TODO("Not yet implemented")
-    }
-
-    override fun startNewMovement() {
-        TODO("Not yet implemented")
-    }
-
-}
+//class PhoLocalizer(): Localizer {
+//
+//    var currentPositionAndRotation = PositionAndRotation()
+//    override fun currentPositionAndRotation(): PositionAndRotation = currentPositionAndRotation
+//
+//    override fun recalculatePositionAndRotation() {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun setPositionAndRotation(x: Double?, y: Double?, r: Double?) {
+//        TODO("Not yet implemented")
+//    }
+//
+//    override fun startNewMovement() {
+//        TODO("Not yet implemented")
+//    }
+//
+//}
