@@ -58,7 +58,7 @@ class PaddieMatrickHardware: MecanumHardware {
 
         //Encoders/Deadwheels
         //3 = R; 2 = C; 1 = L
-        //on D4-5 (Digital 4-5
+        //on D4-5 (Digital 4-5)
         leftOdomEncoder = leftLift// plugged in to the encoder port for the motor input that we are also using for the lift
         centerOdomEncoder = hwMap["cEncoder"] as DcMotor // empty motor port used for encoder/deadwheel
         rightOdomEncoder = hwMap["rEncoder"] as DcMotor

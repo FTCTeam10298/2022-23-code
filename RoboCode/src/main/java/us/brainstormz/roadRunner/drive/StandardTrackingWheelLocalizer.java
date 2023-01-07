@@ -1,4 +1,3 @@
-
 //X Correction (mean avg of distances, see LRR) x =  3.0263
 //calc (this EQ is designed for Gnu Octave) (dist1+dist2+dist3: f = 50; f /49.41997375943151 + f/49.6002709249511 + f/49.67584577487027; ans/3
 //dist2: ans + 37/ 37.37377747309522

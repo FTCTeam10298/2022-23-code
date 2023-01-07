@@ -82,6 +82,11 @@ public class ManualFeedforwardTuner extends LinearOpMode {
 
         waitForStart();
 
+        telemetry.addData("targetVelocity", 0);
+        telemetry.addData("measuredVelocity", 0);
+        telemetry.addData("error", 0);
+        sleep(1000);
+
         if (isStopRequested()) return;
 
         boolean movingForwards = true;
@@ -90,7 +95,6 @@ public class ManualFeedforwardTuner extends LinearOpMode {
 
 
         while (!isStopRequested()) {
-            telemetry.addData("mode", mode);
 
             switch (mode) {
                 case TUNING_MODE:

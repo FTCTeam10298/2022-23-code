@@ -8,16 +8,13 @@ package us.brainstormz.paddieMatrick
 //import com.acmerobotics.roadrunner.geometry.Pose2d
 //import com.acmerobotics.roadrunner.trajectory.Trajectory
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.hardware.DcMotor
 import us.brainstormz.hardwareClasses.EncoderDriveMovement
-import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
-import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
-import us.brainstormz.telemetryWizard.TelemetryWizard
 
-@Autonomous(name= "Local1zationTester", group= "!")
+@Autonomous(name= "Local1zationTe3ter", group= "!")
+//GET THE ENCODER NUMB3RS
+
 class PattieMatrickEncoderTest: OpMode() {
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
 //    Drivetrain drive = new Drivetrain(hwMap);
@@ -37,6 +34,10 @@ class PattieMatrickEncoderTest: OpMode() {
         rOdom = hardware.rightOdomEncoder.currentPosition
         lOdom = hardware.leftOdomEncoder.currentPosition
         cOdom = hardware.centerOdomEncoder.currentPosition
+        telemetry.addData("rOdom", rOdom)
+        telemetry.addData("lOdom", lOdom)
+        telemetry.addData("cOdom", cOdom)
+        telemetry.update()
         println("rOdom: $rOdom, lOdom: $lOdom, cOdom: $cOdom")
     }
 
