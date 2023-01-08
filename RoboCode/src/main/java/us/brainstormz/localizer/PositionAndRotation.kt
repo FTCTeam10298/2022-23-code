@@ -114,7 +114,10 @@ open class PositionAndRotation(var x: Double = 0.0, var y: Double = 0.0, var r: 
         return 0
     }
 
-    operator fun minus(other: PositionAndRotation): PositionAndRotation = PositionAndRotation(this.x - other.x,this.y - other.y, this.r - other.r)
-    operator fun plus(other: PositionAndRotation): PositionAndRotation = PositionAndRotation(this.x + other.x,this.y + other.y, this.r + other.r)
+    operator fun minus(other: PositionAndRotation): PositionAndRotation =
+            PositionAndRotation(this.x - other.x,this.y - other.y, this.r - other.r)
+
+    operator fun plus(other: PositionAndRotation): PositionAndRotation =
+            PositionAndRotation(this.x + other.x,this.y + other.y, this.r + other.r)
 
 }
