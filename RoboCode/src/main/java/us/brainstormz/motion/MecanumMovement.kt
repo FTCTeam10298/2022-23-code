@@ -18,8 +18,8 @@ import kotlin.math.min
 
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
-    var translationPID = PID(0.17, 0.000002, 0.00)
-    var rotationPID = PID(0.17, 0.000002, 0.00)
+    var translationPID = PID(0.17, 0.0, 0.00)
+    var rotationPID = PID(0.17, 0.0, 0.00)
     override var precisionInches: Double = 0.5
     override var precisionDegrees: Double = 1.0
 
@@ -61,12 +61,15 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
             return true
         }
 
-
-        val translationSpeed = translationPID.calcPID((posError.x + posError.y) / 2)
+        val translationSpeed = translationPID.calcPID(distanceError)
         val rotationSpeed = rotationPID.calcPID(posError.r)
-
         telemetry.addLine("translationSpeed $translationSpeed, rotationSpeed $rotationSpeed")
-        setSpeedAll(posError.x, posError.y, posError.r, powerRange.start, powerRange.endInclusive)
+
+        val powerX = posError.x * translationSpeed
+        val powerY = posError.y * translationSpeed
+        val powerR = posError.r * rotationSpeed
+
+        setSpeedAll(vX= powerX, vY= powerY, vA= powerR, powerRange.start, powerRange.endInclusive)
 
         return false
     }
