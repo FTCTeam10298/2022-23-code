@@ -18,11 +18,11 @@ import kotlin.math.*
 
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
-    val yTranslationPID = PID(0.04, 0.0, 0.0)
-    val xTranslationPID = PID(0.06, 0.0, 0.0)
+    val yTranslationPID = PID(0.05, 0.0, 0.0)
+    val xTranslationPID = PID(0.05, 0.0, 0.0)
     val rotationPID = PID(0.3, 0.0, 0.0)
-    override var precisionInches: Double = 0.2
-    override var precisionDegrees: Double = 1.0
+    override var precisionInches: Double = 0.4
+    override var precisionDegrees: Double = 2.0
 
     private val dashboard = FtcDashboard.getInstance()
     private val dashboardTelemetry = dashboard.telemetry
@@ -78,9 +78,6 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         }
 
         // Calculate the error in x and y and use the PID to find the error in angle
-//        val translationSpeed = 1.0 //translationPID.calcPID(distanceError)
-//        val speedX: Double = 0.0 //translationSpeed * (sin(currentPos.r) * distanceErrorY + cos(currentPos.r) * -distanceErrorX)
-//        val speedY: Double = translationSpeed * (cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
         val speedX: Double = xTranslationPID.calcPID(sin(currentPos.r) * distanceErrorY + cos(currentPos.r) * -distanceErrorX)
         val speedY: Double = yTranslationPID.calcPID(cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
         val speedA: Double = rotationPID.calcPID(angleError)
@@ -91,10 +88,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
         dashboardTelemetry.update()
         telemetry.update()
-//        driveSetPower((speedY + speedX - speedA),
-//                      (speedY - speedX + speedA),
-//                      (speedY - speedX - speedA),
-//                      (speedY + speedX + speedA))
+
         setSpeedAll(vX= speedX, vY= speedY, vA= speedA, powerRange.start, powerRange.endInclusive)
 
         return false
@@ -104,10 +98,6 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
     fun setSpeedAll(vX: Double, vY: Double, vA: Double, minPower: Double, maxPower: Double) {
 
         // Calculate theoretical values for motor powers using transformation matrix
-//        movement.driveSetPower((y + x - r),
-//                               (y - x + r),
-//                               (y - x - r),
-//                               (y + x + r))
         var fl = vY + vX - vA
         var fr = vY - vX + vA
         var bl = vY - vX - vA
@@ -159,13 +149,9 @@ class OdomMoveTest: LinearOpMode() {
         hardware.init(hardwareMap)
         val localizer = RRLocalizer(hardware)
         val movement = MecanumMovement(localizer= localizer, hardware= hardware, telemetry= telemetry)
-//        val movement = OdometryDriveMovement(console,  hardware, this)
-
         waitForStart()
 
-//        movement.fineTunedGoToPos(targetPos)
         movement.goToPosition(targetPos, this, 0.0..1.0)
-
     }
 
 }
