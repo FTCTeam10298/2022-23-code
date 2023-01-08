@@ -1,6 +1,5 @@
 package us.brainstormz.motion
 
-//import us.brainstormz.rataTony.RataTonyHardware
 import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
@@ -20,7 +19,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
     val yTranslationPID = PID(0.05, 0.0, 0.0)
     val xTranslationPID = PID(0.09, 0.0, 0.0)
-    val rotationPID = PID(0.3, 0.0, 0.0)
+    val rotationPID = PID(0.6, 0.0, 0.0)
     override var precisionInches: Double = 0.4
     override var precisionDegrees: Double = 2.0
 
@@ -143,7 +142,7 @@ class OdomMoveTest: LinearOpMode() {
     val hardware = PaddieMatrickHardware()
     val console = GlobalConsole.newConsole(telemetry)
 
-    var targetPos = PositionAndRotation(y= 0.0, x= 10.0, r= 0.0)
+    var targetPos = PositionAndRotation(y= 0.0, x= 0.0, r= 90.0)
 
     override fun runOpMode() {
         hardware.init(hardwareMap)
@@ -162,29 +161,6 @@ class OdomMoveTest: LinearOpMode() {
     }
 
 }
-//
-//fun main() {
-//    val targetLocation = PositionAndRotation(0.0, 10.0, 0.0)
-//
-//    val hardware = PhoHardware()
-//    val localizer = PhoLocalizer()
-//    val movement = MecanumMovement(localizer, hardware)
-//
-////    movement.setSpeedAll(1.0, 1.0, 1.0, 0.0, 1.0)
-//    localizer.currentPositionAndRotation = PositionAndRotation()
-//
-//    val status1 = movement.moveTowardTarget(targetLocation)
-//    println("status $status1")
-//
-//    localizer.currentPositionAndRotation = PositionAndRotation(y = 10.0)
-//    println("current pos: ${localizer.currentPositionAndRotation}")
-//
-//    val status2 = movement.moveTowardTarget(targetLocation)
-//    println("status $status2")
-//}
-
-
-
 //class PhoLocalizer(): Localizer {
 //
 //    var currentPositionAndRotation = PositionAndRotation()
