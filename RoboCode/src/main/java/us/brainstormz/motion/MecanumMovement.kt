@@ -138,7 +138,7 @@ class OdomMoveTest: LinearOpMode() {
     val hardware = PaddieMatrickHardware()
     val console = GlobalConsole.newConsole(telemetry)
 
-    var targetPos = PositionAndRotation(y= 10.0, x= 10.0, r= 80.0)
+    var targetPos = PositionAndRotation(y= 10.0, x= 0.0, r= 0.0)
 
     override fun runOpMode() {
         hardware.init(hardwareMap)
