@@ -19,7 +19,7 @@ import kotlin.math.*
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
     val yTranslationPID = PID(0.05, 0.0, 0.0)
-    val xTranslationPID = PID(0.05, 0.0, 0.0)
+    val xTranslationPID = PID(0.09, 0.0, 0.0)
     val rotationPID = PID(0.3, 0.0, 0.0)
     override var precisionInches: Double = 0.4
     override var precisionDegrees: Double = 2.0
@@ -143,12 +143,19 @@ class OdomMoveTest: LinearOpMode() {
     val hardware = PaddieMatrickHardware()
     val console = GlobalConsole.newConsole(telemetry)
 
-    var targetPos = PositionAndRotation(y= 10.0, x= 0.0, r= 0.0)
+    var targetPos = PositionAndRotation(y= 0.0, x= 10.0, r= 0.0)
 
     override fun runOpMode() {
         hardware.init(hardwareMap)
         val localizer = RRLocalizer(hardware)
         val movement = MecanumMovement(localizer= localizer, hardware= hardware, telemetry= telemetry)
+
+        val dashboard = FtcDashboard.getInstance()
+        val dashboardTelemetry = dashboard.telemetry
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("distanceErrorX: ", 0)
+        dashboardTelemetry.addData("distanceErrorY: ", 0)
+
         waitForStart()
 
         movement.goToPosition(targetPos, this, 0.0..1.0)
