@@ -18,12 +18,11 @@ import kotlin.math.*
 
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
-    val translationPID = PID(0.1, 0.0, 0.0)
-    val yTranslationPID = PID(0.1, 0.0, 0.0)
-    val xTranslationPID = PID(0.0, 0.0, 0.0)
-    val rotationPID = PID(0.0, 0.0, 0.0)
-    override var precisionInches: Double = 0.5
-    override var precisionDegrees: Double = 3.0
+    val yTranslationPID = PID(0.04, 0.0, 0.0)
+    val xTranslationPID = PID(0.06, 0.0, 0.0)
+    val rotationPID = PID(0.3, 0.0, 0.0)
+    override var precisionInches: Double = 0.2
+    override var precisionDegrees: Double = 1.0
 
     private val dashboard = FtcDashboard.getInstance()
     private val dashboardTelemetry = dashboard.telemetry
@@ -74,17 +73,19 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
         // Check to see if we've reached the desired position already
         if (abs(distanceError) <= precisionInches &&
-                abs(angleError) <= precisionDegrees) {
+                abs(angleError) <= Math.toRadians(precisionDegrees)) {
             return true
         }
 
         // Calculate the error in x and y and use the PID to find the error in angle
-        val translationSpeed = 1.0 //translationPID.calcPID(distanceError)
-        val speedX: Double = 0.0 //translationSpeed * (sin(currentPos.r) * distanceErrorY + cos(currentPos.r) * -distanceErrorX)
-        val speedY: Double = translationSpeed * (cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
+//        val translationSpeed = 1.0 //translationPID.calcPID(distanceError)
+//        val speedX: Double = 0.0 //translationSpeed * (sin(currentPos.r) * distanceErrorY + cos(currentPos.r) * -distanceErrorX)
+//        val speedY: Double = translationSpeed * (cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
+        val speedX: Double = xTranslationPID.calcPID(sin(currentPos.r) * distanceErrorY + cos(currentPos.r) * -distanceErrorX)
+        val speedY: Double = yTranslationPID.calcPID(cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
         val speedA: Double = rotationPID.calcPID(angleError)
 
-        telemetry.addLine("distance error: $distanceError, angle error degrees: $angleError")
+        telemetry.addLine("distance error: $distanceError, angle error degrees: ${Math.toDegrees(angleError)}")
         dashboardTelemetry.addData("speedY: ",speedY)
         telemetry.addLine("speedX: $speedX, speedY: $speedY, speedA: $speedA")
 
@@ -94,7 +95,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 //                      (speedY - speedX + speedA),
 //                      (speedY - speedX - speedA),
 //                      (speedY + speedX + speedA))
-        //setSpeedAll(vX= speedX, vY= speedY, vA= speedA, powerRange.start, powerRange.endInclusive)
+        setSpeedAll(vX= speedX, vY= speedY, vA= speedA, powerRange.start, powerRange.endInclusive)
 
         return false
     }
@@ -154,15 +155,15 @@ class OdomMoveTest: LinearOpMode() {
 
     var targetPos = PositionAndRotation(y= 10.0, x= 0.0, r= 0.0)
 
-
-
     override fun runOpMode() {
         hardware.init(hardwareMap)
         val localizer = RRLocalizer(hardware)
-        val movement = MecanumMovement(localizer, hardware, telemetry)
+        val movement = MecanumMovement(localizer= localizer, hardware= hardware, telemetry= telemetry)
+//        val movement = OdometryDriveMovement(console,  hardware, this)
 
         waitForStart()
 
+//        movement.fineTunedGoToPos(targetPos)
         movement.goToPosition(targetPos, this, 0.0..1.0)
 
     }

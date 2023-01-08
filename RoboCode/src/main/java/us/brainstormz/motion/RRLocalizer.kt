@@ -22,7 +22,7 @@ class RRLocalizer(hardware: ThreeWheelOdometry): Localizer {
     override fun currentPositionAndRotation(): PositionAndRotation {
         val (x, y, heading) = roadRunner.poseEstimate
         //rr switches x and y
-        return PositionAndRotation(x= y, y= x, r= Math.toDegrees(heading))
+        return PositionAndRotation(x= y, y= x, r= heading)
     }
 
     override fun recalculatePositionAndRotation() {
