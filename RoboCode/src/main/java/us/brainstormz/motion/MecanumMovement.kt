@@ -1,11 +1,14 @@
 package us.brainstormz.motion
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.util.Range
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.hardwareClasses.MecanumHardware
 import us.brainstormz.localizer.Localizer
 import us.brainstormz.localizer.PositionAndRotation
+import us.brainstormz.paddieMatrick.PaddieMatrickHardware
 import us.brainstormz.pid.PID
 //import us.brainstormz.rataTony.RataTonyHardware
 import us.brainstormz.telemetryWizard.GlobalConsole
@@ -13,9 +16,7 @@ import kotlin.math.abs
 import kotlin.math.hypot
 import kotlin.math.min
 
-class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware): Movement, MecanumDriveTrain(hardware) {
-
-    private val console = GlobalConsole.console
+class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
     var translationPID = PID(0.17, 0.000002, 0.00)
     var rotationPID = PID(0.17, 0.000002, 0.00)
@@ -50,21 +51,22 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
         val posError = target - localizer.currentPositionAndRotation()
 
-        console.display(2, "error $posError")
+        telemetry.addLine( "error $posError")
 
         // Check to see if we've reached the target
         val distanceError = hypot(posError.x, posError.y)
         if (distanceError in -precisionInches..precisionInches && posError.r in -precisionDegrees..precisionDegrees) {
-            console.display(3, "Reached Target")
+            telemetry.addLine("Reached Target")
             setSpeedAll(0.0, 0.0, 0.0, 0.0, 0.0)
             return true
         }
 
 
-        val speed = translationPID.calcPID((posError.x + posError.y + posError.r) / 3)
+        val translationSpeed = translationPID.calcPID((posError.x + posError.y) / 2)
+        val rotationSpeed = rotationPID.calcPID(posError.r)
 
-        println("speed $speed")
-        setSpeedAll(-posError.x, posError.y, -posError.r, powerRange.start, min(speed, powerRange.endInclusive))
+        telemetry.addLine("translationSpeed $translationSpeed, rotationSpeed $rotationSpeed")
+        setSpeedAll(posError.x, posError.y, posError.r, powerRange.start, powerRange.endInclusive)
 
         return false
     }
@@ -103,7 +105,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         bl = Range.clip(bl, -1.0, 1.0)
         br = Range.clip(br, -1.0, 1.0)
 
-        console.display(6,"Powers: $fl, $bl, $fr, $br" )
+        telemetry.addLine("Powers: $fl, $bl, $fr, $br" )
         println("Powers: $fl, $bl, $fr, $br")
 
         // Set powers
@@ -113,41 +115,34 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 }
 
 
-//@TeleOp(name= "Odom Movement Test")
-//class OdomMoveTest: LinearOpMode() {
-////    192.168.1.128
-////    192.168.43.45
-////    192.168.43.1
-//    val hardware = RataTonyHardware()
-//    val console = GlobalConsole.newConsole(telemetry)
-//    val localizer = OdometryLocalizer(hardware)
-//    val movement = MecanumMovement(localizer, hardware)
-////    val robot = MecanumDriveTrain(hardware)
-//
-//    var targetPos = PositionAndRotation(y= 10.0, x= 10.0, r= 90.0)
-//
-//    override fun runOpMode() {
-//        hardware.init(hardwareMap)
-//        localizer.setPositionAndRotation(0.0, 0.0, 0.0)
-////        distance between l & r odom wheels: 7 8/16 = 7.5
-//        localizer.trackwidth = 7.5
-////        center of chassis: 10 6/16 = 10.375 / 2 = 5.1875
-////        center odom: 5 2/16 = 5.125
-////        forward offset: 5.1875 - 5.125 = 0.0625
-//        localizer.forwardOffset = 0.0625
-//        waitForStart()
-//
-////        movement.setSpeedAll(0.0, 1.0, 0.0, 0.0, 0.5)
-////        sleep(500)
-//
-//        movement.goToPosition(targetPos, this, 0.0..0.5)
-//
-////        movement.moveTowardTarget(targetPos, 0.0..0.2)
-////        sleep(1000)
-//
-//    }
-//
-//}
+@TeleOp(name= "Odom Movement Test")
+class OdomMoveTest: LinearOpMode() {
+//    192.168.1.128
+//    192.168.43.45
+//    192.168.43.1
+    val hardware = PaddieMatrickHardware()
+    val console = GlobalConsole.newConsole(telemetry)
+//    val robot = MecanumDriveTrain(hardware)
+
+    var targetPos = PositionAndRotation(y= 10.0, x= 0.0, r= 0.0)
+
+    override fun runOpMode() {
+        hardware.init(hardwareMap)
+        val localizer = RRLocalizer(hardware)
+        val movement = MecanumMovement(localizer, hardware, telemetry)
+        waitForStart()
+
+//        movement.setSpeedAll(0.0, 1.0, 0.0, 0.0, 0.5)
+//        sleep(500)
+
+        movement.goToPosition(targetPos, this, 0.0..0.5)
+
+//        movement.moveTowardTarget(targetPos, 0.0..0.2)
+//        sleep(1000)
+
+    }
+
+}
 //
 //fun main() {
 //    val targetLocation = PositionAndRotation(0.0, 10.0, 0.0)
