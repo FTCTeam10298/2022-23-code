@@ -1,6 +1,7 @@
 package us.brainstormz.motion
 
 //import us.brainstormz.rataTony.RataTonyHardware
+import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.util.Range
@@ -17,12 +18,15 @@ import kotlin.math.*
 
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
-    var yTranslationPID = PID(0.1, 0.0, 0.0)
-    var xTranslationPID = PID(0.0, 0.0, 0.0)
-    var rotationPID = PID(0.0, 0.0, 0.0)
+    val translationPID = PID(0.1, 0.0, 0.0)
+    val yTranslationPID = PID(0.1, 0.0, 0.0)
+    val xTranslationPID = PID(0.0, 0.0, 0.0)
+    val rotationPID = PID(0.0, 0.0, 0.0)
     override var precisionInches: Double = 0.5
     override var precisionDegrees: Double = 3.0
 
+    private val dashboard = FtcDashboard.getInstance()
+    private val dashboardTelemetry = dashboard.telemetry
 
     /**
      * Only required when using goToPosition
@@ -44,13 +48,16 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
     override fun moveTowardTarget(target: PositionAndRotation, powerRange: ClosedRange<Double>): Boolean {
         localizer.recalculatePositionAndRotation()
         val currentPos = localizer.currentPositionAndRotation()
+        telemetry.addLine("currentPos: $currentPos")
 
 
         // Find the error in distance for X
         val distanceErrorX = target.x - currentPos.x
         // Find there error in distance for Y
         val distanceErrorY = target.y - currentPos.y
-        telemetry.addLine("distanceErrorX: $distanceErrorX, distanceErrorY: $distanceErrorY")
+        dashboardTelemetry.addData("distanceErrorX: ", distanceErrorX)
+        dashboardTelemetry.addData("distanceErrorY: ", distanceErrorY)
+
         // Find the error in angle
         var tempAngleError = target.r - currentPos.r
 
@@ -72,18 +79,21 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         }
 
         // Calculate the error in x and y and use the PID to find the error in angle
-        val speedX: Double = xTranslationPID.calcPID(sin(currentPos.r) * distanceErrorY + cos(currentPos.r) * -distanceErrorX)
-        val speedY: Double = yTranslationPID.calcPID(cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
+        val translationSpeed = 1.0 //translationPID.calcPID(distanceError)
+        val speedX: Double = 0.0 //translationSpeed * (sin(currentPos.r) * distanceErrorY + cos(currentPos.r) * -distanceErrorX)
+        val speedY: Double = translationSpeed * (cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
         val speedA: Double = rotationPID.calcPID(angleError)
 
-        telemetry.addLine("distance error: $distanceError, angle error degrees: ${angleError}")
+        telemetry.addLine("distance error: $distanceError, angle error degrees: $angleError")
+        dashboardTelemetry.addData("speedY: ",speedY)
         telemetry.addLine("speedX: $speedX, speedY: $speedY, speedA: $speedA")
 
+        dashboardTelemetry.update()
         telemetry.update()
-        driveSetPower((speedY + speedX - speedA),
-                      (speedY - speedX + speedA),
-                      (speedY - speedX - speedA),
-                      (speedY + speedX + speedA))
+//        driveSetPower((speedY + speedX - speedA),
+//                      (speedY - speedX + speedA),
+//                      (speedY - speedX - speedA),
+//                      (speedY + speedX + speedA))
         //setSpeedAll(vX= speedX, vY= speedY, vA= speedA, powerRange.start, powerRange.endInclusive)
 
         return false
