@@ -17,19 +17,14 @@ import kotlin.math.*
 
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
-    val yTranslationPID = PID(0.05, 0.0, 0.0)
-    val xTranslationPID = PID(0.09, 0.0, 0.0)
-    val rotationPID = PID(0.6, 0.0, 0.0)
+    val yTranslationPID = PID(0.05, 0.0002, 0.0)
+    val xTranslationPID = PID(0.095, 0.00005, 0.0)
+    val rotationPID = PID(0.8, 0.0, 0.0)
     override var precisionInches: Double = 0.4
     override var precisionDegrees: Double = 2.0
 
     private val dashboard = FtcDashboard.getInstance()
     private val dashboardTelemetry = dashboard.telemetry
-
-    /**
-     * Only required when using goToPosition
-     */
-//    override lateinit var linearOpMode: LinearOpMode
 
     /**
      * Blocking function
@@ -81,7 +76,8 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         val speedY: Double = yTranslationPID.calcPID(cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
         val speedA: Double = rotationPID.calcPID(angleError)
 
-        telemetry.addLine("distance error: $distanceError, angle error degrees: ${Math.toDegrees(angleError)}")
+        telemetry.addLine("\ndistance error: $distanceError, \nangle error degrees: ${Math.toDegrees(angleError)}\n")
+
         dashboardTelemetry.addData("speedY: ",speedY)
         telemetry.addLine("speedX: $speedX, speedY: $speedY, speedA: $speedA")
 
@@ -142,7 +138,7 @@ class OdomMoveTest: LinearOpMode() {
     val hardware = PaddieMatrickHardware()
     val console = GlobalConsole.newConsole(telemetry)
 
-    var targetPos = PositionAndRotation(y= 0.0, x= 0.0, r= 90.0)
+    var targetPos = PositionAndRotation(y= 10.0, x= 10.0, r= 80.0)
 
     override fun runOpMode() {
         hardware.init(hardwareMap)
@@ -151,11 +147,16 @@ class OdomMoveTest: LinearOpMode() {
 
         val dashboard = FtcDashboard.getInstance()
         val dashboardTelemetry = dashboard.telemetry
-        dashboardTelemetry.addData("speedY: ", 0)
-        dashboardTelemetry.addData("distanceErrorX: ", 0)
-        dashboardTelemetry.addData("distanceErrorY: ", 0)
 
         waitForStart()
+
+        if (gamepad1.a) {
+            dashboardTelemetry.addData("speedY: ", 0)
+            dashboardTelemetry.addData("distanceErrorX: ", 0)
+            dashboardTelemetry.addData("distanceErrorY: ", 0)
+            dashboardTelemetry.update()
+            sleep(4000)
+        }
 
         movement.goToPosition(targetPos, this, 0.0..1.0)
     }
