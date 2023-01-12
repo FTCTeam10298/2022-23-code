@@ -39,6 +39,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         yTranslationPID = PID(0.0455, 0.0000008, 0.0)
         xTranslationPID = PID(0.0999, 0.000001, 0.0)
         rotationPID = PID(0.82, 0.0000008, 0.0)
+        precisionInches = 4.0
         goToPosition(target, linearOpMode, powerRange)
     }
 
@@ -72,7 +73,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         // Check to see if we've reached the desired position already
         if (abs(distanceError) <= precisionInches &&
                 abs(angleError) <= Math.toRadians(precisionDegrees)) {
-//            return true
+            return true
         }
 
         // Calculate the error in x and y and use the PID to find the error in angle
@@ -139,31 +140,13 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
 }
 
-@Config
-object MovementTuning {
-    @JvmField var ykp = 0.0
-    @JvmField var yki = 0.0
-    @JvmField var ykd = 0.0
+@TeleOp(name= "MovementTesting")
+class MovementTesting: LinearOpMode() {
 
-    @JvmField var xkp = 0.0
-    @JvmField var xki = 0.0
-    @JvmField var xkd = 0.0
-
-    @JvmField var rkp = 0.0
-    @JvmField var rki = 0.0
-    @JvmField var rkd = 0.0
-
-    @JvmField var targetY = 0.0
-    @JvmField var targetX = 0.0
-    @JvmField var targetR = 0.0
-}
-
-@TeleOp(name= "Movement Tuning")
-class OdomMoveTest: LinearOpMode() {
     val hardware = PaddieMatrickHardware()
     val console = GlobalConsole.newConsole(telemetry)
 
-    var targetPos = PositionAndRotation(x= MovementTuning.targetX, y= MovementTuning.targetY, r= MovementTuning.targetR)
+    var targetPos = PositionAndRotation(x= 0.0, y= 0.0, r= 0.0)
 
     override fun runOpMode() {
         hardware.init(hardwareMap)
@@ -173,9 +156,68 @@ class OdomMoveTest: LinearOpMode() {
         val localizer = RRLocalizer(hardware)
         val movement = MecanumMovement(localizer= localizer, hardware= hardware, telemetry= dashboardTelemetry)
 
-        movement.yTranslationPID = PID(MovementTuning.ykp, MovementTuning.yki, MovementTuning.ykd)
-        movement.xTranslationPID = PID(MovementTuning.xkp, MovementTuning.xki, MovementTuning.xkd)
-        movement.rotationPID = PID(MovementTuning.rkp, MovementTuning.rki, MovementTuning.rkd)
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("distanceErrorX: ", 0)
+        dashboardTelemetry.addData("distanceErrorY: ", 0)
+        dashboardTelemetry.addData("total distance error: ", 0)
+        dashboardTelemetry.addData("angle error degrees: ", 0)
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("speedX: ", 0)
+        dashboardTelemetry.addData("speedA: ", 0)
+        dashboardTelemetry.update()
+
+        localizer.setPositionAndRotation(x= 10.0, y= 0.0, r= 0.0)
+
+        waitForStart()
+
+        movement.goToPosition(targetPos, this, 0.0..1.0)
+//        while (opModeIsActive()) {
+//            val targetReached = movement.moveTowardTarget(targetPos, 0.0..1.0)
+//
+//            if (targetReached) {
+//                dashboardTelemetry.addLine("target reached")
+//            }
+//        }
+    }
+}
+
+@TeleOp(name= "Movement PID Tuning")
+class MovementPIDTuning: LinearOpMode() {
+    @Config
+    object PIDsAndTarget {
+        @JvmField var ykp = 0.043
+        @JvmField var yki = 0.0000008
+        @JvmField var ykd = 0.0
+
+        @JvmField var xkp = 0.0988
+        @JvmField var xki = 0.000001
+        @JvmField var xkd = 0.0
+
+        @JvmField var rkp = 0.82
+        @JvmField var rki = 0.0000008
+        @JvmField var rkd = 0.0
+
+        @JvmField var targetY = 0.0
+        @JvmField var targetX = 0.0
+        @JvmField var targetR = 0.0
+    }
+
+    val hardware = PaddieMatrickHardware()
+    val console = GlobalConsole.newConsole(telemetry)
+
+    var targetPos = PositionAndRotation(x= PIDsAndTarget.targetX, y= PIDsAndTarget.targetY, r= PIDsAndTarget.targetR)
+
+    override fun runOpMode() {
+        hardware.init(hardwareMap)
+
+        val dashboard = FtcDashboard.getInstance()
+        val dashboardTelemetry = dashboard.telemetry
+        val localizer = RRLocalizer(hardware)
+        val movement = MecanumMovement(localizer= localizer, hardware= hardware, telemetry= dashboardTelemetry)
+
+        movement.yTranslationPID = PID(PIDsAndTarget.ykp, PIDsAndTarget.yki, PIDsAndTarget.ykd)
+        movement.xTranslationPID = PID(PIDsAndTarget.xkp, PIDsAndTarget.xki, PIDsAndTarget.xkd)
+        movement.rotationPID = PID(PIDsAndTarget.rkp, PIDsAndTarget.rki, PIDsAndTarget.rkd)
 
         dashboardTelemetry.addData("speedY: ", 0)
         dashboardTelemetry.addData("distanceErrorX: ", 0)
@@ -188,16 +230,18 @@ class OdomMoveTest: LinearOpMode() {
         dashboardTelemetry.update()
         waitForStart()
 
-        while (opModeIsActive()) {
-            val targetReached = movement.moveTowardTarget(targetPos, 0.0..1.0)
-
-            if (targetReached) {
-                dashboardTelemetry.addLine("target reached")
-            }
-        }
+        movement.goToPosition(targetPos, this, 0.0..1.0)
+//        while (opModeIsActive()) {
+//            val targetReached = movement.moveTowardTarget(targetPos, 0.0..1.0)
+//
+//            if (targetReached) {
+//                dashboardTelemetry.addLine("target reached")
+//            }
+//        }
     }
-
 }
+
+
 //class PhoLocalizer(): Localizer {
 //
 //    var currentPositionAndRotation = PositionAndRotation()
