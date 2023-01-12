@@ -1,6 +1,7 @@
 package us.brainstormz.motion
 
 import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.config.Config
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.util.Range
@@ -14,7 +15,6 @@ import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.GlobalConsole
 import kotlin.math.*
 
-
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
     val yTranslationPID = PID(0.05, 0.0002, 0.0)
@@ -22,9 +22,6 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
     val rotationPID = PID(0.8, 0.0, 0.0)
     override var precisionInches: Double = 0.4
     override var precisionDegrees: Double = 2.0
-
-    private val dashboard = FtcDashboard.getInstance()
-    private val dashboardTelemetry = dashboard.telemetry
 
     /**
      * Blocking function
@@ -48,8 +45,8 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         val distanceErrorX = target.x - currentPos.x
         // Find there error in distance for Y
         val distanceErrorY = target.y - currentPos.y
-        dashboardTelemetry.addData("distanceErrorX: ", distanceErrorX)
-        dashboardTelemetry.addData("distanceErrorY: ", distanceErrorY)
+        telemetry.addData("distanceErrorX: ", distanceErrorX)
+        telemetry.addData("distanceErrorY: ", distanceErrorY)
 
         // Find the error in angle
         var tempAngleError = target.r - currentPos.r
@@ -68,7 +65,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         // Check to see if we've reached the desired position already
         if (abs(distanceError) <= precisionInches &&
                 abs(angleError) <= Math.toRadians(precisionDegrees)) {
-            return true
+//            return true
         }
 
         // Calculate the error in x and y and use the PID to find the error in angle
@@ -77,11 +74,14 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         val speedA: Double = rotationPID.calcPID(angleError)
 
         telemetry.addLine("\ndistance error: $distanceError, \nangle error degrees: ${Math.toDegrees(angleError)}\n")
+        telemetry.addData("total distance error: ", distanceError)
+        telemetry.addData("angle error degrees: ", Math.toDegrees(angleError))
 
-        dashboardTelemetry.addData("speedY: ",speedY)
+        telemetry.addData("speedY: ", speedY)
+        telemetry.addData("speedX: ", speedX)
+        telemetry.addData("speedA: ", speedA)
         telemetry.addLine("speedX: $speedX, speedY: $speedY, speedA: $speedA")
 
-        dashboardTelemetry.update()
         telemetry.update()
 
         setSpeedAll(vX= speedX, vY= speedY, vA= speedA, powerRange.start, powerRange.endInclusive)
@@ -132,29 +132,62 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
 }
 
+@Config
+object MovementTuning {
+    @JvmField var ykp = 0.0
+    @JvmField var yki = 0.0
+    @JvmField var ykd = 0.0
 
-@TeleOp(name= "Odom Movement Test")
+    @JvmField var xkp = 0.0
+    @JvmField var xki = 0.0
+    @JvmField var xkd = 0.0
+
+    @JvmField var rkp = 0.0
+    @JvmField var rki = 0.0
+    @JvmField var rkd = 0.0
+
+    @JvmField var targetY = 0.0
+    @JvmField var targetX = 0.0
+    @JvmField var targetR = 0.0
+}
+
+@TeleOp(name= "Movement Tuning")
 class OdomMoveTest: LinearOpMode() {
     val hardware = PaddieMatrickHardware()
     val console = GlobalConsole.newConsole(telemetry)
 
-    var targetPos = PositionAndRotation(y= 10.0, x= 0.0, r= 0.0)
+    var targetPos = PositionAndRotation(x= MovementTuning.targetX, y= MovementTuning.targetY, r= MovementTuning.targetR)
 
     override fun runOpMode() {
         hardware.init(hardwareMap)
-        val localizer = RRLocalizer(hardware)
-        val movement = MecanumMovement(localizer= localizer, hardware= hardware, telemetry= telemetry)
 
         val dashboard = FtcDashboard.getInstance()
         val dashboardTelemetry = dashboard.telemetry
+        val localizer = RRLocalizer(hardware)
+        val movement = MecanumMovement(localizer= localizer, hardware= hardware, telemetry= dashboardTelemetry)
+
+        movement.yTranslationPID = PID(MovementTuning.ykp, MovementTuning.yki, MovementTuning.ykd)
+        movement.xTranslationPID = PID(MovementTuning.xkp, MovementTuning.xki, MovementTuning.xkd)
+        movement.rotationPID = PID(MovementTuning.rkp, MovementTuning.rki, MovementTuning.rkd)
 
         dashboardTelemetry.addData("speedY: ", 0)
         dashboardTelemetry.addData("distanceErrorX: ", 0)
         dashboardTelemetry.addData("distanceErrorY: ", 0)
+        dashboardTelemetry.addData("total distance error: ", 0)
+        dashboardTelemetry.addData("angle error degrees: ", 0)
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("speedX: ", 0)
+        dashboardTelemetry.addData("speedA: ", 0)
         dashboardTelemetry.update()
         waitForStart()
 
-        movement.goToPosition(targetPos, this, 0.0..1.0)
+        while (opModeIsActive()) {
+            val targetReached = movement.moveTowardTarget(targetPos, 0.0..1.0)
+
+            if (targetReached) {
+                dashboardTelemetry.addLine("target reached")
+            }
+        }
     }
 
 }
