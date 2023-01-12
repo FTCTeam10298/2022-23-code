@@ -8,6 +8,9 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.DcMotor
 import us.brainstormz.hardwareClasses.EncoderDriveMovement
+import us.brainstormz.localizer.PositionAndRotation
+import us.brainstormz.motion.MecanumMovement
+import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
@@ -17,7 +20,7 @@ import us.brainstormz.telemetryWizard.TelemetryWizard
 class PaddieMatrickAuto: LinearOpMode() {
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
 //    Drivetrain drive = new Drivetrain(hwMap);
-    val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
+//    val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
 
     val console = TelemetryConsole(telemetry)
     val wizard = TelemetryWizard(console, this)
@@ -43,6 +46,11 @@ class PaddieMatrickAuto: LinearOpMode() {
     override fun runOpMode() {
 //        /** INIT PHASE */
         hardware.init(hardwareMap)
+        val localizer = RRLocalizer(hardware)
+        val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = telemetry)
+
+        localizer.setPositionAndRotation(x= 65.0, y= -35.0, r= -90.0)
+
 //        lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
 //        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
 //
@@ -72,8 +80,11 @@ class PaddieMatrickAuto: LinearOpMode() {
 ////            hardware.right4Bar.power = fourBarPower
 //        }
 //
-//        waitForStart()
-//        /** AUTONOMOUS  PHASE */
+        waitForStart()
+        /** AUTONOMOUS  PHASE */
+
+
+        movement.goToPosition(PositionAndRotation(x= 0.0, y= 65.0, r= 0.0), this)
 //        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
 ////
 ////        when (wizard.wasItemChosen("alliance", "Red")) {
