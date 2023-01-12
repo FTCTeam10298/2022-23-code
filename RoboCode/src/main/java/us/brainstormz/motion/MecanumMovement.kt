@@ -35,6 +35,13 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         }
     }
 
+    fun goToPositionThreeAxis(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>) {
+        yTranslationPID = PID(0.0455, 0.0000008, 0.0)
+        xTranslationPID = PID(0.0999, 0.000001, 0.0)
+        rotationPID = PID(0.82, 0.0000008, 0.0)
+        goToPosition(target, linearOpMode, powerRange)
+    }
+
     override fun moveTowardTarget(target: PositionAndRotation, powerRange: ClosedRange<Double>): Boolean {
         localizer.recalculatePositionAndRotation()
         val currentPos = localizer.currentPositionAndRotation()
