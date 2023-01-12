@@ -166,7 +166,7 @@ class MovementTesting: LinearOpMode() {
         dashboardTelemetry.addData("speedA: ", 0)
         dashboardTelemetry.update()
 
-        localizer.setPositionAndRotation(x= 10.0, y= 0.0, r= 0.0)
+        localizer.setPositionAndRotation(x= 65.0, y= 0.0, r= 0.0)
 
         waitForStart()
 
@@ -230,14 +230,14 @@ class MovementPIDTuning: LinearOpMode() {
         dashboardTelemetry.update()
         waitForStart()
 
-        movement.goToPosition(targetPos, this, 0.0..1.0)
-//        while (opModeIsActive()) {
-//            val targetReached = movement.moveTowardTarget(targetPos, 0.0..1.0)
-//
-//            if (targetReached) {
-//                dashboardTelemetry.addLine("target reached")
-//            }
-//        }
+//        movement.goToPosition(targetPos, this, 0.0..1.0)
+        while (opModeIsActive()) {
+            val targetReached = movement.moveTowardTarget(targetPos, 0.0..1.0)
+
+            if (targetReached) {
+                dashboardTelemetry.addLine("target reached")
+            }
+        }
     }
 }
 
