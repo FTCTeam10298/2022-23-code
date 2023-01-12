@@ -17,8 +17,8 @@ import kotlin.math.*
 
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
-    var yTranslationPID = PID(0.05, 0.0000001, 0.0)
-    var xTranslationPID = PID(0.099, 0.0000001, 0.0)
+    var yTranslationPID = PID(0.0434, 0.0000004, 0.0)
+    var xTranslationPID = PID(0.0988, 0.0000008, 0.0)
     var rotationPID = PID(0.8, 0.0, 0.0)
     override var precisionInches: Double = 0.4
     override var precisionDegrees: Double = 2.0
