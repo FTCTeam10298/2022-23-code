@@ -148,15 +148,11 @@ class OdomMoveTest: LinearOpMode() {
         val dashboard = FtcDashboard.getInstance()
         val dashboardTelemetry = dashboard.telemetry
 
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("distanceErrorX: ", 0)
+        dashboardTelemetry.addData("distanceErrorY: ", 0)
+        dashboardTelemetry.update()
         waitForStart()
-
-        if (gamepad1.a) {
-            dashboardTelemetry.addData("speedY: ", 0)
-            dashboardTelemetry.addData("distanceErrorX: ", 0)
-            dashboardTelemetry.addData("distanceErrorY: ", 0)
-            dashboardTelemetry.update()
-            sleep(4000)
-        }
 
         movement.goToPosition(targetPos, this, 0.0..1.0)
     }
