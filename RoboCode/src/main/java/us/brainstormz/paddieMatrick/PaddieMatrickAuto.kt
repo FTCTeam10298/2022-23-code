@@ -4,6 +4,7 @@ package us.brainstormz.paddieMatrick
 
 //import com.acmerobotics.roadrunner.geometry.Pose2d
 //import com.acmerobotics.roadrunner.trajectory.Trajectory
+import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -44,12 +45,29 @@ class PaddieMatrickAuto: LinearOpMode() {
 //
 //
     override fun runOpMode() {
+        val dashboard = FtcDashboard.getInstance()
+        val dashboardTelemetry = dashboard.telemetry
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("distanceErrorX: ", 0)
+        dashboardTelemetry.addData("distanceErrorY: ", 0)
+        dashboardTelemetry.addData("total distance error: ", 0)
+        dashboardTelemetry.addData("angle error degrees: ", 0)
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("speedX: ", 0)
+        dashboardTelemetry.addData("speedA: ", 0)
+        dashboardTelemetry.update()
+
 //        /** INIT PHASE */
         hardware.init(hardwareMap)
-        val localizer = RRLocalizer(hardware)
-        val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = telemetry)
 
-        localizer.setPositionAndRotation(x= 65.0, y= -35.0, r= -90.0)
+        val localizer = RRLocalizer(hardware)
+        localizer.setPositionAndRotation(x= 65.0, y= -35.0, r= 90.0)
+        val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = dashboardTelemetry)
+
+        waitForStart()
+        dashboardTelemetry.addLine("current pos: ${localizer.currentPositionAndRotation()}")
+        /** AUTONOMOUS  PHASE */
+        movement.goToPosition(PositionAndRotation(x= 12.0, y= -35.0, r= 90.0), this)
 
 //        lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
 //        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
@@ -80,11 +98,9 @@ class PaddieMatrickAuto: LinearOpMode() {
 ////            hardware.right4Bar.power = fourBarPower
 //        }
 //
-        waitForStart()
-        /** AUTONOMOUS  PHASE */
-
-
-        movement.goToPosition(PositionAndRotation(x= 0.0, y= 65.0, r= 0.0), this)
+//        waitForStart()
+//        /** AUTONOMOUS  PHASE */
+//
 //        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
 ////
 ////        when (wizard.wasItemChosen("alliance", "Red")) {
