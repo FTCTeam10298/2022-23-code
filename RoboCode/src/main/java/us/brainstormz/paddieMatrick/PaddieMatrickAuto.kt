@@ -65,7 +65,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = dashboardTelemetry)
 
         waitForStart()
-        dashboardTelemetry.addLine("current pos: ${localizer.currentPositionAndRotation()}")
+        dashboardTelemetry.addData("current pos: ", localizer.currentPositionAndRotation())
         /** AUTONOMOUS  PHASE */
         movement.goToPosition(PositionAndRotation(x= 12.0, y= -35.0, r= 90.0), this)
 

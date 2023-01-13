@@ -46,6 +46,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
     override fun moveTowardTarget(target: PositionAndRotation, powerRange: ClosedRange<Double>): Boolean {
         localizer.recalculatePositionAndRotation()
         val currentPos = localizer.currentPositionAndRotation()
+        val angleRad = Math.toRadians(currentPos.r)
         telemetry.addLine("currentPos: $currentPos")
 
 
@@ -57,7 +58,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         telemetry.addData("distanceErrorY: ", distanceErrorY)
 
         // Find the error in angle
-        var tempAngleError = target.r - currentPos.r
+        var tempAngleError = target.r - angleRad
 
         while (tempAngleError > Math.PI)
             tempAngleError -= Math.PI * 2
@@ -77,8 +78,8 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         }
 
         // Calculate the error in x and y and use the PID to find the error in angle
-        val speedX: Double = xTranslationPID.calcPID(sin(currentPos.r) * distanceErrorY + cos(currentPos.r) * -distanceErrorX)
-        val speedY: Double = yTranslationPID.calcPID(cos(currentPos.r) * distanceErrorY + sin(currentPos.r) * distanceErrorX)
+        val speedX: Double = xTranslationPID.calcPID(sin(angleRad) * distanceErrorY + cos(angleRad) * -distanceErrorX)
+        val speedY: Double = yTranslationPID.calcPID(cos(angleRad) * distanceErrorY + sin(angleRad) * distanceErrorX)
         val speedA: Double = rotationPID.calcPID(angleError)
 
         telemetry.addLine("\ndistance error: $distanceError, \nangle error degrees: ${Math.toDegrees(angleError)}\n")
