@@ -17,16 +17,26 @@ import kotlin.math.*
 
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
-    var yTranslationPID = PID(0.043, 0.0000008, 0.0)
-    var xTranslationPID = PID(0.0988, 0.000001, 0.0)
-    var rotationPID = PID(0.82, 0.0000008, 0.0)
+    val defaultYTranslationPID = PID(0.043, 0.0000008, 0.0)
+    val defaultXTranslationPID = PID(0.0988, 0.000001, 0.0)
+    val defaultRotationPID = PID(0.82, 0.0000008, 0.0)
+    val multiDirectionYTranslationPID = PID(0.0455, 0.0000008, 0.0)
+    val multiDirectionXTranslationPID = PID(0.0995, 0.000001, 0.0)
+    val multiDirectionRotationPID = PID(0.82, 0.0000008, 0.0)
+
+    var yTranslationPID = defaultYTranslationPID
+    var xTranslationPID = defaultXTranslationPID
+    var rotationPID = defaultRotationPID
     override var precisionInches: Double = 0.5
-    override var precisionDegrees: Double = 2.0
+    override var precisionDegrees: Double = 3.0
 
     /**
      * Blocking function
      */
     override fun goToPosition(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>) {
+        yTranslationPID = defaultYTranslationPID
+        xTranslationPID = defaultXTranslationPID
+        rotationPID = defaultRotationPID
         while (linearOpMode.opModeIsActive()) {
             val targetReached = moveTowardTarget(target, powerRange)
             if (targetReached)
@@ -35,6 +45,9 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
     }
 
     fun goToPosition(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>, asyncTask: ()->Unit = {}) {
+        yTranslationPID = defaultYTranslationPID
+        xTranslationPID = defaultXTranslationPID
+        rotationPID = defaultRotationPID
         while (linearOpMode.opModeIsActive()) {
             val targetReached = moveTowardTarget(target, powerRange)
             asyncTask()
@@ -44,9 +57,9 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
     }
 
     fun goToPositionThreeAxis(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>, asyncTask: ()->Unit = {}) {
-        yTranslationPID = PID(0.0455, 0.0000008, 0.0)
-        xTranslationPID = PID(0.0995, 0.000001, 0.0)
-        rotationPID = PID(0.82, 0.0000008, 0.0)
+        yTranslationPID = multiDirectionYTranslationPID
+        xTranslationPID = multiDirectionXTranslationPID
+        rotationPID = multiDirectionRotationPID
         precisionInches = 1.0
         goToPosition(target, linearOpMode, powerRange, asyncTask)
     }
