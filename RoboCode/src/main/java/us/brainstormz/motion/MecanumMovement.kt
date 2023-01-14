@@ -20,7 +20,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
     var yTranslationPID = PID(0.043, 0.0000008, 0.0)
     var xTranslationPID = PID(0.0988, 0.000001, 0.0)
     var rotationPID = PID(0.82, 0.0000008, 0.0)
-    override var precisionInches: Double = 0.4
+    override var precisionInches: Double = 0.5
     override var precisionDegrees: Double = 2.0
 
     /**
@@ -29,18 +29,26 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
     override fun goToPosition(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>) {
         while (linearOpMode.opModeIsActive()) {
             val targetReached = moveTowardTarget(target, powerRange)
-
             if (targetReached)
                 break
         }
     }
 
-    fun goToPositionThreeAxis(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>) {
+    fun goToPosition(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>, asyncTask: ()->Unit = {}) {
+        while (linearOpMode.opModeIsActive()) {
+            val targetReached = moveTowardTarget(target, powerRange)
+            asyncTask()
+            if (targetReached)
+                break
+        }
+    }
+
+    fun goToPositionThreeAxis(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>, asyncTask: ()->Unit = {}) {
         yTranslationPID = PID(0.0455, 0.0000008, 0.0)
-        xTranslationPID = PID(0.0999, 0.000001, 0.0)
+        xTranslationPID = PID(0.0995, 0.000001, 0.0)
         rotationPID = PID(0.82, 0.0000008, 0.0)
-        precisionInches = 4.0
-        goToPosition(target, linearOpMode, powerRange)
+        precisionInches = 1.0
+        goToPosition(target, linearOpMode, powerRange, asyncTask)
     }
 
     override fun moveTowardTarget(target: PositionAndRotation, powerRange: ClosedRange<Double>): Boolean {
@@ -48,6 +56,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         val currentPos = localizer.currentPositionAndRotation()
         val angleRad = Math.toRadians(currentPos.r)
         telemetry.addLine("currentPos: $currentPos")
+        telemetry.addData("angleRad: ", angleRad)
 
 
         // Find the error in distance for X
@@ -74,6 +83,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         // Check to see if we've reached the desired position already
         if (abs(distanceError) <= precisionInches &&
                 abs(angleError) <= Math.toRadians(precisionDegrees)) {
+            drivePowerZero()
             return true
         }
 
@@ -147,7 +157,7 @@ class MovementTesting: LinearOpMode() {
     val hardware = PaddieMatrickHardware()
     val console = GlobalConsole.newConsole(telemetry)
 
-    var targetPos = PositionAndRotation(x= 0.0, y= 0.0, r= 0.0)
+    var targetPos = PositionAndRotation(x= 0.0, y= 10.0, r= 0.0)
 
     override fun runOpMode() {
         hardware.init(hardwareMap)
@@ -167,7 +177,7 @@ class MovementTesting: LinearOpMode() {
         dashboardTelemetry.addData("speedA: ", 0)
         dashboardTelemetry.update()
 
-        localizer.setPositionAndRotation(x= 65.0, y= 0.0, r= 0.0)
+//        localizer.setPositionAndRotation(x= 65.0, y= 0.0, r= 0.0)
 
         waitForStart()
 
