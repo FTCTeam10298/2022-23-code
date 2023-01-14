@@ -35,9 +35,6 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
      * Blocking function
      */
     override fun goToPosition(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double>) {
-        yTranslationPID = defaultYTranslationPID
-        xTranslationPID = defaultXTranslationPID
-        rotationPID = defaultRotationPID
         while (linearOpMode.opModeIsActive()) {
             val targetReached = moveTowardTarget(target, powerRange)
             if (targetReached)
@@ -49,6 +46,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         yTranslationPID = defaultYTranslationPID
         xTranslationPID = defaultXTranslationPID
         rotationPID = defaultRotationPID
+        precisionInches = defaultPrecisionInches
         while (linearOpMode.opModeIsActive()) {
             val targetReached = moveTowardTarget(target, powerRange)
             asyncTask()
