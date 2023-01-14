@@ -61,7 +61,6 @@ class PaddieMatrickAuto: LinearOpMode() {
         hardware.init(hardwareMap)
 
         val localizer = RRLocalizer(hardware)
-        localizer.setPositionAndRotation(x= 65.0, y= -35.0, r= 90.0)
         val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = dashboardTelemetry)
 
         waitForStart()

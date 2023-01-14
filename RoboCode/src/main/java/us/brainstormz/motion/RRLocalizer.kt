@@ -17,7 +17,6 @@ import us.brainstormz.roadRunner.drive.SampleMecanumDrive
 
 class RRLocalizer(hardware: ThreeWheelOdometry): Localizer {
     val roadRunner = SampleMecanumDrive(hardware.hwMap)
-    var positionOffset = PositionAndRotation()
 
     override fun currentPositionAndRotation(): PositionAndRotation {
         val (x, y, heading) = roadRunner.poseEstimate
