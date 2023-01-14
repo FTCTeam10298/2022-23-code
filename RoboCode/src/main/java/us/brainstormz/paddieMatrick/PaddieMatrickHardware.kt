@@ -59,6 +59,8 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         liftLimitSwitch = hwMap["limitSwitch"] as DigitalChannelImpl
 
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         leftLift.direction = DcMotorSimple.Direction.FORWARD
         rightLift.direction = DcMotorSimple.Direction.REVERSE
 
