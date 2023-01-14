@@ -29,6 +29,10 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     override lateinit var lOdom: EnhancedDCMotor
     override lateinit var rOdom: EnhancedDCMotor
     override lateinit var cOdom: EnhancedDCMotor
+    lateinit var odomRaiser1: Servo
+    lateinit var odomRaiser2: Servo
+//    val odomRaiser1Up = 1.0
+//    val odomRaiser1Up = 0.0
 
     lateinit var collectorSensor: RevColorSensorV3
     lateinit var collector: CRServo
@@ -78,6 +82,10 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         lOdom = EnhancedDCMotor(leftOdomEncoder)
         rOdom = EnhancedDCMotor(rightOdomEncoder)
         cOdom = EnhancedDCMotor(centerOdomEncoder)
+
+//        odomRaiser1 = hwMap["odomRaiser1"] as Servo
+//        odomRaiser2 = hwMap["odomRaiser2"] as Servo
+
 
         // Drivetrain
         lFDrive = hwMap["lFDrive"] as DcMotor
