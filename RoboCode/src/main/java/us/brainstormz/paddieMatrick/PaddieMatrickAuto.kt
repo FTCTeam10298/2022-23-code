@@ -142,22 +142,23 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         /** Cone deposited */
 
-//        while (opModeIsActive()) {
-//            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-//            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-//
-//            if (fourBarAtPosition)
-//                break
-//        }
-//
-//        /** Driving to stack */
-//        targetPosition = PositionAndRotation(x= 0.0, y= -58.0, r= 90.5)
-//        for (i in 1..2) {
-//            movement.goToPositionThreeAxis(targetPosition, this, 0.0..1.0) {
-//                fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-//                lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
-//            }
-//        }
+        while (opModeIsActive()) {
+            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (fourBarAtPosition)
+                break
+        }
+
+        /** Driving to stack */
+        targetPosition = PositionAndRotation(x= 0.0, y= -58.0, r= 90.5)
+        for (i in 1..2) {
+            movement.goToPositionThreeAxis(targetPosition, this, 0.0..0.5) {
+                movement.precisionInches = 3.0
+                fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
+            }
+        }
 //
 //        while (opModeIsActive()) {
 //            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
@@ -179,8 +180,6 @@ class PaddieMatrickAuto: LinearOpMode() {
 //            if (liftAtPosition)
 //                break
 //        }
-//
-//        sleep(1000)
 
 
 
