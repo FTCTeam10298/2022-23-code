@@ -58,6 +58,7 @@ class PaddieMatrickAuto: LinearOpMode() {
 
 //        /** INIT PHASE */
         hardware.init(hardwareMap)
+        voltageHandler()
 
         val localizer = RRLocalizer(hardware)
         val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = dashboardTelemetry)
@@ -65,11 +66,6 @@ class PaddieMatrickAuto: LinearOpMode() {
         lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
 
-        telemetry.addLine("Voltage: ${hardware.getVoltage()}")
-        if (hardware.getVoltage() < 13.0) {
-            telemetry.addLine("VOLTAGE IS LESS THAN 13")
-        }
-        telemetry.update()
 
 //        aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
 //
@@ -313,6 +309,15 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         val accuracy = 500
         return error in -accuracy..accuracy
+    }
+    fun voltageHandler() {
+        telemetry.addLine("Voltage: ${hardware.getVoltage()}")
+        if (hardware.getVoltage() < 13.0) {
+            telemetry.addLine("VOLTAGE IS LESS THAN 13")
+            if (!gamepad1.x)
+                throw Exception("Under-voltage! Do not run!")
+        }
+        telemetry.update()
     }
 
 }
