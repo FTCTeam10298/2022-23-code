@@ -313,8 +313,9 @@ class PaddieMatrickAuto: LinearOpMode() {
     fun voltageHandler() {
         telemetry.addLine("Voltage: ${hardware.getVoltage()}")
         telemetry.update()
-        if (hardware.getVoltage() < 13.0) {
-            telemetry.addLine("VOLTAGE IS LESS THAN 13. \nHold X on gamepad1 when initializing to ignore")
+        val minVoltage = 13.3
+        if (hardware.getVoltage() < minVoltage) {
+            telemetry.addLine("VOLTAGE IS LESS THAN $minVoltage. \nHold X on gamepad1 when initializing to ignore")
             telemetry.update()
             if (!gamepad1.x) {
                 sleep(1000)
