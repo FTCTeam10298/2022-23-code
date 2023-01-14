@@ -95,14 +95,14 @@ class PaddieMatrickAuto: LinearOpMode() {
         /** AUTONOMOUS  PHASE */
 //        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
 
-        var targetPosition = PositionAndRotation(x= 0.0, y= -45.0, r= 0.0)
+        var targetPosition = PositionAndRotation(x= 0.0, y= -50.0, r= 0.0)
         movement.precisionInches = 5.0
         movement.goToPosition(targetPosition, this, 0.0..1.0) {
             fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
             lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
         }
 
-        val depositPosition = PositionAndRotation(x= -11.0, y= -55.8, r= 45.0) /** Deposit Position */
+        val depositPosition = PositionAndRotation(x= -11.0, y= -54.8, r= 45.0) /** Deposit Position */
         targetPosition = depositPosition
         for (i in 1..2) {
             movement.goToPositionThreeAxis(targetPosition, this, 0.0..0.5) {
