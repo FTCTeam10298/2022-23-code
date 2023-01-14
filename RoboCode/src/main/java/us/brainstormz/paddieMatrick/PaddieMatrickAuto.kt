@@ -98,17 +98,17 @@ class PaddieMatrickAuto: LinearOpMode() {
 //        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
 
         var targetPosition = PositionAndRotation(x= 0.0, y= -50.0, r= 0.0)
-        movement.precisionInches = 5.0
         movement.goToPosition(targetPosition, this, 0.0..1.0) {
+            movement.precisionInches = 5.0
             fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
             lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
         }
 
-        val depositPosition = PositionAndRotation(x= -11.0, y= -54.8, r= 45.0) /** Deposit Position */
+        val depositPosition = PositionAndRotation(x= -7.0, y= -56.0, r= 45.0) /** Deposit Position */
         targetPosition = depositPosition
         for (i in 1..2) {
             movement.goToPositionThreeAxis(targetPosition, this, 0.0..0.5) {
-                movement.precisionInches = 3.0
+                movement.precisionInches = 1.0
                 fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
                 lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
             }
@@ -153,28 +153,34 @@ class PaddieMatrickAuto: LinearOpMode() {
         }
 
         /** Driving to stack */
-        targetPosition = PositionAndRotation(x= 0.0, y= -58.0, r= 90.5)
-        for (i in 1..2) {
-            movement.goToPositionThreeAxis(targetPosition, this, 0.0..0.5) {
-                movement.precisionInches = 3.0
-                fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
-            }
+
+        targetPosition = PositionAndRotation(x= -4.0, y= -53.0, r= 45.0)
+        movement.goToPositionThreeAxis(targetPosition, this, 0.0..1.0) {
+            movement.precisionInches = 4.0
+            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
         }
-//
-//        while (opModeIsActive()) {
-//            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-//            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
-//
-//            if (liftAtPosition)
-//                break
-//        }
-//
-//        targetPosition += PositionAndRotation(x= 12.0)
-//        movement.goToPosition(targetPosition, this, 0.0..1.0) {
-//            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-//            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
-//        }
+
+        targetPosition.r = 90.0
+        movement.goToPosition(targetPosition, this, 0.08..1.0) {
+            movement.precisionDegrees = 10.0
+            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
+        }
+
+        while (opModeIsActive()) {
+            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
+
+            if (liftAtPosition)
+                break
+        }
+
+        targetPosition += PositionAndRotation(x= 20.0)
+        movement.goToPosition(targetPosition, this, 0.0..1.0) {
+            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
+        }
 //
 //        while (opModeIsActive()) {
 //            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
