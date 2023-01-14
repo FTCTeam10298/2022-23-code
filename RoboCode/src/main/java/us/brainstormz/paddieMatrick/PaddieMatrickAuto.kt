@@ -318,7 +318,6 @@ class PaddieMatrickAuto: LinearOpMode() {
             telemetry.addLine("VOLTAGE IS LESS THAN $minVoltage. \nHold X on gamepad1 when initializing to ignore")
             telemetry.update()
             if (!gamepad1.x) {
-                sleep(1000)
                 this.requestOpModeStop()
             }
 
