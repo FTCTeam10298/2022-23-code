@@ -31,7 +31,7 @@ interface MecanumHardware: HardwareClass {
     val rBDrive: DcMotor
 }
 
-interface ThreeWheelOdometry {
+interface ThreeWheelOdometry: HardwareClass {
     val lOdom: EnhancedDCMotor
     val rOdom: EnhancedDCMotor
     val cOdom: EnhancedDCMotor

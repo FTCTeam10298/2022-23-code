@@ -14,7 +14,7 @@ interface Movement {
 //    Not in constructor
     val precisionInches: Double
     val precisionDegrees: Double
-    val movementPID: PID
+//    val rotationPID: PID
 
     fun goToPosition(target: PositionAndRotation, linearOpMode: LinearOpMode, powerRange: ClosedRange<Double> = 0.0..1.0)
     fun moveTowardTarget(target: PositionAndRotation, powerRange: ClosedRange<Double> = 0.0..1.0): Boolean

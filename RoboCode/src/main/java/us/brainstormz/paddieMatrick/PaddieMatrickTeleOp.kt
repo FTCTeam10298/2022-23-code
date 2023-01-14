@@ -29,7 +29,9 @@ class PaddieMatrickTeleOp: OpMode() {
     }
     enum class FourBarDegrees(val degrees: Double) {
         PreCollection(110.0),
-        Depositing(210.0),
+        Vertical(180.0),
+        PreDeposit(210.0),
+        Deposit(270.0)
 //        Collecting(90.0)
     }
 
@@ -114,7 +116,7 @@ class PaddieMatrickTeleOp: OpMode() {
             }
             gamepad2.y -> {
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Depositing.degrees
+                fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
 //            gamepad2.right_bumper -> {
 //                fourBarMode = fourBarModes.FOURBAR_PID
@@ -155,19 +157,19 @@ class PaddieMatrickTeleOp: OpMode() {
                 liftTarget = LiftCounts.HighJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Depositing.degrees
+                fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
             gamepad2.dpad_left -> {
                 liftTarget = LiftCounts.MidJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Depositing.degrees
+                fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
             gamepad2.dpad_right -> {
                 liftTarget = LiftCounts.LowJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Depositing.degrees
+                fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
             gamepad2.dpad_down -> {
 

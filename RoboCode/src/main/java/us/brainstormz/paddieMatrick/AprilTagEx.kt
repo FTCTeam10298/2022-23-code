@@ -10,7 +10,7 @@ import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener
 import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
-import us.brainstormz.aprilTag.AprilTagDetectionPipeline
+import us.brainstormz.motion.aprilTag.AprilTagDetectionPipeline
 import java.lang.Thread.sleep
 
 enum class SignalOrientation {One, Two, Three}
@@ -38,7 +38,14 @@ class AprilTagEx() {
     fun initAprilTag(hardwareMap: HardwareMap, telemetry: Telemetry, opmode: LinearOpMode){
         val cameraMonitorViewId = hardwareMap.appContext.resources.getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.packageName)
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName::class.java, "Webcam 1"), cameraMonitorViewId)
-        aprilTagDetectionPipeline = AprilTagDetectionPipeline(tagsize, fx, fy, cx, cy)
+        aprilTagDetectionPipeline =
+            AprilTagDetectionPipeline(
+                tagsize,
+                fx,
+                fy,
+                cx,
+                cy
+            )
         camera?.setPipeline(aprilTagDetectionPipeline)
         camera?.openCameraDeviceAsync(object : AsyncCameraOpenListener {
             override fun onOpened() {

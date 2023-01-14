@@ -4,10 +4,13 @@ package us.brainstormz.paddieMatrick
 
 //import com.acmerobotics.roadrunner.geometry.Pose2d
 //import com.acmerobotics.roadrunner.trajectory.Trajectory
+import com.acmerobotics.dashboard.FtcDashboard
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.DcMotor
-import us.brainstormz.hardwareClasses.EncoderDriveMovement
+import us.brainstormz.localizer.PositionAndRotation
+import us.brainstormz.motion.MecanumMovement
+import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
@@ -17,18 +20,18 @@ import us.brainstormz.telemetryWizard.TelemetryWizard
 class PaddieMatrickAuto: LinearOpMode() {
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
 //    Drivetrain drive = new Drivetrain(hwMap);
-    val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
+//    val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
 
     val console = TelemetryConsole(telemetry)
     val wizard = TelemetryWizard(console, this)
 
 //    var aprilTagGX = AprilTagEx()
 //
-//    val fourBarPID = PID(kp= 0.03)
-//    val fourBar = FourBar(telemetry)
+    val fourBarPID = PID(kp= 0.03)
+    val fourBar = FourBar(telemetry)
 //
-//    val lift = Lift(telemetry)
-//    val liftPID = PID(kp= 0.006, ki= 0.0)
+    val lift = Lift(telemetry)
+    val liftPID = PID(kp= 0.006, ki= 0.0)
 //
 //    val drivePower = 0.5
 //    val forwardDistance = 12.0
@@ -41,11 +44,27 @@ class PaddieMatrickAuto: LinearOpMode() {
 //
 //
     override fun runOpMode() {
+        val dashboard = FtcDashboard.getInstance()
+        val dashboardTelemetry = dashboard.telemetry
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("distanceErrorX: ", 0)
+        dashboardTelemetry.addData("distanceErrorY: ", 0)
+        dashboardTelemetry.addData("total distance error: ", 0)
+        dashboardTelemetry.addData("angle error degrees: ", 0)
+        dashboardTelemetry.addData("speedY: ", 0)
+        dashboardTelemetry.addData("speedX: ", 0)
+        dashboardTelemetry.addData("speedA: ", 0)
+        dashboardTelemetry.update()
+
 //        /** INIT PHASE */
         hardware.init(hardwareMap)
-//        lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
-//        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-//
+
+        val localizer = RRLocalizer(hardware)
+        val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = dashboardTelemetry)
+
+        lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
+        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
+
 //        aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
 //
 //
@@ -72,9 +91,79 @@ class PaddieMatrickAuto: LinearOpMode() {
 ////            hardware.right4Bar.power = fourBarPower
 //        }
 //
-//        waitForStart()
-//        /** AUTONOMOUS  PHASE */
+        waitForStart()
+        /** AUTONOMOUS  PHASE */
 //        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
+
+        var targetPosition = PositionAndRotation(x= 0.0, y= -45.0, r= 0.0)
+        movement.precisionInches = 5.0
+        movement.goToPosition(targetPosition, this, 0.0..1.0) {
+            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
+        }
+
+        val depositPosition = PositionAndRotation(x= -12.0, y= -54.5, r= 45.0)
+        targetPosition = depositPosition
+        for (i in 1..2) {
+            movement.goToPositionThreeAxis(targetPosition, this, 0.0..1.0) {
+                fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            }
+        }
+
+        while (opModeIsActive()) {
+            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
+            val isLiftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (isLiftAtPosition)
+                break
+        }
+
+        while (opModeIsActive()) {
+            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (fourBarAtPosition)
+                break
+        }
+
+        while (opModeIsActive()) {
+            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
+            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (fourBarAtPosition && liftAtPosition)
+                break
+        }
+
+        hardware.collector.power = -1.0
+        sleep(700)
+        hardware.collector.power = 0.0
+
+        while (opModeIsActive()) {
+            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (fourBarAtPosition)
+                break
+        }
+
+        targetPosition += PositionAndRotation(x= 19.0, y= -5.0)
+        targetPosition.r = 90.0
+        for (i in 1..2) {
+            movement.goToPositionThreeAxis(targetPosition, this, 0.0..1.0) {
+                fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
+            }
+        }
+
+        while (opModeIsActive()) {
+            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
+            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
+
+            if (liftAtPosition)
+                break
+        }
+
 ////
 ////        when (wizard.wasItemChosen("alliance", "Red")) {
 ////            true -> {
@@ -423,34 +512,36 @@ class PaddieMatrickAuto: LinearOpMode() {
 //        fourBar.setServoPower(0.0)
 //    }
 //
-//    fun lift(targetCounts: Int): Boolean {
-//        val adjustedTarget = if (!hardware.liftLimitSwitch.state) {
-//            hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-//            hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-//            targetCounts.coerceAtLeast(hardware.rightLift.currentPosition)
-//        } else {
-//            targetCounts
-//        }
-//        telemetry.addLine("adjustedTarget: $adjustedTarget")
-//
-//        val error = adjustedTarget-hardware.rightLift.currentPosition
-//        telemetry.addLine("error: $error")
-//
-//        val pidPower = liftPID.calcPID(error.toDouble())
-//        telemetry.addLine("pidPower: $pidPower")
-//
-//        val liftPower = if (!hardware.liftLimitSwitch.state)
-//            pidPower.coerceAtLeast(0.0)
-//        else
-//            pidPower
-//        telemetry.addLine("liftPower: $liftPower")
-//        telemetry.update()
-//
-//        hardware.leftLift.power = liftPower
-//        hardware.rightLift.power = liftPower
-//
-//        val accuracy = 500
-//        return error in -accuracy..accuracy
+
+    }
+    fun lift(targetCounts: Int): Boolean {
+        val adjustedTarget = if (!hardware.liftLimitSwitch.state) {
+            hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+            hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            targetCounts.coerceAtLeast(hardware.rightLift.currentPosition)
+        } else {
+            targetCounts
+        }
+        telemetry.addLine("adjustedTarget: $adjustedTarget")
+
+        val error = adjustedTarget - hardware.rightLift.currentPosition
+        telemetry.addLine("error: $error")
+
+        val pidPower = liftPID.calcPID(error.toDouble())
+        telemetry.addLine("pidPower: $pidPower")
+
+        val liftPower = if (!hardware.liftLimitSwitch.state)
+            pidPower.coerceAtLeast(0.0)
+        else
+            pidPower
+        telemetry.addLine("liftPower: $liftPower")
+        telemetry.update()
+
+        hardware.leftLift.power = liftPower
+        hardware.rightLift.power = liftPower
+
+        val accuracy = 500
+        return error in -accuracy..accuracy
     }
 
 }

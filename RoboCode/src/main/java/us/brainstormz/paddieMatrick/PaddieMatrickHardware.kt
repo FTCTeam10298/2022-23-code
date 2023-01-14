@@ -2,12 +2,14 @@ package us.brainstormz.paddieMatrick
 
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.*
+import us.brainstormz.hardwareClasses.EnhancedDCMotor
 import us.brainstormz.hardwareClasses.MecanumHardware
+import us.brainstormz.hardwareClasses.ThreeWheelOdometry
 
 private const val s = "rEncoder"
 private const val freeMove = false //for debugging. puts motors in float when stopped.
 
-class PaddieMatrickHardware: MecanumHardware {
+class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     override lateinit var lFDrive: DcMotor
     override lateinit var rFDrive: DcMotor
     override lateinit var lBDrive: DcMotor
@@ -24,9 +26,13 @@ class PaddieMatrickHardware: MecanumHardware {
     lateinit var rightOdomEncoder: DcMotor
     lateinit var leftOdomEncoder: DcMotor
     lateinit var centerOdomEncoder: DcMotor
+    override lateinit var lOdom: EnhancedDCMotor
+    override lateinit var rOdom: EnhancedDCMotor
+    override lateinit var cOdom: EnhancedDCMotor
 
     lateinit var collectorSensor: RevColorSensorV3
     lateinit var collector: CRServo
+
 
     override lateinit var hwMap: HardwareMap
 
@@ -67,6 +73,9 @@ class PaddieMatrickHardware: MecanumHardware {
         leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
 
+        lOdom = EnhancedDCMotor(leftOdomEncoder)
+        rOdom = EnhancedDCMotor(rightOdomEncoder)
+        cOdom = EnhancedDCMotor(centerOdomEncoder)
 
         // Drivetrain
         lFDrive = hwMap["lFDrive"] as DcMotor
