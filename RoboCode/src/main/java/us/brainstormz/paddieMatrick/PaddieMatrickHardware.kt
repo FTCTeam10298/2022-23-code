@@ -97,18 +97,14 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         rFDrive = hwMap["rFDrive"] as DcMotor
         lBDrive = hwMap["lBDrive"] as DcMotor
         rBDrive = hwMap["rBDrive"] as DcMotor
-        if(freeMove){
-            lFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            rFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            lBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            rBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        }
-        else{
-            lFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            rFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            lBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            rBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        }
+        lFDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        rFDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        lBDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        rBDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        lFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        rFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        lBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        rBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rFDrive.direction = DcMotorSimple.Direction.REVERSE
         rBDrive.direction = DcMotorSimple.Direction.REVERSE
     }
