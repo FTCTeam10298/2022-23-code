@@ -65,6 +65,12 @@ class PaddieMatrickAuto: LinearOpMode() {
         lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
 
+        telemetry.addLine("Voltage: ${hardware.getVoltage()}")
+        if (hardware.getVoltage() < 13.0) {
+            telemetry.addLine("VOLTAGE IS LESS THAN 13")
+        }
+        telemetry.update()
+
 //        aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
 //
 //

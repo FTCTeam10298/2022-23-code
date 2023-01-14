@@ -1,7 +1,9 @@
 package us.brainstormz.paddieMatrick
 
+import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.*
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit
 import us.brainstormz.hardwareClasses.EnhancedDCMotor
 import us.brainstormz.hardwareClasses.MecanumHardware
 import us.brainstormz.hardwareClasses.ThreeWheelOdometry
@@ -37,11 +39,14 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     lateinit var collectorSensor: RevColorSensorV3
     lateinit var collector: CRServo
 
+    lateinit var allHubs: List<LynxModule>
 
     override lateinit var hwMap: HardwareMap
 
     override fun init(ahwMap: HardwareMap) {
         hwMap = ahwMap
+
+        allHubs = hwMap.getAll(LynxModule::class.java)
 
         // Collector
         collector = hwMap["collector"] as CRServo
@@ -107,5 +112,6 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         rFDrive.direction = DcMotorSimple.Direction.REVERSE
         rBDrive.direction = DcMotorSimple.Direction.REVERSE
     }
+     fun getVoltage(): Double = allHubs[0].getInputVoltage(VoltageUnit.VOLTS)
 
 }
