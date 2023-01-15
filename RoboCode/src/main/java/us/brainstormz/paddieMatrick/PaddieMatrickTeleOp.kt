@@ -260,7 +260,7 @@ class PaddieMatrickTeleOp: OpMode() {
             moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
 
             if (isConeInFunnel()) {
-                hardware.funnelLifter.position = collector.funnelUp
+                hardware.collector.power = 1.0
                 moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = LiftCounts.Collection)
             } else {
                 moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
