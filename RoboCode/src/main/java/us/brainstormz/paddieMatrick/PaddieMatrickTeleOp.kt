@@ -284,12 +284,14 @@ class PaddieMatrickTeleOp: OpMode() {
 
     fun isConeInCollector(): Boolean {
         val minCollectedDistance = 56
-        val collectedOpticalThreshold = 210
+        val collectedOpticalThreshold = 250
+        val collectedRedThreshold = 100
 
         val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
         val collectorRawOptical = hardware.collectorSensor.rawOptical()
+        val collectorRed = hardware.collectorSensor.red()
 
-        return collectorDistance < minCollectedDistance && collectorRawOptical > collectedOpticalThreshold
+        return collectorDistance < minCollectedDistance && collectorRawOptical > collectedOpticalThreshold// || collectorRed > collectedRedThreshold)
     }
 
     fun isConeInFunnel(): Boolean {
