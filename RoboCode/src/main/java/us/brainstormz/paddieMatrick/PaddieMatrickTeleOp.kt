@@ -238,20 +238,24 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("optical: ${hardware.collectorSensor.rawOptical()}")
     }
 
+    fun isConeInCollector(): Boolean {
+        val minCollectedDistance = 56
+        val collectedOpticalThreshold = 250
+
+        val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
+        val collectorRawOptical = hardware.collectorSensor.rawOptical()
+
+        return collectorDistance < minCollectedDistance && collectorRawOptical > collectedOpticalThreshold
+    }
+
     fun automatedCollection(multiCone: Boolean) {
         val collectableDistance = 75
         val funnelBlueThreshold = 60
         val funnelRedThreshold = 60
 
-        val minCollectedDistance = 56
-        val collectedOpticalThreshold = 230
-
-        val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
-        val collectorRawOptical = hardware.collectorSensor.rawOptical()
-        val isCollected = collectorDistance < minCollectedDistance && collectorRawOptical > collectedOpticalThreshold
         val preCollectLiftTarget = if (multiCone) LiftCounts.StackPreCollection else LiftCounts.SinglePreCollection
 
-        if (!isCollected) {
+        if (!isConeInCollector()) {
             hardware.collectorSensor.enableLed(true)
             hardware.funnelLifter.position = 0.0
 
