@@ -245,19 +245,13 @@ class PaddieMatrickTeleOp: OpMode() {
             hardware.collectorSensor.enableLed(true)
             hardware.funnelLifter.position = 0.0
 
-            liftTarget = preCollectLiftTarget.counts.toDouble()
-            fourBarMode = fourBarModes.FOURBAR_PID
-            fourBarTarget = FourBarDegrees.Collecting.degrees
+            moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
 
             if (isConeInFunnel()) {
                 hardware.collector.power = 1.0
-                fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Collecting.degrees
-                liftTarget = LiftCounts.Collection.counts.toDouble()
+                moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = LiftCounts.Collection)
             } else {
-                liftTarget = preCollectLiftTarget.counts.toDouble()
-                fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Collecting.degrees
+                moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
             }
         } else {
             fourBarMode = fourBarModes.FOURBAR_PID
@@ -271,6 +265,11 @@ class PaddieMatrickTeleOp: OpMode() {
         }
     }
 
+    fun moveDepositer(fourBarPosition: FourBarDegrees, liftPosition: LiftCounts) {
+        liftTarget = liftPosition.counts.toDouble()
+        fourBarMode = fourBarModes.FOURBAR_PID
+        fourBarTarget = fourBarPosition.degrees
+    }
 
     fun isConeInCollector(): Boolean {
         val minCollectedDistance = 56
