@@ -30,7 +30,7 @@ class PaddieMatrickTeleOp: OpMode() {
         var centerPosition = 110.0
     }
     enum class FourBarDegrees(val degrees: Double) {
-        Collecting(75.0),
+        Collecting(72.0),
         PreCollection(110.0),
         Vertical(180.0),
         PreDeposit(210.0),
@@ -42,13 +42,13 @@ class PaddieMatrickTeleOp: OpMode() {
     var liftTarget = 0.0
     val liftSpeed = 1200.0
     enum class LiftCounts(val counts: Int) {
-        Bottom(0),
         HighJunction(3900),
         MidJunction(2200),
         StackPreCollection(1130),
         LowJunction(650),
-        SingePreCollection(310),
-        Collection(50)
+        SinglePreCollection(400),
+        Collection(0),
+        Bottom(0)
     }
 
     override fun init() {
@@ -219,49 +219,73 @@ class PaddieMatrickTeleOp: OpMode() {
             }
         }
 
-        val collectableDistance = 75
-        val blueThreshold = 60
-        val redThreshold = 60
         when {
             gamepad1.right_bumper -> {
-                hardware.funnelSensor.enableLed(true)
-                hardware.funnelLifter.position = 0.0
-
-                liftTarget = LiftCounts.StackPreCollection.counts.toDouble()
-                fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.Collecting.degrees
-
-                val red = hardware.funnelSensor.red()
-                val blue = hardware.funnelSensor.blue()
-                val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
-                telemetry.addLine("red: $red")
-                telemetry.addLine("blue: $blue")
-                telemetry.addLine("funnel distance: $distance")
-
-                if (distance < collectableDistance && (blue > blueThreshold || red > redThreshold)) {
-                    val collectedDistance = 56
-                    val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
-                    if (collectorDistance < collectedDistance) {
-                        fourBarMode = fourBarModes.FOURBAR_PID
-                        fourBarTarget = FourBarDegrees.Vertical.degrees
-                    } else {
-                        hardware.collector.power = 1.0
-                        fourBarMode = fourBarModes.FOURBAR_PID
-                        fourBarTarget = FourBarDegrees.Collecting.degrees
-                        liftTarget = LiftCounts.Collection.counts.toDouble()
-                    }
-                } else {
-                    liftTarget = LiftCounts.StackPreCollection.counts.toDouble()
-                    fourBarMode = fourBarModes.FOURBAR_PID
-                    fourBarTarget = FourBarDegrees.Collecting.degrees
-                }
+                automatedCollection(multiCone = false)
+            }
+            gamepad1.left_bumper -> {
+                automatedCollection(multiCone = true)
             }
             else -> {
-                hardware.funnelSensor.enableLed(false)
+                hardware.collectorSensor.enableLed(false)
                 hardware.funnelLifter.position = 1.0
             }
         }
 
+        telemetry.addLine("red: ${hardware.collectorSensor.red()}")
+        telemetry.addLine("blue: ${hardware.collectorSensor.blue()}")
+        telemetry.addLine("alpha: ${hardware.collectorSensor.alpha()}")
+        telemetry.addLine("optical: ${hardware.collectorSensor.rawOptical()}")
+    }
+
+    fun automatedCollection(multiCone: Boolean) {
+        val collectableDistance = 75
+        val funnelBlueThreshold = 60
+        val funnelRedThreshold = 60
+
+        val minCollectedDistance = 56
+        val collectedOpticalThreshold = 230
+
+        val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
+        val collectorRawOptical = hardware.collectorSensor.rawOptical()
+        val isCollected = collectorDistance < minCollectedDistance && collectorRawOptical > collectedOpticalThreshold
+        val preCollectLiftTarget = if (multiCone) LiftCounts.StackPreCollection else LiftCounts.SinglePreCollection
+
+        if (!isCollected) {
+            hardware.collectorSensor.enableLed(true)
+            hardware.funnelLifter.position = 0.0
+
+            liftTarget = preCollectLiftTarget.counts.toDouble()
+            fourBarMode = fourBarModes.FOURBAR_PID
+            fourBarTarget = FourBarDegrees.Collecting.degrees
+
+            val red = hardware.funnelSensor.red()
+            val blue = hardware.funnelSensor.blue()
+            val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
+//        telemetry.addLine("red: $red")
+//        telemetry.addLine("blue: $blue")
+//        telemetry.addLine("funnel distance: $distance")
+            val isConeCollectable = distance < collectableDistance && (blue > funnelBlueThreshold || red > funnelRedThreshold)
+            if (isConeCollectable) {
+                hardware.collector.power = 1.0
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Collecting.degrees
+                liftTarget = LiftCounts.Collection.counts.toDouble()
+            } else {
+                liftTarget = preCollectLiftTarget.counts.toDouble()
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Collecting.degrees
+            }
+        } else {
+            fourBarMode = fourBarModes.FOURBAR_PID
+            fourBarTarget = FourBarDegrees.Vertical.degrees
+
+            if (fourBar.is4BarAtPosition(FourBarDegrees.Vertical.degrees)) {
+                hardware.funnelLifter.position = 1.0
+                liftTarget =
+                        if (multiCone) LiftCounts.LowJunction.counts.toDouble() else LiftCounts.Bottom.counts.toDouble()
+            }
+        }
     }
 
     fun powerLift(power: Double) {
