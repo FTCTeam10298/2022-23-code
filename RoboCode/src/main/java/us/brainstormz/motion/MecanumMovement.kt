@@ -254,13 +254,14 @@ class MovementPIDTuning: LinearOpMode() {
         waitForStart()
 
 //        movement.goToPosition(targetPos, this, 0.0..1.0)
-        while (opModeIsActive()) {
-            val targetReached = movement.moveTowardTarget(targetPos, 0.0..1.0)
+//        while (opModeIsActive()) {
+//            val targetReached = movement.moveTowardTarget(targetPos, 0.0..1.0)
+//
+//            if (targetReached) {
+//                dashboardTelemetry.addLine("target reached")
+//            }
+//        }
 
-            if (targetReached) {
-                dashboardTelemetry.addLine("target reached")
-            }
-        }
     }
 }
 

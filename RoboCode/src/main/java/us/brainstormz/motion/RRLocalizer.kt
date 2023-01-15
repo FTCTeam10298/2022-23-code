@@ -56,15 +56,18 @@ class RRLocalizerTest: OpMode() {
 
     override fun init() {
         hardware.init(hardwareMap)
+        foo = Foo(hardware, telemetry)
         hardware.lFDrive.zeroPowerBehavior = ZeroPowerBehavior.FLOAT
         hardware.rFDrive.zeroPowerBehavior =  ZeroPowerBehavior.FLOAT
         hardware.lBDrive.zeroPowerBehavior =  ZeroPowerBehavior.FLOAT
         hardware.rBDrive.zeroPowerBehavior =  ZeroPowerBehavior.FLOAT
-        foo = Foo(hardware, telemetry)
     }
 
     override fun loop() {
+        hardware.lFDrive.zeroPowerBehavior = ZeroPowerBehavior.FLOAT
+        hardware.rFDrive.zeroPowerBehavior =  ZeroPowerBehavior.FLOAT
+        hardware.lBDrive.zeroPowerBehavior =  ZeroPowerBehavior.FLOAT
+        hardware.rBDrive.zeroPowerBehavior =  ZeroPowerBehavior.FLOAT
         foo?.loop()
     }
-
 }
