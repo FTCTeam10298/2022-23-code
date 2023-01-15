@@ -96,8 +96,10 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         rOdom = EnhancedDCMotor(rightOdomEncoder)
         cOdom = EnhancedDCMotor(centerOdomEncoder)
 
-//        odomRaiser1 = hwMap["odomRaiser1"] as Servo
-//        odomRaiser2 = hwMap["odomRaiser2"] as Servo
+        odomRaiser1 = hwMap["rightOdomLifter"] as Servo
+        odomRaiser2 = hwMap["leftOdomLifter"] as Servo
+        odomRaiser1.position = 0.0
+        odomRaiser2.position = 0.0
 
 
         // Drivetrain

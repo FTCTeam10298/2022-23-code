@@ -39,7 +39,6 @@ class PaddieMatrickTeleOp: OpMode() {
         Deposit(270.0)
     }
 
-
     val liftPID = PID(kp= 0.003, ki= 0.0)
     var liftTarget = 0.0
     val liftSpeed = 1200.0
@@ -56,6 +55,8 @@ class PaddieMatrickTeleOp: OpMode() {
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
+        hardware.odomRaiser1.position = 1.0
+        hardware.odomRaiser2.position = 1.0
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         fourBarTarget = fourBar.current4BarDegrees()
         fourBar.pid = PID(kp= 0.011, kd= 0.0001)//0000001)
