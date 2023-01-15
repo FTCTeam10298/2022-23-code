@@ -238,21 +238,7 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("optical: ${hardware.collectorSensor.rawOptical()}")
     }
 
-    fun isConeInCollector(): Boolean {
-        val minCollectedDistance = 56
-        val collectedOpticalThreshold = 250
-
-        val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
-        val collectorRawOptical = hardware.collectorSensor.rawOptical()
-
-        return collectorDistance < minCollectedDistance && collectorRawOptical > collectedOpticalThreshold
-    }
-
     fun automatedCollection(multiCone: Boolean) {
-        val collectableDistance = 75
-        val funnelBlueThreshold = 60
-        val funnelRedThreshold = 60
-
         val preCollectLiftTarget = if (multiCone) LiftCounts.StackPreCollection else LiftCounts.SinglePreCollection
 
         if (!isConeInCollector()) {
@@ -263,14 +249,7 @@ class PaddieMatrickTeleOp: OpMode() {
             fourBarMode = fourBarModes.FOURBAR_PID
             fourBarTarget = FourBarDegrees.Collecting.degrees
 
-            val red = hardware.funnelSensor.red()
-            val blue = hardware.funnelSensor.blue()
-            val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
-//        telemetry.addLine("red: $red")
-//        telemetry.addLine("blue: $blue")
-//        telemetry.addLine("funnel distance: $distance")
-            val isConeCollectable = distance < collectableDistance && (blue > funnelBlueThreshold || red > funnelRedThreshold)
-            if (isConeCollectable) {
+            if (isConeInFunnel()) {
                 hardware.collector.power = 1.0
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.Collecting.degrees
@@ -290,6 +269,31 @@ class PaddieMatrickTeleOp: OpMode() {
                         if (multiCone) LiftCounts.LowJunction.counts.toDouble() else LiftCounts.Bottom.counts.toDouble()
             }
         }
+    }
+
+
+    fun isConeInCollector(): Boolean {
+        val minCollectedDistance = 56
+        val collectedOpticalThreshold = 250
+
+        val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
+        val collectorRawOptical = hardware.collectorSensor.rawOptical()
+
+        return collectorDistance < minCollectedDistance && collectorRawOptical > collectedOpticalThreshold
+    }
+
+    fun isConeInFunnel(): Boolean {
+        val collectableDistance = 75
+        val funnelBlueThreshold = 60
+        val funnelRedThreshold = 60
+
+        val red = hardware.funnelSensor.red()
+        val blue = hardware.funnelSensor.blue()
+        val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
+//        telemetry.addLine("red: $red")
+//        telemetry.addLine("blue: $blue")
+//        telemetry.addLine("funnel distance: $distance")
+        return distance < collectableDistance && (blue > funnelBlueThreshold || red > funnelRedThreshold)
     }
 
     fun powerLift(power: Double) {
