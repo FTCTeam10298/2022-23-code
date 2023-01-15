@@ -164,18 +164,28 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
             gamepad1.a && !gamepad1.start-> {
-                liftTarget = LiftCounts.HighJunction.counts.toDouble()
+                if (isConeInCollector()) {
+                    liftTarget = LiftCounts.HighJunction.counts.toDouble()
 
-                if (hardware.rightLift.currentPosition >= liftTarget-300) {
-                    fourBarMode = fourBarModes.FOURBAR_PID
-                    fourBarTarget = FourBarDegrees.Deposit.degrees
+                    if (hardware.rightLift.currentPosition >= liftTarget - 300) {
+                        fourBarMode = fourBarModes.FOURBAR_PID
+                        fourBarTarget = FourBarDegrees.Deposit.degrees
 
-                    if (fourBar.current4BarDegrees() >= FourBarDegrees.Deposit.degrees-5) {
-                        hardware.collector.power = -1.0
+                        if (fourBar.current4BarDegrees() >= FourBarDegrees.Deposit.degrees - 5) {
+                            hardware.collector.power = -1.0
+                        }
+                    } else {
+                        fourBarMode = fourBarModes.FOURBAR_PID
+                        fourBarTarget = FourBarDegrees.PreDeposit.degrees
                     }
                 } else {
+                    // once cone drops go back to home
                     fourBarMode = fourBarModes.FOURBAR_PID
-                    fourBarTarget = FourBarDegrees.PreDeposit.degrees
+                    fourBarTarget = FourBarDegrees.Vertical.degrees
+
+                    if (fourBar.current4BarDegrees() <= FourBarDegrees.Vertical.degrees + 5) {
+                        liftTarget = LiftCounts.Bottom.counts.toDouble()
+                    }
                 }
             }
             gamepad2.dpad_left -> {
