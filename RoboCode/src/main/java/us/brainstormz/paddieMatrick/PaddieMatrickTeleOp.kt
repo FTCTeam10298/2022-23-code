@@ -124,10 +124,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
-//            gamepad2.right_bumper -> {
-//                fourBarMode = fourBarModes.FOURBAR_PID
-//                fourBarTarget = FourBarDegrees.Collecting.degrees
-//            }
+            gamepad1.a -> {} // dummy for preset elsewhere
             abs(gamepad2.right_stick_y) > 0.1 -> {
                 fourBarMode = fourBarModes.FOURBAR_MANUAL
             }
@@ -159,11 +156,26 @@ class PaddieMatrickTeleOp: OpMode() {
 
         // Lift
         when {
-            gamepad2.dpad_up || gamepad1.a -> {
+            gamepad2.dpad_up-> {
                 liftTarget = LiftCounts.HighJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreDeposit.degrees
+            }
+            gamepad1.a -> {
+                liftTarget = LiftCounts.HighJunction.counts.toDouble()
+
+                if (hardware.rightLift.currentPosition >= liftTarget-300) {
+                    fourBarMode = fourBarModes.FOURBAR_PID
+                    fourBarTarget = FourBarDegrees.Deposit.degrees
+
+                    if (fourBar.current4BarDegrees() >= FourBarDegrees.Deposit.degrees-5) {
+                        hardware.collector.power = -1.0
+                    }
+                } else {
+                    fourBarMode = fourBarModes.FOURBAR_PID
+                    fourBarTarget = FourBarDegrees.PreDeposit.degrees
+                }
             }
             gamepad2.dpad_left -> {
                 liftTarget = LiftCounts.MidJunction.counts.toDouble()
@@ -215,6 +227,7 @@ class PaddieMatrickTeleOp: OpMode() {
             gamepad1.left_trigger > 0 || gamepad2.left_trigger > 0 -> {
                 hardware.collector.power = -1.0
             }
+            gamepad1.a -> {}
             else -> {
                 hardware.collector.power = 0.0
             }
