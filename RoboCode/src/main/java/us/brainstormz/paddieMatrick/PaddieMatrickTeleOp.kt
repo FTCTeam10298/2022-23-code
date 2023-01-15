@@ -46,7 +46,7 @@ class PaddieMatrickTeleOp: OpMode() {
     enum class LiftCounts(val counts: Int) {
         HighJunction(3900),
         MidJunction(2200),
-        StackPreCollection(1130),
+        StackPreCollection(1200),
         LowJunction(650),
         SinglePreCollection(400),
         Collection(0),
