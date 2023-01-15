@@ -18,6 +18,8 @@ class PaddieMatrickTeleOp: OpMode() {
     val movement = MecanumDriveTrain(hardware)
     val fourBar = FourBar(telemetry)
 
+    val collector = Collector()
+
     var fourBarTarget = 0.0
     val allowedZone = 50.0..300.0
     val fourBarSpeed = 120.0
@@ -206,7 +208,6 @@ class PaddieMatrickTeleOp: OpMode() {
         powerLift(liftPower)
 
         // Collector
-
         when {
             gamepad1.right_trigger > 0 || gamepad2.right_trigger > 0 -> {
                 hardware.collector.power = 1.0
@@ -227,7 +228,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 automatedCollection(multiCone = true)
             }
             else -> {
-                hardware.funnelLifter.position = 1.0
+                hardware.funnelLifter.position = collector.funnelUp
             }
         }
 
@@ -241,12 +242,12 @@ class PaddieMatrickTeleOp: OpMode() {
         val preCollectLiftTarget = if (multiCone) LiftCounts.StackPreCollection else LiftCounts.SinglePreCollection
 
         if (!isConeInCollector()) {
-            hardware.funnelLifter.position = 0.0
+            hardware.funnelLifter.position = collector.funnelDown
 
             moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
 
             if (isConeInFunnel()) {
-                hardware.collector.power = 1.0
+                hardware.funnelLifter.position = collector.funnelUp
                 moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = LiftCounts.Collection)
             } else {
                 moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
@@ -256,7 +257,7 @@ class PaddieMatrickTeleOp: OpMode() {
             fourBarTarget = FourBarDegrees.Vertical.degrees
 
             if (fourBar.is4BarAtPosition(FourBarDegrees.Vertical.degrees)) {
-                hardware.funnelLifter.position = 1.0
+                hardware.funnelLifter.position = collector.funnelUp
                 liftTarget = if (multiCone) LiftCounts.LowJunction.counts.toDouble() else LiftCounts.Bottom.counts.toDouble()
             }
         }

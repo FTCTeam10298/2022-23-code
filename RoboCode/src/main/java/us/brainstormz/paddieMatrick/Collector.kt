@@ -7,6 +7,9 @@ class Collector() {
 
     val heightInch = 4.0
 
+    val funnelDown = 1.0
+    val funnelUp = 0.2
+
     fun init(frontServo: CRServo) {
         this.servo = frontServo
     }
