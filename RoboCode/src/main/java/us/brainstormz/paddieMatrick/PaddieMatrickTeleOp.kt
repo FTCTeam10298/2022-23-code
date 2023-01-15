@@ -42,11 +42,13 @@ class PaddieMatrickTeleOp: OpMode() {
     var liftTarget = 0.0
     val liftSpeed = 1200.0
     enum class LiftCounts(val counts: Int) {
-        PreCollection(0),
-        Collection(0),
+        Bottom(0),
         HighJunction(3900),
         MidJunction(2200),
-        LowJunction(650)
+        StackPreCollection(1130),
+        LowJunction(650),
+        SingePreCollection(310),
+        Collection(50)
     }
 
     override fun init() {
@@ -175,7 +177,7 @@ class PaddieMatrickTeleOp: OpMode() {
             }
             gamepad2.dpad_down -> {
 
-                liftTarget = LiftCounts.Collection.counts.toDouble()
+                liftTarget = LiftCounts.Bottom.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreCollection.degrees
@@ -217,13 +219,18 @@ class PaddieMatrickTeleOp: OpMode() {
             }
         }
 
-        val collectableDistance = 60
-        val blueThreshold = 1000
-        val redThreshold = 1000
+        val collectableDistance = 75
+        val blueThreshold = 60
+        val redThreshold = 60
         when {
             gamepad1.right_bumper -> {
                 hardware.funnelSensor.enableLed(true)
                 hardware.funnelLifter.position = 0.0
+
+                liftTarget = LiftCounts.StackPreCollection.counts.toDouble()
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = FourBarDegrees.Collecting.degrees
+
                 val red = hardware.funnelSensor.red()
                 val blue = hardware.funnelSensor.blue()
                 val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
@@ -236,15 +243,17 @@ class PaddieMatrickTeleOp: OpMode() {
                     val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
                     if (collectorDistance < collectedDistance) {
                         fourBarMode = fourBarModes.FOURBAR_PID
-                        fourBarTarget = FourBarDegrees.PreCollection.degrees
+                        fourBarTarget = FourBarDegrees.Vertical.degrees
                     } else {
                         hardware.collector.power = 1.0
                         fourBarMode = fourBarModes.FOURBAR_PID
                         fourBarTarget = FourBarDegrees.Collecting.degrees
+                        liftTarget = LiftCounts.Collection.counts.toDouble()
                     }
                 } else {
+                    liftTarget = LiftCounts.StackPreCollection.counts.toDouble()
                     fourBarMode = fourBarModes.FOURBAR_PID
-                    fourBarTarget = FourBarDegrees.PreCollection.degrees
+                    fourBarTarget = FourBarDegrees.Collecting.degrees
                 }
             }
             else -> {
