@@ -116,7 +116,7 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("fourBarTarget: $fourBarTarget")
 
         when {
-            gamepad2.x -> {
+            gamepad2.x || gamepad1.b -> {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
