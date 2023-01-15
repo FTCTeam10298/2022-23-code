@@ -116,7 +116,7 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("fourBarTarget: $fourBarTarget")
 
         when {
-            gamepad2.x || gamepad1.b -> {
+            gamepad2.x || (gamepad1.b && !gamepad1.start) -> {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
@@ -124,7 +124,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
-            gamepad1.a -> {} // dummy for preset elsewhere
+            gamepad1.a && !gamepad1.start -> {} // dummy for preset elsewhere
             abs(gamepad2.right_stick_y) > 0.1 -> {
                 fourBarMode = fourBarModes.FOURBAR_MANUAL
             }
@@ -162,7 +162,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
-            gamepad1.a -> {
+            gamepad1.a && !gamepad1.start-> {
                 liftTarget = LiftCounts.HighJunction.counts.toDouble()
 
                 if (hardware.rightLift.currentPosition >= liftTarget-300) {
