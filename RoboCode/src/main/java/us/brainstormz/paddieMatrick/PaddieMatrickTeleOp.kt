@@ -182,7 +182,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
-            gamepad2.left_bumper -> {
+            gamepad2.a -> {
                 liftTarget += (-0.5 * liftSpeed / dt)
             }
         }
@@ -220,14 +220,13 @@ class PaddieMatrickTeleOp: OpMode() {
         }
 
         when {
-            gamepad1.right_bumper -> {
+            gamepad1.right_bumper || gamepad2.right_bumper -> {
                 automatedCollection(multiCone = false)
             }
-            gamepad1.left_bumper -> {
+            gamepad1.left_bumper || gamepad2.left_bumper -> {
                 automatedCollection(multiCone = true)
             }
             else -> {
-                hardware.collectorSensor.enableLed(false)
                 hardware.funnelLifter.position = 1.0
             }
         }
@@ -242,7 +241,6 @@ class PaddieMatrickTeleOp: OpMode() {
         val preCollectLiftTarget = if (multiCone) LiftCounts.StackPreCollection else LiftCounts.SinglePreCollection
 
         if (!isConeInCollector()) {
-            hardware.collectorSensor.enableLed(true)
             hardware.funnelLifter.position = 0.0
 
             moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
@@ -259,8 +257,7 @@ class PaddieMatrickTeleOp: OpMode() {
 
             if (fourBar.is4BarAtPosition(FourBarDegrees.Vertical.degrees)) {
                 hardware.funnelLifter.position = 1.0
-                liftTarget =
-                        if (multiCone) LiftCounts.LowJunction.counts.toDouble() else LiftCounts.Bottom.counts.toDouble()
+                liftTarget = if (multiCone) LiftCounts.LowJunction.counts.toDouble() else LiftCounts.Bottom.counts.toDouble()
             }
         }
     }
