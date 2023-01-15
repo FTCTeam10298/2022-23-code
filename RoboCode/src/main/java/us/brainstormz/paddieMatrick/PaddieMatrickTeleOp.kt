@@ -157,7 +157,7 @@ class PaddieMatrickTeleOp: OpMode() {
 
         // Lift
         when {
-            gamepad2.dpad_up -> {
+            gamepad2.dpad_up || gamepad1.a -> {
                 liftTarget = LiftCounts.HighJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
