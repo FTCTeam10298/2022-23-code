@@ -3,6 +3,7 @@ package us.brainstormz.paddieMatrick
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.*
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit
 import us.brainstormz.hardwareClasses.EnhancedDCMotor
 import us.brainstormz.hardwareClasses.MecanumHardware
@@ -39,6 +40,9 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     lateinit var collectorSensor: RevColorSensorV3
     lateinit var collector: CRServo
 
+    lateinit var funnelLifter: Servo
+    lateinit var funnelSensor: ColorSensor
+
     lateinit var allHubs: List<LynxModule>
 
     override lateinit var hwMap: HardwareMap
@@ -51,7 +55,13 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         // Collector
         collector = hwMap["collector"] as CRServo
         collector.direction = DcMotorSimple.Direction.REVERSE
-//        collectorSensor = hwMap["color"] as RevColorSensorV3
+        collectorSensor = hwMap["collectorSensor"] as RevColorSensorV3
+        funnelLifter = hwMap["funnelLifter"] as Servo
+        funnelLifter.position = 1.0
+
+        funnelSensor = hwMap["funnelSensor"] as ColorSensor
+//        (funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
+//        funnelSensor.
 
         // 4 Bar
         left4Bar = hwMap["left4Bar"] as CRServo

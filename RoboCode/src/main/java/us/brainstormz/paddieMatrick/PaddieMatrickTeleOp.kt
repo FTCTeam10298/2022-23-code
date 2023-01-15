@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DistanceSensor
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.pid.PID
 import us.brainstormz.utils.MathHelps
@@ -28,11 +30,11 @@ class PaddieMatrickTeleOp: OpMode() {
         var centerPosition = 110.0
     }
     enum class FourBarDegrees(val degrees: Double) {
+        Collecting(75.0),
         PreCollection(110.0),
         Vertical(180.0),
         PreDeposit(210.0),
         Deposit(270.0)
-//        Collecting(90.0)
     }
 
 
@@ -215,6 +217,41 @@ class PaddieMatrickTeleOp: OpMode() {
             }
         }
 
+        val collectableDistance = 60
+        val blueThreshold = 1000
+        val redThreshold = 1000
+        when {
+            gamepad1.right_bumper -> {
+                hardware.funnelSensor.enableLed(true)
+                hardware.funnelLifter.position = 0.0
+                val red = hardware.funnelSensor.red()
+                val blue = hardware.funnelSensor.blue()
+                val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
+                telemetry.addLine("red: $red")
+                telemetry.addLine("blue: $blue")
+                telemetry.addLine("funnel distance: $distance")
+
+                if (distance < collectableDistance && (blue > blueThreshold || red > redThreshold)) {
+                    val collectedDistance = 56
+                    val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
+                    if (collectorDistance < collectedDistance) {
+                        fourBarMode = fourBarModes.FOURBAR_PID
+                        fourBarTarget = FourBarDegrees.PreCollection.degrees
+                    } else {
+                        hardware.collector.power = 1.0
+                        fourBarMode = fourBarModes.FOURBAR_PID
+                        fourBarTarget = FourBarDegrees.Collecting.degrees
+                    }
+                } else {
+                    fourBarMode = fourBarModes.FOURBAR_PID
+                    fourBarTarget = FourBarDegrees.PreCollection.degrees
+                }
+            }
+            else -> {
+                hardware.funnelSensor.enableLed(false)
+                hardware.funnelLifter.position = 1.0
+            }
+        }
 
     }
 
