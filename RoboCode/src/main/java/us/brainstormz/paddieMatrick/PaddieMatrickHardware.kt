@@ -60,8 +60,6 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         funnelLifter.position = 1.0
 
         funnelSensor = hwMap["funnelSensor"] as ColorSensor
-//        (funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
-//        funnelSensor.
 
         // 4 Bar
         left4Bar = hwMap["left4Bar"] as CRServo
