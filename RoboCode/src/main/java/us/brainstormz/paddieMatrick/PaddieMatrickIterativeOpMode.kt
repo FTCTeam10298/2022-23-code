@@ -11,7 +11,7 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
 
 @Autonomous(name= "PaddieMatrick Iterative Auto", group= "!")
-class PaddieMatrickIterativeAuto: OpMode() {
+class PaddieMatrickIterativeOpMode: OpMode() {
     private val hardware = PaddieMatrickHardware()
 
     private val console = TelemetryConsole(telemetry)
