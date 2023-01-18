@@ -5,28 +5,23 @@ import us.brainstormz.hardwareClasses.HardwareClass
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
 
-abstract class IterativeOpMode: OpMode() {
+class IterativeOpMode(private val opMode: OpMode) {
 
-    abstract var hardware: HardwareClass
-
-    val console = TelemetryConsole(telemetry)
-    val wizard = TelemetryWizard(console, null)
-
-
-    abstract var autoTasks: List<AutoTask>
+    private lateinit var autoTasks: List<AutoTask>
     private lateinit var autoTaskIterator: ListIterator<AutoTask>
     private lateinit var currentTask: AutoTask
-    
-//    autoTaskIterator = autoTasks.listIterator()
-//    currentTask = autoTaskIterator.next()
 
+    fun init(tasksTodo: List<AutoTask>) {
+        autoTasks = tasksTodo
+        autoTaskIterator = autoTasks.listIterator()
+        currentTask = autoTaskIterator.next()
+    }
 
     private var prevTime = System.currentTimeMillis()
-    override fun loop() {
+    fun loop() {
         /** AUTONOMOUS  PHASE */
         val dt = System.currentTimeMillis() - prevTime
         prevTime = System.currentTimeMillis()
-        telemetry.addLine("dt: $dt")
 
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
         val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
@@ -114,5 +109,5 @@ abstract class IterativeOpMode: OpMode() {
         }
     }
 
-    private fun getEffectiveRuntime() = this.runtime - 2
+    private fun getEffectiveRuntime() = opMode.runtime - 2
 }

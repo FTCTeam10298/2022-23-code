@@ -1,14 +1,16 @@
 package us.brainstormz.examples
 
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import us.brainstormz.IterativeOpMode
-import us.brainstormz.hardwareClasses.HardwareClass
+import us.brainstormz.IterativeOpMode.*
 
 //@Autonomous
-class ExampleIterativeAuto/** Change depending on robot */: IterativeOpMode() {
-    override var hardware: HardwareClass = ExampleHardware()/** Change depending on robot */
+class ExampleIterativeAuto/** Change depending on robot */: OpMode() {
+    val hardware = ExampleHardware()/** Change depending on robot */
+    val iterativeOpMode = IterativeOpMode(this)
 
     /** AUTONOMOUS TASKS */
-    override var autoTasks: List<AutoTask> = listOf(
+    var autoTasks: List<AutoTask> = listOf(
             AutoTask(subassemblyTasks = listOf(
                     MyTask(target = 1, requiredForCompletion = true)
             ))
@@ -17,6 +19,11 @@ class ExampleIterativeAuto/** Change depending on robot */: IterativeOpMode() {
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
+        iterativeOpMode.init(autoTasks)
+    }
+
+    override fun loop() {
+        iterativeOpMode.loop()
     }
 
     /** Declare new task types for your subassemblies */
