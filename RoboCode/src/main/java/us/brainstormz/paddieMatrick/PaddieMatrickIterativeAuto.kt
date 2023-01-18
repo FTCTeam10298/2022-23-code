@@ -275,9 +275,10 @@ class PaddieMatrickIterativeAuto: OpMode() {
                     multipleTelemetry.addLine("current task finished: $currentTask")
                     currentTask = autoTaskIterator.next()
                     multipleTelemetry.addLine("next task is: $currentTask")
-                } else {
-                    requestOpModeStop()
                 }
+//                else {
+//                    requestOpModeStop()
+//                }
             }
         }
 
