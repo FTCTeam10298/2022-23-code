@@ -260,6 +260,7 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("blue: ${hardware.collectorSensor.blue()}")
         telemetry.addLine("alpha: ${hardware.collectorSensor.alpha()}")
         telemetry.addLine("optical: ${hardware.collectorSensor.rawOptical()}")
+        telemetry.addLine("distance: ${hardware.collectorSensor.getDistance(DistanceUnit.MM)}")
     }
 
     fun automatedCollection(multiCone: Boolean) {
