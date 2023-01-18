@@ -31,18 +31,14 @@ class PaddieMatrickAuto: LinearOpMode() {
     val fourBar = FourBar(telemetry)
 //
     val lift = Lift(telemetry)
-    val liftPID = PID(kp= 0.006, ki= 0.0)
-//
-//    val drivePower = 0.5
-//    val forwardDistance = 12.0
-//    val sideDistance = 12.0
-//
-//    val trigonPower = 0.5
-//    val trigonTurnPower = 0.5
-//    val trigonStrafePower = 0.25
-//
-//
-//
+    val liftPID = PID(kp= 0.0065, ki= 0.00000001)
+
+    enum class ParkPositions(val pos: PositionAndRotation) {
+        One(PositionAndRotation(x = -20.0, y = -52.0, r = 0.0)),
+        Two(PositionAndRotation(x = 0.0, y = -52.0, r = 0.0)),
+        Three(PositionAndRotation(x = 20.0, y = -52.0, r = 0.0)),
+    }
+
     override fun runOpMode() {
         val dashboard = FtcDashboard.getInstance()
         val dashboardTelemetry = dashboard.telemetry
@@ -65,6 +61,8 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
+        val collector = Collector()
+        val depositor = Depositor(hardware, fourBar, collector, telemetry)
 
 
 //        aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
@@ -95,113 +93,165 @@ class PaddieMatrickAuto: LinearOpMode() {
 //
         waitForStart()
         /** AUTONOMOUS  PHASE */
-//        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
+        val aprilTagGXOutput = SignalOrientation.Two// aprilTagGX.signalOrientation ?: SignalOrientation.Three
 
         var targetPosition = PositionAndRotation(x= 0.0, y= -49.0, r= 0.0)
         movement.goToPosition(targetPosition, this, 0.0..0.9) {
-            movement.precisionInches = 1.0
-//            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-//            lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
+            movement.precisionInches = 3.0
+            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
         }
 
-        val depositPosition = PositionAndRotation(x= -6.0, y= -53.0, r= 45.0) /** Deposit Position */
-//        targetPosition = depositPosition
+        val depositPosition = PositionAndRotation(x= -5.8, y= -58.2, r= 45.0) /** Deposit Position */
+
         targetPosition.r = depositPosition.r
         movement.goToPosition(targetPosition, this, 0.0..1.0) {
             movement.precisionInches = 3.0
-//                fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-//                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+                fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
         }
 
         targetPosition = depositPosition
         movement.goToPosition(targetPosition, this, 0.0..0.5) {
-
+            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
         }
 
         telemetry.addLine("Depositing done")
         telemetry.update()
 
-        sleep(1000)
-//
-//        while (opModeIsActive()) {
-//            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-//            val isLiftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-//
-//            if (isLiftAtPosition)
-//                break
-//        }
-//
-//        while (opModeIsActive()) {
-//            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
-//            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-//
-//            if (fourBarAtPosition)
-//                break
-//        }
-//
-//        while (opModeIsActive()) {
-//            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
-//            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-//
-//            if (fourBarAtPosition && liftAtPosition)
-//                break
-//        }
-//
-//        hardware.collector.power = -1.0
-//        sleep(700)
-//        hardware.collector.power = 0.0
-//
-//        /** Cone deposited */
-//
-//        while (opModeIsActive()) {
-//            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-//            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-//
-//            if (fourBarAtPosition)
-//                break
-//        }
+        while (opModeIsActive()) {
+            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
+            val isLiftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (isLiftAtPosition)
+                break
+        }
+
+        while (opModeIsActive()) {
+            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (fourBarAtPosition)
+                break
+        }
+
+        while (opModeIsActive()) {
+            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
+            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (fourBarAtPosition && liftAtPosition)
+                break
+        }
+
+        hardware.collector.power = -1.0
+        sleep(700)
+        hardware.collector.power = 0.0
+
+        /** Cone deposited */
+
+        while (opModeIsActive()) {
+            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+            if (fourBarAtPosition)
+                break
+        }
 
         /** Driving to stack */
 
         targetPosition = PositionAndRotation(x= -4.0, y= -52.0, r= 45.0)
         movement.goToPosition(targetPosition, this, 0.01..0.8) {
-            movement.precisionInches = 0.5
-//            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-//            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
+            movement.precisionInches = 1.0
+            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
         }
-        telemetry.addLine("Successfully did the 2 axis things")
-        telemetry.update()
-
-        sleep(1000)
 
         targetPosition.r = 90.0
         movement.goToPosition(targetPosition, this, 0.0..0.8) {
             movement.precisionDegrees = 1.0
-//            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-//            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
+            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
         }
 
-//        while (opModeIsActive()) {
-//            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-//            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
-//
-//            if (liftAtPosition)
-//                break
-//        }
+        while (opModeIsActive()) {
+            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
 
-        sleep(1000)
+            if (liftAtPosition)
+                break
+        }
 
-        movement.goToPosition(PositionAndRotation(x= 5.0, y= -52.0, r= 90.0), this, 0.0..0.1)
+        /** Cycles */
+        for (i in 1..2) {
+            val precollectionPosition = PositionAndRotation(x = 21.5, y = -51.0, r = 90.0)
 
-//        while (opModeIsActive()) {
-//            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-//            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
-//            if (liftAtPosition)
-//                break
-//        }
+            targetPosition = precollectionPosition
+            movement.goToPosition(targetPosition, this, 0.0..0.5) {
+                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
+            }
+
+            /** Collect */
+            while (opModeIsActive() && !depositor.isConeInFunnel()) {
+                targetPosition.x += 0.6
+                movement.goToPosition(targetPosition, this, 0.0..0.6) {
+                    depositor.automatedCollection(true)
+                }
+            }
+
+            while (opModeIsActive() && !depositor.isConeInCollector()) {
+                depositor.automatedCollection(true)
+            }
+
+            targetPosition = PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)
+            movement.goToPosition(targetPosition, this, 0.0..0.5) {
+                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
+                hardware.collector.power = 0.0
+            }
+
+            /** Deposit */
+            targetPosition = depositPosition
+            movement.goToPosition(targetPosition, this, 0.0..0.5) {
+                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            }
+
+            while (opModeIsActive() && depositor.isConeInCollector()) {
+                depositor.automatedDeposit(Depositor.LiftCounts.HighJunction)
+            }
+
+            while (opModeIsActive()) {
+                val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+
+                if (fourBarAtPosition)
+                    break
+            }
 
 
+            targetPosition = PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)
+            movement.goToPosition(targetPosition, this, 0.0..0.5) {
+                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
+                lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
+                hardware.collector.power = 0.0
+            }
+        }
 
+        /** Park */
+
+        when (aprilTagGXOutput) {
+            SignalOrientation.One -> {
+                movement.goToPosition(ParkPositions.One.pos, this, 0.0..0.5)
+            }
+            SignalOrientation.Two -> {
+                movement.goToPosition(ParkPositions.Two.pos, this, 0.0..0.5)
+            }
+            SignalOrientation.Three -> {
+                movement.goToPosition(ParkPositions.Three.pos, this, 0.0..0.5)
+            }
+        }
 
 ////
 ////        when (wizard.wasItemChosen("alliance", "Red")) {
