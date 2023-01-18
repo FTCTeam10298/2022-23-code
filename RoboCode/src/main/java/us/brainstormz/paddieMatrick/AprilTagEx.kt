@@ -35,7 +35,7 @@ class AprilTagEx() {
 
 
 
-    fun initAprilTag(hardwareMap: HardwareMap, telemetry: Telemetry, opmode: LinearOpMode){
+    fun initAprilTag(hardwareMap: HardwareMap, telemetry: Telemetry, opmode: LinearOpMode?){
         val cameraMonitorViewId = hardwareMap.appContext.resources.getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.packageName)
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName::class.java, "Webcam 1"), cameraMonitorViewId)
         aprilTagDetectionPipeline =

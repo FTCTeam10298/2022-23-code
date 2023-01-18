@@ -107,8 +107,8 @@ class PaddieMatrickAuto: LinearOpMode() {
         targetPosition.r = depositPosition.r
         movement.goToPosition(targetPosition, this, 0.0..1.0) {
             movement.precisionInches = 3.0
-                fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
+            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
         }
 
         targetPosition = depositPosition
