@@ -71,7 +71,6 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         telemetry.addLine("currentPos: $currentPos")
         telemetry.addData("angleDef: ", Math.toDegrees(angleRad))
 
-
         // Find the error in distance for X
         val distanceErrorX = target.x - currentPos.x
         // Find there error in distance for Y
