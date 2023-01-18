@@ -1,5 +1,8 @@
 package us.brainstormz.paddieMatrick
 
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.motion.MecanumMovement
@@ -7,7 +10,8 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
 
-class IterativeAuto: OpMode() {
+@Autonomous(name= "PaddieMatrick Iterative Auto", group= "!")
+class PaddieMatrickIterativeAuto: OpMode() {
 
     private val hardware = PaddieMatrickHardware()
 
@@ -72,8 +76,8 @@ class IterativeAuto: OpMode() {
     )
 
     private val cycleMidPoint = PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)
-    private val preCollectionPosition = PositionAndRotation(x = 21.5, y = -51.0, r = 90.0)
-    private val collectionPosition = PositionAndRotation(x = 23.5, y = -51.0, r = 90.0)
+    private val preCollectionPosition = PositionAndRotation(x = 19.0, y = -51.0, r = 90.0)
+    private val collectionPosition = PositionAndRotation(x = 30.0, y = -51.0, r = 90.0)
     private val cycles = listOf(
             /** Prepare to collect */
             AutoTask(
@@ -88,43 +92,43 @@ class IterativeAuto: OpMode() {
             ),
             /** Collecting */
             AutoTask(
-                ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
-                LiftTask(Depositor.LiftCounts.Collection.counts, requiredForCompletion = true),
-                FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
-                OtherTask(action= {
-                    hardware.funnelLifter.position = collector.funnelDown
+                    ChassisTask(collectionPosition, power = 0.0..0.05, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
+                    OtherTask(action= {
+                        hardware.funnelLifter.position = collector.funnelDown
 
-                    depositor.isConeInFunnel()
-                }, requiredForCompletion = true)
+                        depositor.isConeInFunnel()
+                    }, requiredForCompletion = true)
             ),
             AutoTask(
-                ChassisTask(movement.localizer.currentPositionAndRotation(), power = 0.0..1.0, requiredForCompletion = false),
-                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-                FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
-                OtherTask(action= {
-                    hardware.collector.power = 1.0
+                    ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.Collection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
+                    OtherTask(action= {
+                        hardware.collector.power = 1.0
 
-                    depositor.isConeInCollector()
-                }, requiredForCompletion = true)
+                        depositor.isConeInCollector()
+                    }, requiredForCompletion = true)
             ),
             AutoTask(
-                ChassisTask(movement.localizer.currentPositionAndRotation(), power = 0.0..1.0, requiredForCompletion = false),
-                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-                FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true),
-                OtherTask(action= {
-                    hardware.collector.power = 0.1
-                    true
-                }, requiredForCompletion = false)
+                    ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true),
+                    OtherTask(action= {
+                        hardware.collector.power = 0.1
+                        true
+                    }, requiredForCompletion = false)
             ),
             AutoTask(
-                ChassisTask(movement.localizer.currentPositionAndRotation(), power = 0.0..1.0, requiredForCompletion = false),
-                LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
-                FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                OtherTask(action= {
-                    hardware.funnelLifter.position = collector.funnelUp
-                    hardware.collector.power = 0.0
-                    true
-                }, requiredForCompletion = false)
+                    ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= {
+                        hardware.funnelLifter.position = collector.funnelUp
+                        hardware.collector.power = 0.0
+                        true
+                    }, requiredForCompletion = false)
             ),
             /** Drive to pole */
             AutoTask(
@@ -236,6 +240,7 @@ class IterativeAuto: OpMode() {
 
         /** Auto assembly */
         autoTasks = depositPreload + cycles + cycles + parkPath
+
 
         autoTaskIterator = autoTasks.listIterator()
         currentTask = autoTaskIterator.next()
