@@ -101,7 +101,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
     }
 
     fun isLiftAtPosition(target: Int): Boolean {
-        val accuracy = 100
+        val accuracy = 300
         val targetRange = target - accuracy..target + accuracy
         return hardware.rightLift.currentPosition in targetRange
     }
