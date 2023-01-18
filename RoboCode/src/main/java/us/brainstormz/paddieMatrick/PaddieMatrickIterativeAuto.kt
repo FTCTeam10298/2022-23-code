@@ -248,22 +248,30 @@ class PaddieMatrickIterativeAuto: OpMode() {
 
     private var prevTime = System.currentTimeMillis()
     override fun loop() {
+        val dashboard = FtcDashboard.getInstance()
+        val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
+
         /** AUTONOMOUS  PHASE */
         val dt = System.currentTimeMillis() - prevTime
         prevTime = System.currentTimeMillis()
-        telemetry.addLine("dt: $dt")
+        multipleTelemetry.addLine("dt: $dt")
 
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
         val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
         val isDeadlineUponUs: Boolean = if (nextDeadlineSeconds != null) nextDeadlineSeconds >= this.runtime else false
+        multipleTelemetry.addLine("isDeadlineUponUs: $isDeadlineUponUs")
 
         if (isDeadlineUponUs) {
+            multipleTelemetry.addLine("skipping ahead to deadline")
             failSkippedTasks(nextDeadlinedTask!!, autoTasks)
             currentTask = nextDeadlinedTask
+            multipleTelemetry.addLine("deadlined Task: $nextDeadlinedTask")
         } else {
             if (currentTask.isFinished()) {
                 if (autoTaskIterator.hasNext()) {
+                    multipleTelemetry.addLine("current task finished: $currentTask")
                     currentTask = autoTaskIterator.next()
+                    multipleTelemetry.addLine("next task is: $currentTask")
                 } else {
                     requestOpModeStop()
                 }
@@ -312,6 +320,7 @@ class PaddieMatrickIterativeAuto: OpMode() {
                         var timeStartedSeconds: Double? = null,
                         var timeFinishedSeconds: Double? = null) {
         fun isFinished() = taskStatus == TaskStatus.Completed || taskStatus == TaskStatus.Failed
+//        override fun toString(): String = ""
     }
 
     open class SubassemblyTask(open val requiredForCompletion: Boolean)
