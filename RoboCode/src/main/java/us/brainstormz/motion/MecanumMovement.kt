@@ -69,7 +69,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         val currentPos = localizer.currentPositionAndRotation()
         val angleRad = Math.toRadians(currentPos.r)
         telemetry.addLine("currentPos: $currentPos")
-        telemetry.addData("angleRad: ", angleRad)
+        telemetry.addData("angleDef: ", Math.toDegrees(angleRad))
 
 
         // Find the error in distance for X
@@ -80,7 +80,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         telemetry.addData("distanceErrorY: ", distanceErrorY)
 
         // Find the error in angle
-        var tempAngleError = target.r - angleRad
+        var tempAngleError = Math.toRadians(target.r) - angleRad
 
         while (tempAngleError > Math.PI)
             tempAngleError -= Math.PI * 2
@@ -170,7 +170,7 @@ class MovementTesting: LinearOpMode() {
     val hardware = PaddieMatrickHardware()
     val console = GlobalConsole.newConsole(telemetry)
 
-    var targetPos = PositionAndRotation(x= 0.0, y= 10.0, r= 0.0)
+    var targetPos = PositionAndRotation(x= 0.0, y= 0.0, r= 90.0)
 
     override fun runOpMode() {
         hardware.init(hardwareMap)
