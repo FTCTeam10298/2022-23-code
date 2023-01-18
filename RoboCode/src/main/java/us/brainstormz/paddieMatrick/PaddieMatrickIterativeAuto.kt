@@ -12,7 +12,6 @@ import us.brainstormz.telemetryWizard.TelemetryWizard
 
 @Autonomous(name= "PaddieMatrick Iterative Auto", group= "!")
 class PaddieMatrickIterativeAuto: OpMode() {
-
     private val hardware = PaddieMatrickHardware()
 
     private val console = TelemetryConsole(telemetry)
@@ -188,13 +187,15 @@ class PaddieMatrickIterativeAuto: OpMode() {
             AutoTask(
                     ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    startDeadlineSeconds = 10.0
             ))
     private val parkThree: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    startDeadlineSeconds = 10.0
             ))
 
     override fun init() {
@@ -258,7 +259,9 @@ class PaddieMatrickIterativeAuto: OpMode() {
 
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
         val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
-        val isDeadlineUponUs: Boolean = if (nextDeadlineSeconds != null) nextDeadlineSeconds >= this.runtime else false
+        val isDeadlineUponUs: Boolean = if (nextDeadlineSeconds != null) nextDeadlineSeconds <= getEffectiveRuntime() else false
+        multipleTelemetry.addLine("getEffectiveRuntime(): ${getEffectiveRuntime()}")
+        multipleTelemetry.addLine("nextDeadlineSeconds: $nextDeadlineSeconds")
         multipleTelemetry.addLine("isDeadlineUponUs: $isDeadlineUponUs")
 
         if (isDeadlineUponUs) {
@@ -280,8 +283,10 @@ class PaddieMatrickIterativeAuto: OpMode() {
 
         currentTask.taskStatus = TaskStatus.Running
         if (currentTask.timeStartedSeconds != null) {
-            currentTask.timeStartedSeconds = this.runtime
+            currentTask.timeStartedSeconds = getEffectiveRuntime()
         }
+
+        multipleTelemetry.addLine("\n\ncurrent task: $currentTask")
 
         val chassisTask = currentTask.chassisTask
         val isChassisTaskCompleted = movement.moveTowardTarget(chassisTask.targetPosition, chassisTask.power)
@@ -306,9 +311,11 @@ class PaddieMatrickIterativeAuto: OpMode() {
 
         if (isTaskCompleted) {
             currentTask.taskStatus = TaskStatus.Completed
-            currentTask.timeFinishedSeconds = this.runtime
+            currentTask.timeFinishedSeconds = getEffectiveRuntime()
         }
     }
+
+    fun getEffectiveRuntime() = this.runtime - 2
 
     data class AutoTask(val chassisTask: ChassisTask,
                         val liftTask: LiftTask,
@@ -352,7 +359,7 @@ class PaddieMatrickIterativeAuto: OpMode() {
         tasks.forEach { task ->
             if (task != deadlinedTask && !task.isFinished()) {
                 task.taskStatus = TaskStatus.Failed
-                task.timeFinishedSeconds = this.runtime
+                task.timeFinishedSeconds = getEffectiveRuntime()
             }
         }
     }

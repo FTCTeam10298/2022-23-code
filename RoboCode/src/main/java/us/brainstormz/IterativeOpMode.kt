@@ -30,7 +30,7 @@ abstract class IterativeOpMode: OpMode() {
 
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
         val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
-        val isDeadlineUponUs: Boolean = if (nextDeadlineSeconds != null) nextDeadlineSeconds >= this.runtime else false
+        val isDeadlineUponUs: Boolean = if (nextDeadlineSeconds != null) nextDeadlineSeconds <= getEffectiveRuntime() else false
 
         if (isDeadlineUponUs) {
             failSkippedTasks(nextDeadlinedTask!!, autoTasks)
@@ -42,7 +42,7 @@ abstract class IterativeOpMode: OpMode() {
 
         currentTask.taskStatus = TaskStatus.Running
         if (currentTask.timeStartedSeconds != null) {
-            currentTask.timeStartedSeconds = this.runtime
+            currentTask.timeStartedSeconds = getEffectiveRuntime()
         }
 
         currentTask.subassemblyTasks?.forEach { subassemblyTask ->
@@ -60,7 +60,7 @@ abstract class IterativeOpMode: OpMode() {
 
         if (isTaskCompleted) {
             currentTask.taskStatus = TaskStatus.Completed
-            currentTask.timeFinishedSeconds = this.runtime
+            currentTask.timeFinishedSeconds = getEffectiveRuntime()
         }
     }
 
@@ -103,8 +103,10 @@ abstract class IterativeOpMode: OpMode() {
         tasks.forEach { task ->
             if (task != deadlinedTask && !task.isFinished()) {
                 task.taskStatus = TaskStatus.Failed
-                task.timeFinishedSeconds = this.runtime
+                task.timeFinishedSeconds = getEffectiveRuntime()
             }
         }
     }
+
+    private fun getEffectiveRuntime() = this.runtime - 2
 }
