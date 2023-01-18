@@ -4,6 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
+import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
@@ -16,7 +17,7 @@ class PaddieMatrickIterativeOpMode: OpMode() {
 
     private val console = TelemetryConsole(telemetry)
     private val wizard = TelemetryWizard(console, null)
-//    var aprilTagGX = AprilTagEx()
+    var aprilTagGX = AprilTagEx()
 
     private lateinit var movement: MecanumMovement
 
@@ -181,26 +182,29 @@ class PaddieMatrickIterativeOpMode: OpMode() {
             AutoTask(
                     ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    startDeadlineSeconds = 25.0
             ))
     private val parkTwo: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    startDeadlineSeconds = 10.0
+                    startDeadlineSeconds = 25.0
             ))
     private val parkThree: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    startDeadlineSeconds = 10.0
+                    startDeadlineSeconds = 25.0
             ))
 
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
+
+        aprilTagGX.initAprilTag(hardwareMap, telemetry, null)
 
         val localizer = RRLocalizer(hardware)
         movement = MecanumMovement(localizer, hardware, telemetry)
@@ -210,17 +214,16 @@ class PaddieMatrickIterativeOpMode: OpMode() {
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, telemetry = telemetry)
 
-//        wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
+        wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
         wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto" to null, "New Cycle Auto" to "startPos"), firstMenu = true)
-//        wizard.newMenu("alliance", "Which alliance are we on?", listOf("Blue", "Red"), nextMenu = "startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
     }
 
     override fun init_loop() {
-//        wizard.summonWizard(gamepad1)
-//
-//        aprilTagGX.initAprilTag(hardwareMap, telemetry, null)
-//        aprilTagGX.runAprilTag(telemetry)
+        val isWizardDone = wizard.summonWizard(gamepad1)
+
+        if (isWizardDone)
+            aprilTagGX.runAprilTag(telemetry)
 
 //        val fourBarTarget = fourBar.current4BarDegrees() - 70
 //        val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
@@ -232,7 +235,7 @@ class PaddieMatrickIterativeOpMode: OpMode() {
     private lateinit var autoTaskIterator: ListIterator<AutoTask>
     private lateinit var currentTask: AutoTask
     override fun start() {
-        val aprilTagGXOutput = SignalOrientation.Two// aprilTagGX.signalOrientation ?: SignalOrientation.Three
+        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
         val parkPath = when (aprilTagGXOutput) {
             SignalOrientation.One -> parkOne
             SignalOrientation.Two -> parkTwo
