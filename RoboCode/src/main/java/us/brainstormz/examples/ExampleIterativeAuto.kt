@@ -1,49 +1,30 @@
 package us.brainstormz.examples
-//
-//import com.qualcomm.robotcore.eventloop.opmode.OpMode
-//import us.brainstormz.localizer.EncoderLocalizer
-//import us.brainstormz.localizer.PositionAndRotation
-//import us.brainstormz.motion.MecanumMovement
-//import us.brainstormz.rataTony.Depositor
-//import us.brainstormz.telemetryWizard.TelemetryConsole
-//import us.brainstormz.rataTony.Depositor.LiftPos
-//import us.brainstormz.rataTony.RataTonyHardware
-//
-////@Autonomous
-//class ExampleIterativeAuto: OpMode() {
-//
-//    val console = TelemetryConsole(telemetry)
-//    val hardware = RataTonyHardware()
-//    val movement = MecanumMovement(EncoderLocalizer(hardware, console), hardware, console)
-//    val depositor = Depositor(hardware, console)
-//
-//    override fun init() {
-//        /** INIT PHASE */
-//        hardware.init(hardwareMap)
-//    }
-//
-//    var currentPhase = Phases.Move
-//
-//    enum class Phases {
-//        Move,
-//        RaiseLift
-//    }
-//
-//    override fun loop() {
-//        /** Autonomous */
-//
-//        when(currentPhase) {
-//            Phases.Move -> {
-//                val done = movement.moveTowardTarget(PositionAndRotation())
-//                if (done)
-//                    currentPhase = Phases.RaiseLift
-//            }
-//            Phases.RaiseLift -> {
-//                val done = depositor.yTowardPosition(LiftPos.HighGoal.counts)
-//            }
-//        }
-//
-//
-////        depositor.updateYPosition()
-//    }
-//}
+
+import us.brainstormz.IterativeOpMode
+import us.brainstormz.hardwareClasses.HardwareClass
+
+//@Autonomous
+class ExampleIterativeAuto/** Change depending on robot */: IterativeOpMode() {
+    override var hardware: HardwareClass = ExampleHardware()/** Change depending on robot */
+
+    /** AUTONOMOUS TASKS */
+    override var autoTasks: List<AutoTask> = listOf(
+            AutoTask(subassemblyTasks = listOf(
+                    MyTask(target = 1, requiredForCompletion = true)
+            ))
+    )
+
+    override fun init() {
+        /** INIT PHASE */
+        hardware.init(hardwareMap)
+    }
+
+    /** Declare new task types for your subassemblies */
+    class MyTask(val target: Int, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion) {
+        override val action: () -> Boolean = {
+            val isDone = 10 > target
+            isDone
+        }
+    }
+
+}

@@ -13,7 +13,7 @@ abstract class IterativeOpMode: OpMode() {
     val wizard = TelemetryWizard(console, null)
 
 
-    private lateinit var autoTasks: List<AutoTask>
+    abstract var autoTasks: List<AutoTask>
     private lateinit var autoTaskIterator: ListIterator<AutoTask>
     private lateinit var currentTask: AutoTask
     
@@ -69,7 +69,7 @@ abstract class IterativeOpMode: OpMode() {
         fun isFinished() = taskStatus == TaskStatus.Completed || taskStatus == TaskStatus.Failed
     }
 
-    open class AutoTask(val subassemblyTasks: List<SubassemblyTask>? = null,
+    class AutoTask(val subassemblyTasks: List<SubassemblyTask>? = null,
                         val startDeadlineSeconds: Double? = null /* time after start by which this is guaranteed to start */,
                         val timeoutSeconds: Double? = null /* time after which the task will be skipped if not already complete */): Task() {
         var timeStartedSeconds: Double? = null
@@ -79,7 +79,6 @@ abstract class IterativeOpMode: OpMode() {
     abstract class SubassemblyTask(open val requiredForCompletion: Boolean): Task() {
         abstract val action: ()->Boolean
     }
-    data class OtherTask(override val action: ()->Boolean, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
 
     enum class TaskStatus {
         Todo,
