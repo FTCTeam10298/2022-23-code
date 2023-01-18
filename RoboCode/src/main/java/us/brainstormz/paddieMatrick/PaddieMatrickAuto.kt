@@ -58,7 +58,7 @@ class PaddieMatrickAuto: LinearOpMode() {
 
 //        /** INIT PHASE */
         hardware.init(hardwareMap)
-        voltageHandler()
+//        voltageHandler()
 
         val localizer = RRLocalizer(hardware)
         val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = dashboardTelemetry)
@@ -98,22 +98,26 @@ class PaddieMatrickAuto: LinearOpMode() {
 //        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
 
         var targetPosition = PositionAndRotation(x= 0.0, y= -49.0, r= 0.0)
-        movement.goToPosition(targetPosition, this, 0.0..0.8) {
-            movement.precisionInches = 5.0
+        movement.goToPosition(targetPosition, this, 0.0..0.9) {
+            movement.precisionInches = 1.0
 //            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
 //            lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
         }
 
         val depositPosition = PositionAndRotation(x= -6.0, y= -53.0, r= 45.0) /** Deposit Position */
-        targetPosition = depositPosition
-        for (i in 1..2) {
-            movement.goToPositionThreeAxis(targetPosition, this, 0.0..0.5) {
-                movement.xTranslationPID = PID(kp= movement.defaultXTranslationPID.p, ki= 0.0)
-                movement.precisionInches = 0.5
+//        targetPosition = depositPosition
+        targetPosition.r = depositPosition.r
+        movement.goToPosition(targetPosition, this, 0.0..1.0) {
+            movement.precisionInches = 3.0
 //                fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
 //                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-            }
         }
+
+        targetPosition = depositPosition
+        movement.goToPosition(targetPosition, this, 0.0..0.5) {
+
+        }
+
         telemetry.addLine("Depositing done")
         telemetry.update()
 
@@ -160,7 +164,7 @@ class PaddieMatrickAuto: LinearOpMode() {
         /** Driving to stack */
 
         targetPosition = PositionAndRotation(x= -4.0, y= -52.0, r= 45.0)
-        movement.goToPosition(targetPosition, this, 0.03..0.8) {
+        movement.goToPosition(targetPosition, this, 0.01..0.8) {
             movement.precisionInches = 0.5
 //            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
 //            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
@@ -172,7 +176,7 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         targetPosition.r = 90.0
         movement.goToPosition(targetPosition, this, 0.0..0.8) {
-            movement.precisionDegrees = 10.0
+            movement.precisionDegrees = 1.0
 //            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
 //            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
         }
@@ -187,11 +191,7 @@ class PaddieMatrickAuto: LinearOpMode() {
 
         sleep(1000)
 
-        targetPosition += PositionAndRotation(x= 20.0)
-        movement.goToPosition(targetPosition, this, 0.0..0.8) {
-//            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
-//            lift(PaddieMatrickTeleOp.LiftCounts.LowJunction.counts)
-        }
+        movement.goToPosition(PositionAndRotation(x= 5.0, y= -52.0, r= 90.0), this, 0.0..0.1)
 
 //        while (opModeIsActive()) {
 //            fourBar.goToPosition(FourBarDegrees.PreCollection.degrees)
@@ -298,6 +298,7 @@ class PaddieMatrickAuto: LinearOpMode() {
 //
 
     }
+
     fun lift(targetCounts: Int): Boolean {
         val adjustedTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
