@@ -42,7 +42,7 @@ class FourBar(private val telemetry: Telemetry) {
     fun goToPosition(targetDegrees: Double): Boolean {
         val wrappedTarget = MathHelps.wrap360(targetDegrees)
         val wrappedError = MathHelps.wrap360(wrappedTarget - current4BarDegrees())//calculateBestHeadingPath(wrappedTarget, current4BarDegrees(), 120.0, 240.0)
-        telemetry.addLine("\nwrappedTarget: $wrappedTarget\nwrappedError: $wrappedError\n")
+//        telemetry.addLine("\nwrappedTarget: $wrappedTarget\nwrappedError: $wrappedError\n")
 
         val power = pid.calcPID(wrappedError)
 
@@ -52,7 +52,7 @@ class FourBar(private val telemetry: Telemetry) {
     }
 
     fun setServoPower(power: Double) {
-        telemetry.addLine("\nservo power: $power\n")
+//        telemetry.addLine("\nservo power: $power\n")
         leftServo.power = -power
         rightServo.power = -power
     }

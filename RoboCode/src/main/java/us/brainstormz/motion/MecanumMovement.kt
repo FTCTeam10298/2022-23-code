@@ -68,15 +68,15 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         localizer.recalculatePositionAndRotation()
         val currentPos = localizer.currentPositionAndRotation()
         val angleRad = Math.toRadians(currentPos.r)
-        telemetry.addLine("currentPos: $currentPos")
-        telemetry.addData("angleDef: ", Math.toDegrees(angleRad))
+//        telemetry.addLine("currentPos: $currentPos")
+//        telemetry.addData("angleDef: ", Math.toDegrees(angleRad))
 
         // Find the error in distance for X
         val distanceErrorX = target.x - currentPos.x
         // Find there error in distance for Y
         val distanceErrorY = target.y - currentPos.y
-        telemetry.addData("distanceErrorX: ", distanceErrorX)
-        telemetry.addData("distanceErrorY: ", distanceErrorY)
+//        telemetry.addData("distanceErrorX: ", distanceErrorX)
+//        telemetry.addData("distanceErrorY: ", distanceErrorY)
 
         // Find the error in angle
         var tempAngleError = Math.toRadians(target.r) - angleRad
@@ -104,16 +104,16 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         val speedY: Double = yTranslationPID.calcPID(cos(angleRad) * distanceErrorY + sin(angleRad) * distanceErrorX)
         val speedA: Double = rotationPID.calcPID(angleError)
 
-        telemetry.addLine("\ndistance error: $distanceError, \nangle error degrees: ${Math.toDegrees(angleError)}\n")
-        telemetry.addData("total distance error: ", distanceError)
-        telemetry.addData("angle error degrees: ", Math.toDegrees(angleError))
+//        telemetry.addLine("\ndistance error: $distanceError, \nangle error degrees: ${Math.toDegrees(angleError)}\n")
+//        telemetry.addData("total distance error: ", distanceError)
+//        telemetry.addData("angle error degrees: ", Math.toDegrees(angleError))
+//
+//        telemetry.addData("speedY: ", speedY)
+//        telemetry.addData("speedX: ", speedX)
+//        telemetry.addData("speedA: ", speedA)
+//        telemetry.addLine("speedX: $speedX, speedY: $speedY, speedA: $speedA")
 
-        telemetry.addData("speedY: ", speedY)
-        telemetry.addData("speedX: ", speedX)
-        telemetry.addData("speedA: ", speedA)
-        telemetry.addLine("speedX: $speedX, speedY: $speedY, speedA: $speedA")
-
-        telemetry.update()
+//        telemetry.update()
 
         setSpeedAll(vX= speedX, vY= speedY, vA= speedA, powerRange.start, powerRange.endInclusive)
 
@@ -154,7 +154,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
         bl = Range.clip(bl, -1.0, 1.0)
         br = Range.clip(br, -1.0, 1.0)
 
-        telemetry.addLine("Powers: $fl, $bl, $fr, $br" )
+//        telemetry.addLine("Powers: $fl, $bl, $fr, $br" )
         println("Powers: $fl, $bl, $fr, $br")
 
         // Set powers
