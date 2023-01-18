@@ -281,7 +281,7 @@ class IterativeAuto: OpMode() {
         val completions = listOf(chassisTask to isChassisTaskCompleted, liftTask to isLiftTaskCompleted, fourBarTask to isFourBarTaskCompleted, subassemblyTask to isSubassemblyTaskCompleted)
         val isTaskCompleted: Boolean = completions.fold(true) { prevTasksCompleted, completion ->
             if (completion.first?.requiredForCompletion == true)
-                prevTasksCompleted || completion.second!!
+                prevTasksCompleted && completion.second!!
             else
                 prevTasksCompleted
         }

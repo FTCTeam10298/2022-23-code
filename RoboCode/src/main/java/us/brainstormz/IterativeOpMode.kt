@@ -53,7 +53,7 @@ abstract class IterativeOpMode: OpMode() {
 
         val isTaskCompleted: Boolean = currentTask.subassemblyTasks?.fold(true) { prevTasksCompleted, subassemblyTask ->
             if (subassemblyTask.requiredForCompletion)
-                prevTasksCompleted || subassemblyTask.isFinished()
+                prevTasksCompleted && subassemblyTask.isFinished()
             else
                 prevTasksCompleted
         } ?: true
