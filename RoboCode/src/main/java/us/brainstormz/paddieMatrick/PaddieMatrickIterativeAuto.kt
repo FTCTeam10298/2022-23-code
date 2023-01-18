@@ -256,8 +256,13 @@ class IterativeAuto: OpMode() {
             failSkippedTasks(nextDeadlinedTask!!, autoTasks)
             currentTask = nextDeadlinedTask
         } else {
-            if (currentTask.isFinished())
-                currentTask = autoTaskIterator.next()
+            if (currentTask.isFinished()) {
+                if (autoTaskIterator.hasNext()) {
+                    currentTask = autoTaskIterator.next()
+                } else {
+                    requestOpModeStop()
+                }
+            }
         }
 
         currentTask.taskStatus = TaskStatus.Running
