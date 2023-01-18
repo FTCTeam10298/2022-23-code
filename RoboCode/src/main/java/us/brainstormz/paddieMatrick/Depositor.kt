@@ -78,13 +78,14 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
     }
 
     private val fourBarSafeDegrees = 50.0..300.0
-    fun moveFourBar(targetDegrees: Double) {
+    fun moveFourBar(targetDegrees: Double): Boolean {
         val fourBarTarget = MathHelps.wrap360(targetDegrees).coerceIn(fourBarSafeDegrees)
         fourBar.goToPosition(fourBarTarget)
+        return fourBar.is4BarAtPosition(fourBarTarget)
     }
 
     private val liftPID = PID(kp= 0.003, ki= 0.0)
-    fun moveLift(targetCounts: Int) {
+    fun moveLift(targetCounts: Int): Boolean {
         val liftTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
@@ -96,6 +97,13 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         val liftPower = liftPID.calcPID(liftTarget.toDouble(), hardware.rightLift.currentPosition.toDouble())
 
         powerLift(liftPower)
+        return isLiftAtPosition(targetCounts)
+    }
+
+    fun isLiftAtPosition(target: Int): Boolean {
+        val accuracy = 100
+        val targetRange = target - accuracy..target + accuracy
+        return hardware.rightLift.currentPosition in targetRange
     }
 
     fun powerLift(power: Double) {
