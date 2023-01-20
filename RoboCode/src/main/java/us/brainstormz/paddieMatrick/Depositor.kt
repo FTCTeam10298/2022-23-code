@@ -21,9 +21,10 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
     enum class LiftCounts(val counts: Int) {
         HighJunction(3900),
         MidJunction(2200),
-        StackPreCollection(1200),
+        SafeDriving(1800),
+        StackPreCollection(1300),
         LowJunction(650),
-        SinglePreCollection(400),
+        SinglePreCollection(450),
         Collection(0),
         Bottom(0)
     }
@@ -84,7 +85,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return fourBar.is4BarAtPosition(fourBarTarget)
     }
 
-    private val liftPID = PID(kp= 0.003, ki= 0.0)
+    private val liftPID = PID(kp= 0.006, ki= 0.0)
     fun moveLift(targetCounts: Int): Boolean {
         val liftTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER

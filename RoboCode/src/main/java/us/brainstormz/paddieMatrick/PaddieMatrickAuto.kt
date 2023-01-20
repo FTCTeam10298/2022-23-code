@@ -16,7 +16,7 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
 import us.brainstormz.telemetryWizard.TelemetryWizard
 
-@Autonomous(name= "Old PaddieMatrick Auto", group= "!")
+@Autonomous(name= "Old auto for PaddieMatrick", group= "!")
 class PaddieMatrickAuto: LinearOpMode() {
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
 //    Drivetrain drive = new Drivetrain(hwMap);
