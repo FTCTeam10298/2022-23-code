@@ -1,10 +1,9 @@
 package us.brainstormz.telemetryWizard
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.Gamepad
 
-class TelemetryWizard(private val console: TelemetryConsole, private val opmode: LinearOpMode) {
+class TelemetryWizard(private val console: TelemetryConsole, private val opmode: LinearOpMode?) {
 
     private val startLine = 2
     private var endLine = 0
@@ -76,11 +75,11 @@ class TelemetryWizard(private val console: TelemetryConsole, private val opmode:
             cursorLine = cursorMax
     }
 
-    fun summonWizard(gamepad: Gamepad) {
+    fun summonWizardBlocking(gamepad: Gamepad) {
         var thisMenu: Menu = menuList.first{ it.firstMenu }
 
         for (i in (0 .. menuList.size)) {
-            if (opmode.opModeIsActive())
+            if (opmode!!.opModeIsActive())
                 break
 
             menuDone = false
@@ -100,5 +99,38 @@ class TelemetryWizard(private val console: TelemetryConsole, private val opmode:
         }
 
         console.display(startLine, "Wizard Complete!")
+    }
+
+    private fun doMenu(menu: Menu, gamepad: Gamepad) {
+        changeCursorBasedOnDPad(gamepad, menu)
+
+        displayMenu(formatMenu(menu))
+
+        eraseLastMenu()
+    }
+
+    private var thisMenu: Menu? = null
+    fun summonWizard(gamepad: Gamepad): Boolean {
+        if (thisMenu == null) {
+            thisMenu = menuList.first { it.firstMenu }
+            menuDone = false
+        }
+
+        if (!menuDone) {
+            doMenu(thisMenu!!, gamepad)
+        } else {
+            eraseLastMenu()
+
+            if (thisMenu!!.answer?.second == null) {
+                console.display(startLine, "Wizard Complete!")
+                return true
+            }
+
+            thisMenu = getMenu(thisMenu!!.answer?.second)!!
+
+            menuDone = false
+        }
+
+        return false
     }
 }

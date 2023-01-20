@@ -1,7 +1,10 @@
 package us.brainstormz.paddieMatrick
 
+import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.*
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
+import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit
 import us.brainstormz.hardwareClasses.EnhancedDCMotor
 import us.brainstormz.hardwareClasses.MecanumHardware
 import us.brainstormz.hardwareClasses.ThreeWheelOdometry
@@ -29,20 +32,34 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     override lateinit var lOdom: EnhancedDCMotor
     override lateinit var rOdom: EnhancedDCMotor
     override lateinit var cOdom: EnhancedDCMotor
+    lateinit var odomRaiser1: Servo
+    lateinit var odomRaiser2: Servo
+//    val odomRaiser1Up = 1.0
+//    val odomRaiser1Up = 0.0
 
     lateinit var collectorSensor: RevColorSensorV3
     lateinit var collector: CRServo
 
+    lateinit var funnelLifter: Servo
+    lateinit var funnelSensor: ColorSensor
+
+    lateinit var allHubs: List<LynxModule>
 
     override lateinit var hwMap: HardwareMap
 
     override fun init(ahwMap: HardwareMap) {
         hwMap = ahwMap
 
+        allHubs = hwMap.getAll(LynxModule::class.java)
+
         // Collector
         collector = hwMap["collector"] as CRServo
         collector.direction = DcMotorSimple.Direction.REVERSE
-//        collectorSensor = hwMap["color"] as RevColorSensorV3
+        collectorSensor = hwMap["collectorSensor"] as RevColorSensorV3
+        funnelLifter = hwMap["funnelLifter"] as Servo
+        funnelLifter.position = 1.0
+
+        funnelSensor = hwMap["funnelSensor"] as ColorSensor
 
         // 4 Bar
         left4Bar = hwMap["left4Bar"] as CRServo
@@ -59,6 +76,8 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         liftLimitSwitch = hwMap["limitSwitch"] as DigitalChannelImpl
 
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         leftLift.direction = DcMotorSimple.Direction.FORWARD
         rightLift.direction = DcMotorSimple.Direction.REVERSE
 
@@ -77,25 +96,28 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         rOdom = EnhancedDCMotor(rightOdomEncoder)
         cOdom = EnhancedDCMotor(centerOdomEncoder)
 
+        odomRaiser1 = hwMap["rightOdomLifter"] as Servo
+        odomRaiser2 = hwMap["leftOdomLifter"] as Servo
+        odomRaiser1.position = 0.0
+        odomRaiser2.position = 0.0
+
+
         // Drivetrain
         lFDrive = hwMap["lFDrive"] as DcMotor
         rFDrive = hwMap["rFDrive"] as DcMotor
         lBDrive = hwMap["lBDrive"] as DcMotor
         rBDrive = hwMap["rBDrive"] as DcMotor
-        if(freeMove){
-            lFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            rFDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            lBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            rBDrive.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        }
-        else{
-            lFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            rFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            lBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-            rBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
-        }
+        lFDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        rFDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        lBDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        rBDrive.mode = DcMotor.RunMode.RUN_USING_ENCODER
+        lFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        rFDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        lBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
+        rBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rFDrive.direction = DcMotorSimple.Direction.REVERSE
         rBDrive.direction = DcMotorSimple.Direction.REVERSE
     }
+     fun getVoltage(): Double = allHubs[0].getInputVoltage(VoltageUnit.VOLTS)
 
 }

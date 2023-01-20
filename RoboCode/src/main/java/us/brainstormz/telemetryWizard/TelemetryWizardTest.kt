@@ -1,7 +1,6 @@
 package us.brainstormz.telemetryWizard
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 
 //@TeleOp(name="Telemetry Wizard Test", group="Tests")
 class TelemetryWizardTest(): LinearOpMode() {
@@ -18,7 +17,7 @@ class TelemetryWizardTest(): LinearOpMode() {
 //        wizard.newMenu("starterStack", "Will we collect the starter stack", listOf("Yes", "No"))
 //        wizard.newMenu("powerShot", "Will we do the power shots?", listOf("Yes", "No"))
 
-        wizard.summonWizard(gamepad1)
+        wizard.summonWizardBlocking(gamepad1)
 
         if (wizard.wasItemChosen("alliance", "Red"))
             console.display(2, "works")

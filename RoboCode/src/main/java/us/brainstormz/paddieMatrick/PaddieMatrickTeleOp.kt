@@ -4,6 +4,8 @@ import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DistanceSensor
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.pid.PID
 import us.brainstormz.utils.MathHelps
@@ -15,6 +17,8 @@ class PaddieMatrickTeleOp: OpMode() {
     val hardware = PaddieMatrickHardware()
     val movement = MecanumDriveTrain(hardware)
     val fourBar = FourBar(telemetry)
+
+    val collector = Collector()
 
     var fourBarTarget = 0.0
     val allowedZone = 50.0..300.0
@@ -28,28 +32,31 @@ class PaddieMatrickTeleOp: OpMode() {
         var centerPosition = 110.0
     }
     enum class FourBarDegrees(val degrees: Double) {
+        Collecting(72.0),
         PreCollection(110.0),
         Vertical(180.0),
         PreDeposit(210.0),
         Deposit(270.0)
-//        Collecting(90.0)
     }
-
 
     val liftPID = PID(kp= 0.003, ki= 0.0)
     var liftTarget = 0.0
     val liftSpeed = 1200.0
     enum class LiftCounts(val counts: Int) {
-        PreCollection(0),
-        Collection(0),
         HighJunction(3900),
         MidJunction(2200),
-        LowJunction(650)
+        StackPreCollection(1200),
+        LowJunction(650),
+        SinglePreCollection(400),
+        Collection(0),
+        Bottom(0)
     }
 
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
+        hardware.odomRaiser1.position = 1.0
+        hardware.odomRaiser2.position = 1.0
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         fourBarTarget = fourBar.current4BarDegrees()
         fourBar.pid = PID(kp= 0.011, kd= 0.0001)//0000001)
@@ -110,7 +117,7 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("fourBarTarget: $fourBarTarget")
 
         when {
-            gamepad2.x -> {
+            gamepad2.x || (gamepad1.b && !gamepad1.start) -> {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
@@ -118,10 +125,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
-//            gamepad2.right_bumper -> {
-//                fourBarMode = fourBarModes.FOURBAR_PID
-//                fourBarTarget = FourBarDegrees.Collecting.degrees
-//            }
+            gamepad1.a && !gamepad1.start -> {} // dummy for preset elsewhere
             abs(gamepad2.right_stick_y) > 0.1 -> {
                 fourBarMode = fourBarModes.FOURBAR_MANUAL
             }
@@ -153,11 +157,36 @@ class PaddieMatrickTeleOp: OpMode() {
 
         // Lift
         when {
-            gamepad2.dpad_up -> {
+            gamepad2.dpad_up-> {
                 liftTarget = LiftCounts.HighJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreDeposit.degrees
+            }
+            gamepad1.a && !gamepad1.start-> {
+                if (isConeInCollector()) {
+                    liftTarget = LiftCounts.HighJunction.counts.toDouble()
+
+                    if (hardware.rightLift.currentPosition >= liftTarget - 300) {
+                        fourBarMode = fourBarModes.FOURBAR_PID
+                        fourBarTarget = FourBarDegrees.Deposit.degrees
+
+                        if (fourBar.current4BarDegrees() >= FourBarDegrees.Deposit.degrees - 5) {
+                            hardware.collector.power = -1.0
+                        }
+                    } else {
+                        fourBarMode = fourBarModes.FOURBAR_PID
+                        fourBarTarget = FourBarDegrees.PreDeposit.degrees
+                    }
+                } else {
+                    // once cone drops go back to home
+                    fourBarMode = fourBarModes.FOURBAR_PID
+                    fourBarTarget = FourBarDegrees.Vertical.degrees
+
+                    if (fourBar.current4BarDegrees() <= FourBarDegrees.Vertical.degrees + 5) {
+                        liftTarget = LiftCounts.Bottom.counts.toDouble()
+                    }
+                }
             }
             gamepad2.dpad_left -> {
                 liftTarget = LiftCounts.MidJunction.counts.toDouble()
@@ -173,12 +202,12 @@ class PaddieMatrickTeleOp: OpMode() {
             }
             gamepad2.dpad_down -> {
 
-                liftTarget = LiftCounts.Collection.counts.toDouble()
+                liftTarget = LiftCounts.Bottom.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
-            gamepad2.left_bumper -> {
+            gamepad2.a -> {
                 liftTarget += (-0.5 * liftSpeed / dt)
             }
         }
@@ -202,7 +231,6 @@ class PaddieMatrickTeleOp: OpMode() {
         powerLift(liftPower)
 
         // Collector
-
         when {
             gamepad1.right_trigger > 0 || gamepad2.right_trigger > 0 -> {
                 hardware.collector.power = 1.0
@@ -210,12 +238,86 @@ class PaddieMatrickTeleOp: OpMode() {
             gamepad1.left_trigger > 0 || gamepad2.left_trigger > 0 -> {
                 hardware.collector.power = -1.0
             }
+            gamepad1.a -> {}
             else -> {
                 hardware.collector.power = 0.0
             }
         }
 
+        when {
+            gamepad1.right_bumper || gamepad2.right_bumper -> {
+                automatedCollection(multiCone = false)
+            }
+            gamepad1.left_bumper || gamepad2.left_bumper -> {
+                automatedCollection(multiCone = true)
+            }
+            else -> {
+                hardware.funnelLifter.position = collector.funnelUp
+            }
+        }
 
+        telemetry.addLine("red: ${hardware.collectorSensor.red()}")
+        telemetry.addLine("blue: ${hardware.collectorSensor.blue()}")
+        telemetry.addLine("alpha: ${hardware.collectorSensor.alpha()}")
+        telemetry.addLine("optical: ${hardware.collectorSensor.rawOptical()}")
+        telemetry.addLine("distance: ${hardware.collectorSensor.getDistance(DistanceUnit.MM)}")
+    }
+
+    fun automatedCollection(multiCone: Boolean) {
+        val preCollectLiftTarget = if (multiCone) LiftCounts.StackPreCollection else LiftCounts.SinglePreCollection
+
+        if (!isConeInCollector()) {
+            hardware.funnelLifter.position = collector.funnelDown
+
+            moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
+
+            if (isConeInFunnel()) {
+                hardware.collector.power = 1.0
+                moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = LiftCounts.Collection)
+            } else {
+                moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
+            }
+        } else {
+            fourBarMode = fourBarModes.FOURBAR_PID
+            fourBarTarget = FourBarDegrees.Vertical.degrees
+
+            if (fourBar.is4BarAtPosition(FourBarDegrees.Vertical.degrees)) {
+                hardware.funnelLifter.position = collector.funnelUp
+                liftTarget = if (multiCone) LiftCounts.LowJunction.counts.toDouble() else LiftCounts.Bottom.counts.toDouble()
+            }
+        }
+    }
+
+    fun moveDepositer(fourBarPosition: FourBarDegrees, liftPosition: LiftCounts) {
+        liftTarget = liftPosition.counts.toDouble()
+        fourBarMode = fourBarModes.FOURBAR_PID
+        fourBarTarget = fourBarPosition.degrees
+    }
+
+    fun isConeInCollector(): Boolean {
+        val minCollectedDistance = 56
+        val collectedOpticalThreshold = 250 //doesnt work when cone is at an angle
+        val collectedRedThreshold = 100
+
+        val collectorDistance = hardware.collectorSensor.getDistance(DistanceUnit.MM)
+        val collectorRawOptical = hardware.collectorSensor.rawOptical()
+        val collectorRed = hardware.collectorSensor.red()
+
+        return collectorDistance < minCollectedDistance// && collectorRawOptical > collectedOpticalThreshold// || collectorRed > collectedRedThreshold)
+    }
+
+    fun isConeInFunnel(): Boolean {
+        val collectableDistance = 75
+        val funnelBlueThreshold = 60
+        val funnelRedThreshold = 60
+
+        val red = hardware.funnelSensor.red()
+        val blue = hardware.funnelSensor.blue()
+        val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
+//        telemetry.addLine("red: $red")
+//        telemetry.addLine("blue: $blue")
+//        telemetry.addLine("funnel distance: $distance")
+        return distance < collectableDistance && (blue > funnelBlueThreshold || red > funnelRedThreshold)
     }
 
     fun powerLift(power: Double) {

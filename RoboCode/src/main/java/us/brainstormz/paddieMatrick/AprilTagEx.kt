@@ -35,7 +35,7 @@ class AprilTagEx() {
 
 
 
-    fun initAprilTag(hardwareMap: HardwareMap, telemetry: Telemetry, opmode: LinearOpMode){
+    fun initAprilTag(hardwareMap: HardwareMap, telemetry: Telemetry, opmode: LinearOpMode?){
         val cameraMonitorViewId = hardwareMap.appContext.resources.getIdentifier("cameraMonitorViewId", "id", hardwareMap.appContext.packageName)
         camera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName::class.java, "Webcam 1"), cameraMonitorViewId)
         aprilTagDetectionPipeline =
@@ -97,14 +97,14 @@ class AprilTagEx() {
             }
             if (tagFound) {
                 telemetry.addLine("Tag of interest is in sight!\n\nLocation data:")
-                tagToTelemetry(tagOfInterest, telemetry)
+//                tagToTelemetry(tagOfInterest, telemetry)
             } else {
                 telemetry.addLine("Don't see tag of interest :(")
                 if (tagOfInterest == null) {
                     telemetry.addLine("(The tag has never been seen)")
                 } else {
                     telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:")
-                    tagToTelemetry(tagOfInterest, telemetry)
+//                    tagToTelemetry(tagOfInterest, telemetry)
                 }
             }
         } else {
@@ -113,7 +113,7 @@ class AprilTagEx() {
                 telemetry.addLine("(The tag has never been seen)")
             } else {
                 telemetry.addLine("\nBut we HAVE seen the tag before; last seen at:")
-                tagToTelemetry(tagOfInterest, telemetry)
+//                tagToTelemetry(tagOfInterest, telemetry)
             }
         }
         telemetry.update()
