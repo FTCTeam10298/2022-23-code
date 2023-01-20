@@ -1,395 +1,448 @@
 package us.brainstormz.paddieMatrick
 
-//2 ft = 1 Square
-
-//import com.acmerobotics.roadrunner.geometry.Pose2d
-//import com.acmerobotics.roadrunner.trajectory.Trajectory
 import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotor
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
-import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
-import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
 import us.brainstormz.telemetryWizard.TelemetryWizard
 
-@Autonomous(name= "Old auto for PaddieMatrick", group= "!")
-class PaddieMatrickAuto: LinearOpMode() {
-    val hardware = PaddieMatrickHardware()/** Change Depending on robot */
-//    Drivetrain drive = new Drivetrain(hwMap);
-//    val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
+@Autonomous(name= "PaddieMatrick Auto", group= "!")
+class PaddieMatrickAuto: OpMode() {
+    private val hardware = PaddieMatrickHardware()
 
-    val console = TelemetryConsole(telemetry)
-    val wizard = TelemetryWizard(console, this)
+    private val console = TelemetryConsole(telemetry)
+    private val wizard = TelemetryWizard(console, null)
+    var aprilTagGX = AprilTagEx()
 
-//    var aprilTagGX = AprilTagEx()
-//
-    val fourBarPID = PID(kp= 0.03)
-    val fourBar = FourBar(telemetry)
-//
-    val lift = Lift(telemetry)
-    val liftPID = PID(kp= 0.0065, ki= 0.00000001)
+    private lateinit var movement: MecanumMovement
+
+    private lateinit var collector: Collector
+    private lateinit var fourBar: FourBar
+    private lateinit var depositor: Depositor
+
+    /** Auto Tasks */
+    private val depositPosition = PositionAndRotation(x= -5.0, y= -58.2, r= 45.0)
+    private val depositPreload = listOf(
+            AutoTask(
+                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.8, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.SafeDriving.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
+            ),
+            AutoTask(
+                    ChassisTask(depositPosition, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
+            ),
+            AutoTask(
+                    ChassisTask(depositPosition, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
+            ),
+            AutoTask(
+                    ChassisTask(depositPosition, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = true)
+            ),
+            AutoTask(
+                    ChassisTask(depositPosition, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = true),
+                    OtherTask(action = {
+                        hardware.collector.power = -1.0
+
+                        if (!depositor.isConeInCollector()) {
+                            hardware.collector.power = 0.0
+                            true
+                        } else {
+                            false
+                        }
+                    }, requiredForCompletion = true),
+                    timeoutSeconds = 2.0
+            ),
+            AutoTask(
+                    ChassisTask(depositPosition, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true)
+            ),
+            AutoTask(
+                    ChassisTask(PositionAndRotation(x= -4.0, y= -52.0, r= 45.0), requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+            )
+    )
+
+    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = -52.0, r = 90.0)
+    private val preCollectionPosition = PositionAndRotation(x = 19.0, y = -51.0, r = 90.0)
+    private val collectionPosition = PositionAndRotation(x = 30.0, y = -51.0, r = 90.0)
+    private val cycles = listOf(
+            /** Prepare to collect */
+            AutoTask(
+                    ChassisTask(cycleMidPoint, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false)
+            ),
+            AutoTask(
+                    ChassisTask(preCollectionPosition, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false)
+            ),
+            /** Collecting */
+            AutoTask(
+                    ChassisTask(collectionPosition, power = 0.0..0.12, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
+                    OtherTask(action= {
+                        hardware.funnelLifter.position = collector.funnelDown
+
+                        depositor.isConeInFunnel()
+                    }, requiredForCompletion = true)
+            ),
+            AutoTask(
+                    ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.Collection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
+                    OtherTask(action= {
+                        hardware.collector.power = 1.0
+
+                        depositor.isConeInCollector()
+                    }, requiredForCompletion = true)
+            ),
+            AutoTask(
+                    ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true),
+                    OtherTask(action= {
+                        hardware.collector.power = 0.1
+                        true
+                    }, requiredForCompletion = false)
+            ),
+            AutoTask(
+                    ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= {
+                        hardware.funnelLifter.position = collector.funnelUp
+                        hardware.collector.power = 0.0
+                        true
+                    }, requiredForCompletion = false)
+            ),
+            /** Drive to pole */
+            AutoTask(
+                    ChassisTask(cycleMidPoint, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+            ),
+            AutoTask(
+                    ChassisTask(depositPosition, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = true)
+            ),
+            /** Deposit */
+            AutoTask(
+                    ChassisTask(depositPosition, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = true),
+                    timeoutSeconds = 2.0
+            ),
+            AutoTask(
+                    ChassisTask(depositPosition, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
+                    OtherTask(action= {
+                        hardware.collector.power = -1.0
+                        !depositor.isConeInCollector()
+                    }, requiredForCompletion = true)
+            ),
+            /** Return to midpoint */
+            AutoTask(
+                    ChassisTask(cycleMidPoint, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= {
+                        hardware.collector.power = 0.0
+                        fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.Vertical.degrees - 10
+                    }, requiredForCompletion = false)
+            ),
+            AutoTask(
+                    ChassisTask(cycleMidPoint, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+            )
+    )
 
     enum class ParkPositions(val pos: PositionAndRotation) {
-        One(PositionAndRotation(x = -20.0, y = -52.0, r = 0.0)),
+        One(PositionAndRotation(x = -22.0, y = -52.0, r = 0.0)),
         Two(PositionAndRotation(x = 0.0, y = -52.0, r = 0.0)),
-        Three(PositionAndRotation(x = 20.0, y = -52.0, r = 0.0)),
+        Three(PositionAndRotation(x = 22.0, y = -52.0, r = 0.0)),
     }
+    private val compensateForAbruptEnd = {
+        hardware.funnelLifter.position = collector.funnelUp
+        hardware.collector.power = 0.0
+        if (!fourBar.is4BarAtPosition(Depositor.FourBarDegrees.Vertical.degrees)) {
+            depositor.powerLift(0.0)
+        }
+        true
+    }
+    private val parkTimeout = 27.5
+    private val parkOne: List<AutoTask> = listOf(
+            AutoTask(
+                    ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    startDeadlineSeconds = parkTimeout
+            ))
+    private val parkTwo: List<AutoTask> = listOf(
+            AutoTask(
+                    ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    startDeadlineSeconds = parkTimeout
+            ))
+    private val parkThree: List<AutoTask> = listOf(
+            AutoTask(
+                    ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    startDeadlineSeconds = parkTimeout
+            ))
 
-    override fun runOpMode() {
-        val dashboard = FtcDashboard.getInstance()
-        val dashboardTelemetry = dashboard.telemetry
-        dashboardTelemetry.addData("speedY: ", 0)
-        dashboardTelemetry.addData("distanceErrorX: ", 0)
-        dashboardTelemetry.addData("distanceErrorY: ", 0)
-        dashboardTelemetry.addData("total distance error: ", 0)
-        dashboardTelemetry.addData("angle error degrees: ", 0)
-        dashboardTelemetry.addData("speedY: ", 0)
-        dashboardTelemetry.addData("speedX: ", 0)
-        dashboardTelemetry.addData("speedA: ", 0)
-        dashboardTelemetry.update()
-
-//        /** INIT PHASE */
+    override fun init() {
+        /** INIT PHASE */
         hardware.init(hardwareMap)
-//        voltageHandler()
+
+        aprilTagGX.initAprilTag(hardwareMap, telemetry, null)
 
         val localizer = RRLocalizer(hardware)
-        val movement = MecanumMovement(hardware = hardware, localizer = localizer, telemetry = dashboardTelemetry)
+        movement = MecanumMovement(localizer, hardware, telemetry)
 
-        lift.init(leftMotor = hardware.leftLift, rightMotor = hardware.rightLift, hardware.liftLimitSwitch)
+        collector = Collector()
+        fourBar = FourBar(telemetry)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-        val collector = Collector()
-        val depositor = Depositor(hardware, fourBar, collector, telemetry)
+        depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, telemetry = telemetry)
 
-
-//        aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
-//
-//
-//
-////        val fourBarTarget = fourBar.current4BarDegrees() - 70
-//
-////        wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
-//        wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto" to null, "New Cycle Auto" to "startPos"), firstMenu = true)
-////        wizard.newMenu("alliance", "Which alliance are we on?", listOf("Blue", "Red"), nextMenu = "startPos")
-//        wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
-//
-//        var hasWizardRun = false
-//
-//        while (!isStarted && !isStopRequested) {
-//            println("i'm a runnin'")
-//            aprilTagGX.runAprilTag(telemetry)
-//
-//            if (aprilTagGX.signalOrientation != null && !hasWizardRun) {
-//                wizard.summonWizard(gamepad1)
-//                hasWizardRun = true
-//            }
-////            val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
-////            hardware.left4Bar.power = fourBarPower
-////            hardware.right4Bar.power = fourBarPower
-//        }
-//
-        waitForStart()
-        /** AUTONOMOUS  PHASE */
-        val aprilTagGXOutput = SignalOrientation.Two// aprilTagGX.signalOrientation ?: SignalOrientation.Three
-
-        var targetPosition = PositionAndRotation(x= 0.0, y= -49.0, r= 0.0)
-        movement.goToPosition(targetPosition, this, 0.0..0.9) {
-            movement.precisionInches = 3.0
-            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
-        }
-
-        val depositPosition = PositionAndRotation(x= -5.8, y= -58.2, r= 45.0) /** Deposit Position */
-
-        targetPosition.r = depositPosition.r
-        movement.goToPosition(targetPosition, this, 0.0..1.0) {
-            movement.precisionInches = 3.0
-            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-        }
-
-        targetPosition = depositPosition
-        movement.goToPosition(targetPosition, this, 0.0..0.5) {
-            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-        }
-
-        telemetry.addLine("Depositing done")
-        telemetry.update()
-
-        while (opModeIsActive()) {
-            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-            val isLiftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-
-            if (isLiftAtPosition)
-                break
-        }
-
-        while (opModeIsActive()) {
-            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-
-            if (fourBarAtPosition)
-                break
-        }
-
-        while (opModeIsActive()) {
-            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
-            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-
-            if (fourBarAtPosition && liftAtPosition)
-                break
-        }
-
-        hardware.collector.power = -1.0
-        sleep(700)
-        hardware.collector.power = 0.0
-
-        /** Cone deposited */
-
-        while (opModeIsActive()) {
-            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-
-            if (fourBarAtPosition)
-                break
-        }
-
-        /** Driving to stack */
-
-        targetPosition = PositionAndRotation(x= -4.0, y= -52.0, r= 45.0)
-        movement.goToPosition(targetPosition, this, 0.01..0.8) {
-            movement.precisionInches = 1.0
-            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
-        }
-
-        targetPosition.r = 90.0
-        movement.goToPosition(targetPosition, this, 0.0..0.8) {
-            movement.precisionDegrees = 1.0
-            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
-        }
-
-        while (opModeIsActive()) {
-            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
-
-            if (liftAtPosition)
-                break
-        }
-
-        /** Cycles */
-        for (i in 1..2) {
-            val precollectionPosition = PositionAndRotation(x = 21.5, y = -51.0, r = 90.0)
-
-            targetPosition = precollectionPosition
-            movement.goToPosition(targetPosition, this, 0.0..0.5) {
-                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
-            }
-
-            /** Collect */
-            while (opModeIsActive() && !depositor.isConeInFunnel()) {
-                targetPosition.x += 0.6
-                movement.goToPosition(targetPosition, this, 0.0..0.6) {
-                    depositor.automatedCollection(true)
-                }
-            }
-
-            while (opModeIsActive() && !depositor.isConeInCollector()) {
-                depositor.automatedCollection(true)
-            }
-
-            targetPosition = PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)
-            movement.goToPosition(targetPosition, this, 0.0..0.5) {
-                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
-                hardware.collector.power = 0.0
-            }
-
-            /** Deposit */
-            targetPosition = depositPosition
-            movement.goToPosition(targetPosition, this, 0.0..0.5) {
-                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-            }
-
-            while (opModeIsActive() && depositor.isConeInCollector()) {
-                depositor.automatedDeposit(Depositor.LiftCounts.HighJunction)
-            }
-
-            while (opModeIsActive()) {
-                val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-
-                if (fourBarAtPosition)
-                    break
-            }
-
-
-            targetPosition = PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)
-            movement.goToPosition(targetPosition, this, 0.0..0.5) {
-                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
-                hardware.collector.power = 0.0
-            }
-        }
-
-        /** Park */
-
-        when (aprilTagGXOutput) {
-            SignalOrientation.One -> {
-                movement.goToPosition(ParkPositions.One.pos, this, 0.0..0.5)
-            }
-            SignalOrientation.Two -> {
-                movement.goToPosition(ParkPositions.Two.pos, this, 0.0..0.5)
-            }
-            SignalOrientation.Three -> {
-                movement.goToPosition(ParkPositions.Three.pos, this, 0.0..0.5)
-            }
-        }
-
-////
-////        when (wizard.wasItemChosen("alliance", "Red")) {
-////            true -> {
-//        when {
-//            wizard.wasItemChosen("program", "New Cycle Auto") -> {
-//                when {
-//                    wizard.wasItemChosen("startPos", "Right") -> {
-//                        blueTerminalsCycleAuto(aprilTagGXOutput)
-//                    }
-//                    wizard.wasItemChosen("startPos", "Left") -> {
-//                        redTerminalsCycleAuto(aprilTagGXOutput)
-//                    }
-//                }
-//            }
-//            wizard.wasItemChosen("program", "Park Auto") -> {
-//                val drivePower = 0.5
-//                val forwardDistance = -25.0
-//                val sideDistance = 30.0
-//                when (aprilTagGXOutput) {
-//                    SignalOrientation.One -> {
-//                        movement.driveRobotPosition(drivePower, forwardDistance, true)
-//                        movement.driveRobotStrafe(drivePower, -sideDistance, true)
-//                    }
-//                    SignalOrientation.Two -> {
-//                        movement.driveRobotPosition(drivePower, forwardDistance, true)
-//                    }
-//                    SignalOrientation.Three -> {
-//                        movement.driveRobotPosition(drivePower, forwardDistance, true)
-//                        movement.driveRobotStrafe(drivePower, sideDistance, true)
-//                    }
-//                }
-//            }
-//        }
-////            }
-////            false -> {
-////                if (wizard.wasItemChosen("program", "Cycle Auto")) {
-////
-////                }
-////            }
-////        }
-//    }
-//
-//
-//    fun prepareToCollect() {
-//        while (opModeIsActive()) {
-//            val liftAtPos = lift(0)
-//            val barAtPos = fourBar.goToPosition(180.0)
-//
-//            if (liftAtPos)
-//                break
-//        }
-//
-//        hardware.leftLift.power = 0.0
-//        hardware.rightLift.power = 0.0
-//        fourBar.setServoPower(0.0)
-//    }
-//
-//    fun deposit(preEjectTask: ()->Unit) {
-//        val preDepositDegrees = FourBarDegrees.Depositing.degrees
-//        while (opModeIsActive()) {
-//            val liftAtPos = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-//            val barAtPos = fourBar.goToPosition(preDepositDegrees)
-//
-//            if (liftAtPos && barAtPos)
-//                break
-//        }
-//
-//        telemetry.addLine("depo move 1 done")
-//
-//        preEjectTask()
-//
-//        val depositDegrees = 30 + FourBarDegrees.Depositing.degrees
-//        while (opModeIsActive()) {
-//            val liftAtPos = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
-//            val barAtPos = fourBar.goToPosition(depositDegrees)
-//
-//            if (liftAtPos && barAtPos) {
-//                sleep(500)
-//                hardware.collector.power = -1.0
-//                sleep(200)
-//                hardware.collector.power = 0.0
-//                sleep(200)
-//                hardware.collector.power = -1.0
-//                sleep(1000)
-//                hardware.collector.power = 0.0
-//
-//                break
-//            }
-//        }
-//
-//        fourBar.setServoPower(0.0)
-//    }
-//
-
+        wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
+        wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto" to null, "New Cycle Auto" to "startPos"))
+        wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
     }
 
-    fun lift(targetCounts: Int): Boolean {
-        val adjustedTarget = if (!hardware.liftLimitSwitch.state) {
-            hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-            hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-            targetCounts.coerceAtLeast(hardware.rightLift.currentPosition)
-        } else {
-            targetCounts
-        }
-        telemetry.addLine("adjustedTarget: $adjustedTarget")
+    override fun init_loop() {
+        val isWizardDone = wizard.summonWizard(gamepad1)
 
-        val error = adjustedTarget - hardware.rightLift.currentPosition
-        telemetry.addLine("error: $error")
+        if (isWizardDone)
+            aprilTagGX.runAprilTag(telemetry)
+//        else
+//            telemetry.addLine("Running The Wiz")
 
-        val pidPower = liftPID.calcPID(error.toDouble())
-        telemetry.addLine("pidPower: $pidPower")
+//        val fourBarTarget = fourBar.current4BarDegrees() - 70
+//        val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
+//        hardware.left4Bar.power = fourBarPower
+//        hardware.right4Bar.power = fourBarPower
+    }
 
-        val liftPower = if (!hardware.liftLimitSwitch.state)
-            pidPower.coerceAtLeast(0.0)
+    private lateinit var autoTasks: List<AutoTask>
+    private lateinit var autoTaskIterator: ListIterator<AutoTask>
+    private lateinit var currentTask: AutoTask
+    override fun start() {
+        this.resetRuntime()
+        hardware.rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        hardware.leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        hardware.centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        hardware.leftOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        hardware.leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+
+        val aprilTagGXOutput =  aprilTagGX.signalOrientation ?: SignalOrientation.Three
+
+        val side = if (wizard.wasItemChosen("startPos", "Left"))
+            FieldSide.Left
         else
-            pidPower
-        telemetry.addLine("liftPower: $liftPower")
-        telemetry.update()
+            FieldSide.Right
 
-        hardware.leftLift.power = liftPower
-        hardware.rightLift.power = liftPower
+//        autoTasks = depositPreload + cycles + cycles + parkTwo
+        autoTasks = makePlanForAuto(
+            signalOrientation = aprilTagGXOutput,
+            fieldSide = side)
 
-        val accuracy = 500
-        return error in -accuracy..accuracy
+
+        autoTaskIterator = autoTasks.listIterator()
+        currentTask = autoTaskIterator.next()
     }
-    fun voltageHandler() {
-        telemetry.addLine("Voltage: ${hardware.getVoltage()}")
-        telemetry.update()
-        val minVoltage = 13.3
-        if (hardware.getVoltage() < minVoltage) {
-            telemetry.addLine("VOLTAGE IS LESS THAN $minVoltage. \nHold X on gamepad1 when initializing to ignore")
-            telemetry.update()
-            if (!gamepad1.x) {
-                this.requestOpModeStop()
-            }
 
+    private fun flopToLeftSide(task:ChassisTask):ChassisTask {
+        val pos = task.targetPosition
+        return task.copy(
+                targetPosition = PositionAndRotation(
+                        x = flopLateralPosToLeftSide(pos.x),
+                        y = pos.y,
+                        r = flopRotationToLeftSide(pos.r)
+                )
+        )
+    }
+
+    private fun flopRotationToLeftSide(r: Double) = r * -1
+    private fun flopLateralPosToLeftSide(x: Double) = x * -1
+
+    private fun flopToLeftSide(tasks:List<AutoTask>):List<AutoTask> {
+        return tasks.map{task->
+            task.copy(
+                chassisTask = flopToLeftSide(task.chassisTask)
+            )
+        }
+    }
+    enum class FieldSide {
+        Left, Right
+    }
+    private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide):List<AutoTask> {
+        val parkPath = when (signalOrientation) {
+            SignalOrientation.One -> parkOne
+            SignalOrientation.Two -> parkTwo
+            SignalOrientation.Three -> parkThree
+        }
+        return flopped(depositPreload + cycles + cycles + cycles, fieldSide) + parkPath
+    }
+
+    private fun PaddieMatrickAuto.flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
+        val swichedTasks = when (side) {
+            FieldSide.Left -> flopToLeftSide(coreTasks)
+            FieldSide.Right -> coreTasks
+        }
+        return swichedTasks
+    }
+
+    private var prevTime = System.currentTimeMillis()
+    override fun loop() {
+        val dashboard = FtcDashboard.getInstance()
+        val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
+
+        /** AUTONOMOUS  PHASE */
+        val dt = System.currentTimeMillis() - prevTime
+        prevTime = System.currentTimeMillis()
+        multipleTelemetry.addLine("dt: $dt")
+        multipleTelemetry.addLine("runtime: ${getEffectiveRuntime()}")
+
+        val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
+        val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
+        val atOrPastDeadline = if (nextDeadlineSeconds != null) nextDeadlineSeconds <= getEffectiveRuntime() else false
+//        multipleTelemetry.addLine("getEffectiveRuntime(): ${getEffectiveRuntime()}")
+//        multipleTelemetry.addLine("nextDeadlineSeconds: $nextDeadlineSeconds")
+//        multipleTelemetry.addLine("isDeadlineUponUs: $atOrPastDeadline")
+
+        if (atOrPastDeadline) {
+            multipleTelemetry.addLine("skipping ahead to deadline")
+            failSkippedTasks(nextDeadlinedTask!!, autoTasks)
+            currentTask = nextDeadlinedTask
+            multipleTelemetry.addLine("deadlined Task: $nextDeadlinedTask")
+        } else {
+            val timeSinceTaskStart = getEffectiveRuntime() - (currentTask.timeStartedSeconds ?: (getEffectiveRuntime() + 1))
+            val pastOrAtTaskTimeout: Boolean = if (currentTask.timeoutSeconds != null) currentTask.timeoutSeconds!! <= timeSinceTaskStart else false
+
+            multipleTelemetry.addLine("pastOrAtTaskTimeout: $pastOrAtTaskTimeout")
+            multipleTelemetry.addLine("timeSinceTaskStart: $timeSinceTaskStart")
+
+            if (currentTask.isFinished() || pastOrAtTaskTimeout) {
+                if (autoTaskIterator.hasNext()) {
+                    multipleTelemetry.addLine("current task finished: $currentTask")
+                    currentTask.taskStatus = TaskStatus.Completed
+                    currentTask = autoTaskIterator.next()
+                    multipleTelemetry.addLine("next task is: $currentTask")
+                }
+//                else {
+//                    requestOpModeStop()
+//                }
+            }
+        }
+
+        currentTask.taskStatus = TaskStatus.Running
+        if (currentTask.timeStartedSeconds == null) {
+            currentTask.timeStartedSeconds = getEffectiveRuntime()
+        }
+        multipleTelemetry.addLine("timeStartedSeconds: ${currentTask.timeStartedSeconds}")
+
+        multipleTelemetry.addLine("\n\ncurrent task: $currentTask")
+
+        val chassisTask = currentTask.chassisTask
+        val isChassisTaskCompleted = movement.moveTowardTarget(chassisTask.targetPosition, chassisTask.power)
+
+        val liftTask = currentTask.liftTask
+        val isLiftTaskCompleted = depositor.moveLift(liftTask.targetCounts)
+
+        val fourBarTask = currentTask.fourBarTask
+        val isFourBarTaskCompleted = depositor.moveFourBar(fourBarTask.targetDegrees)
+
+        val subassemblyTask = currentTask.subassemblyTask
+        val isSubassemblyTaskCompleted = subassemblyTask?.action?.invoke()
+
+
+        val completions = listOf(chassisTask to isChassisTaskCompleted, liftTask to isLiftTaskCompleted, fourBarTask to isFourBarTaskCompleted, subassemblyTask to isSubassemblyTaskCompleted)
+        val isTaskCompleted: Boolean = completions.fold(true) { prevTasksCompleted, completion ->
+            if (completion.first?.requiredForCompletion == true)
+                prevTasksCompleted && completion.second!!
+            else
+                prevTasksCompleted
+        }
+
+        if (isTaskCompleted) {
+            currentTask.taskStatus = TaskStatus.Completed
+            currentTask.timeFinishedSeconds = getEffectiveRuntime()
         }
     }
 
+    fun getEffectiveRuntime() = this.runtime
+
+    data class AutoTask(val chassisTask: ChassisTask,
+                        val liftTask: LiftTask,
+                        val fourBarTask: FourBarTask,
+                        val subassemblyTask: OtherTask? = null,
+                        val startDeadlineSeconds: Double? = null /* time after start by which this is guaranteed to start */,
+                        val timeoutSeconds: Double? = null /* time after which the task will be skipped if not already complete */,
+                        var taskStatus: TaskStatus = TaskStatus.Todo,
+                        var timeStartedSeconds: Double? = null,
+                        var timeFinishedSeconds: Double? = null) {
+        fun isFinished() = taskStatus == TaskStatus.Completed || taskStatus == TaskStatus.Failed
+//        override fun toString(): String = ""
+    }
+
+    open class SubassemblyTask(open val requiredForCompletion: Boolean)
+    data class ChassisTask(
+            val targetPosition: PositionAndRotation,
+            val power: ClosedRange<Double> = 0.0..1.0,
+            override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+    data class LiftTask(val targetCounts: Int, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+    data class FourBarTask(val targetDegrees: Double, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+    data class OtherTask(val action: ()->Boolean, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+
+    enum class TaskStatus {
+        Todo,
+        Running,
+        Failed,
+        Completed
+    }
+
+    private var tasksWithDeadlines: List<AutoTask> = emptyList()
+    private fun findNextDeadlinedTask(tasks: List<AutoTask>): AutoTask? {
+        if (tasksWithDeadlines.isEmpty()) {
+            tasksWithDeadlines = tasks.filter{ it.startDeadlineSeconds != null && (it.taskStatus != TaskStatus.Completed || it.taskStatus != TaskStatus.Failed)}
+            tasksWithDeadlines = tasksWithDeadlines.sortedBy { task ->
+                task.startDeadlineSeconds
+            }
+        }
+        tasksWithDeadlines.filter { task -> !task.isFinished() }
+
+        return tasksWithDeadlines.firstOrNull()
+    }
+    private fun failSkippedTasks(deadlinedTask: AutoTask, tasks: List<AutoTask>) {
+        tasks.forEach { task ->
+            if (task != deadlinedTask && !task.isFinished()) {
+                task.taskStatus = TaskStatus.Failed
+                task.timeFinishedSeconds = getEffectiveRuntime()
+            }
+        }
+    }
 }
