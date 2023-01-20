@@ -61,7 +61,8 @@ class PaddieMatrickIterativeOpMode: OpMode() {
                         } else {
                             false
                         }
-                    }, requiredForCompletion = true)
+                    }, requiredForCompletion = true),
+                    timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = false),
@@ -145,7 +146,8 @@ class PaddieMatrickIterativeOpMode: OpMode() {
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = true)
+                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = true),
+                    timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = false),
@@ -338,9 +340,16 @@ class PaddieMatrickIterativeOpMode: OpMode() {
             currentTask = nextDeadlinedTask
             multipleTelemetry.addLine("deadlined Task: $nextDeadlinedTask")
         } else {
-            if (currentTask.isFinished()) {
+            val timeSinceTaskStart = getEffectiveRuntime() - (currentTask.timeStartedSeconds ?: (getEffectiveRuntime() + 1))
+            val pastOrAtTaskTimeout: Boolean = if (currentTask.timeoutSeconds != null) currentTask.timeoutSeconds!! <= timeSinceTaskStart else false
+
+            multipleTelemetry.addLine("pastOrAtTaskTimeout: $pastOrAtTaskTimeout")
+            multipleTelemetry.addLine("timeSinceTaskStart: $timeSinceTaskStart")
+
+            if (currentTask.isFinished() || pastOrAtTaskTimeout) {
                 if (autoTaskIterator.hasNext()) {
                     multipleTelemetry.addLine("current task finished: $currentTask")
+                    currentTask.taskStatus = TaskStatus.Completed
                     currentTask = autoTaskIterator.next()
                     multipleTelemetry.addLine("next task is: $currentTask")
                 }
@@ -351,9 +360,10 @@ class PaddieMatrickIterativeOpMode: OpMode() {
         }
 
         currentTask.taskStatus = TaskStatus.Running
-        if (currentTask.timeStartedSeconds != null) {
+        if (currentTask.timeStartedSeconds == null) {
             currentTask.timeStartedSeconds = getEffectiveRuntime()
         }
+        multipleTelemetry.addLine("timeStartedSeconds: ${currentTask.timeStartedSeconds}")
 
         multipleTelemetry.addLine("\n\ncurrent task: $currentTask")
 
