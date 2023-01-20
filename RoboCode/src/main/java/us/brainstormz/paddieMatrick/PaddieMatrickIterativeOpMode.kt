@@ -83,12 +83,12 @@ class PaddieMatrickIterativeOpMode: OpMode() {
             /** Prepare to collect */
             AutoTask(
                     ChassisTask(cycleMidPoint, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true)
             ),
             AutoTask(
                     ChassisTask(preCollectionPosition, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             ),
             /** Collecting */
@@ -158,8 +158,9 @@ class PaddieMatrickIterativeOpMode: OpMode() {
                         !depositor.isConeInCollector()
                     }, requiredForCompletion = true)
             ),
+            /** Return to midpoint */
             AutoTask(
-                    ChassisTask(depositPosition, requiredForCompletion = false),
+                    ChassisTask(cycleMidPoint, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true),
                     OtherTask(action= {
@@ -167,7 +168,6 @@ class PaddieMatrickIterativeOpMode: OpMode() {
                         true
                     }, requiredForCompletion = false)
             ),
-            /** Return to midpoint */
             AutoTask(
                     ChassisTask(cycleMidPoint, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
