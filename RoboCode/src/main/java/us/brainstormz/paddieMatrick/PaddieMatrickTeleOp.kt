@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DistanceSensor
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.pid.PID
@@ -224,6 +225,7 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("lift position: ${hardware.rightLift.currentPosition}")
         telemetry.addLine("liftTarget: $liftTarget")
         telemetry.addLine("liftPower: $liftPower")
+        telemetry.addLine("Lift Amps:\n    Left: ${hardware.leftLift.getCurrent(CurrentUnit.AMPS)}\n   Right: ${hardware.rightLift.getCurrent(CurrentUnit.AMPS)}")
 
         powerLift(liftPower)
 
