@@ -121,11 +121,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreCollection.degrees
             }
-            gamepad2.y -> {
-                fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.PreDeposit.degrees
-            }
-            gamepad1.a && !gamepad1.start -> {} // dummy for preset elsewhere
+            gamepad1.a || gamepad2.y && !gamepad1.start -> {} // dummy for preset elsewhere
             abs(gamepad2.right_stick_y) > 0.1 -> {
                 fourBarMode = fourBarModes.FOURBAR_MANUAL
             }
@@ -163,7 +159,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = FourBarDegrees.PreDeposit.degrees
             }
-            gamepad1.a && !gamepad1.start-> {
+            gamepad1.a || gamepad2.y && !gamepad1.start-> {
                 if (isConeInCollector()) {
                     liftTarget = LiftCounts.HighJunction.counts.toDouble()
 
@@ -238,13 +234,17 @@ class PaddieMatrickTeleOp: OpMode() {
             gamepad1.left_trigger > 0 || gamepad2.left_trigger > 0 -> {
                 hardware.collector.power = -1.0
             }
-            gamepad1.a -> {}
+            gamepad1.a || gamepad2.y -> {}
             else -> {
                 hardware.collector.power = 0.0
             }
         }
 
         when {
+            gamepad2.b -> {
+                println("Auto Collection Disabled >:0 UwU OwO >::)")
+                hardware.funnelLifter.position = collector.funnelDown
+            }
             gamepad1.right_bumper || gamepad2.right_bumper -> {
                 automatedCollection(multiCone = false)
             }
@@ -263,6 +263,10 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("distance: ${hardware.collectorSensor.getDistance(DistanceUnit.MM)}")
     }
 
+    fun doTheAutoCollect(){
+
+            fourBarMode = fourBarModes.FOURBAR_MANUAL
+    }
     fun automatedCollection(multiCone: Boolean) {
         val preCollectLiftTarget = if (multiCone) LiftCounts.StackPreCollection else LiftCounts.SinglePreCollection
 
