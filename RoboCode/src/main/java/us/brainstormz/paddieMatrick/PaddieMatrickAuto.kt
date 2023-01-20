@@ -235,7 +235,8 @@ class PaddieMatrickAuto: OpMode() {
         depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, telemetry = telemetry)
 
         wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
-        wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto" to null, "New Cycle Auto" to "startPos"))
+        wizard.newMenu("program", "Which auto are we starting?", listOf("Cycle Auto" to "cycles", "Park Auto" to null))
+        wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+3", "1+2", "1+1", "1+0"),"startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
     }
 
@@ -272,9 +273,17 @@ class PaddieMatrickAuto: OpMode() {
             FieldSide.Right
 
 //        autoTasks = depositPreload + cycles + cycles + parkTwo
+        val numberOfCycles = when {
+            wizard.wasItemChosen("cycles", "1+0") -> 0
+            wizard.wasItemChosen("cycles", "1+1") -> 1
+            wizard.wasItemChosen("cycles", "1+2") -> 2
+            else -> 3
+        }
+
         autoTasks = makePlanForAuto(
             signalOrientation = aprilTagGXOutput,
-            fieldSide = side)
+            fieldSide = side,
+            numberOfCycles = numberOfCycles)
 
 
         autoTaskIterator = autoTasks.listIterator()
@@ -305,13 +314,20 @@ class PaddieMatrickAuto: OpMode() {
     enum class FieldSide {
         Left, Right
     }
-    private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide):List<AutoTask> {
+    private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide, numberOfCycles: Int):List<AutoTask> {
         val parkPath = when (signalOrientation) {
             SignalOrientation.One -> parkOne
             SignalOrientation.Two -> parkTwo
             SignalOrientation.Three -> parkThree
         }
-        return flopped(depositPreload + cycles + cycles + cycles, fieldSide) + parkPath
+        val cycles = when (numberOfCycles) {
+            0 -> listOf()
+            1 -> cycle
+            2 -> cycle + cycle
+            else -> {cycle + cycle + cycle}
+        }
+
+        return flopped(depositPreload + cycles, fieldSide) + parkPath
     }
 
     private fun PaddieMatrickAuto.flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
