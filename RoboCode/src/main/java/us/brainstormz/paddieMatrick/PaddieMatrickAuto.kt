@@ -26,10 +26,10 @@ class PaddieMatrickAuto: OpMode() {
     private lateinit var depositor: Depositor
 
     /** Auto Tasks */
-    private val depositPosition = PositionAndRotation(x= -5.0, y= -58.2, r= 45.0)
+    private val depositPosition = PositionAndRotation(x= -5.3, y= -58.0, r= 45.0)
     private val depositPreload = listOf(
             AutoTask(
-                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.8, requiredForCompletion = true),
+                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.8, accuracyInches = 1.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.SafeDriving.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
             ),
@@ -50,8 +50,8 @@ class PaddieMatrickAuto: OpMode() {
             ),
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
                     OtherTask(action = {
                         hardware.collector.power = -1.0
 
@@ -77,23 +77,28 @@ class PaddieMatrickAuto: OpMode() {
     )
 
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = -52.0, r = 90.0)
+    private val midPointAccuracy = 1.5
     private val preCollectionPosition = PositionAndRotation(x = 19.0, y = -51.0, r = 90.0)
     private val collectionPosition = PositionAndRotation(x = 30.0, y = -51.0, r = 90.0)
     private val cycles = listOf(
             /** Prepare to collect */
             AutoTask(
-                    ChassisTask(cycleMidPoint, requiredForCompletion = true),
+                    ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false)
             ),
             AutoTask(
                     ChassisTask(preCollectionPosition, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false)
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
+//                    OtherTask(action= {
+//                        hardware.funnelLifter.position = collector.funnelDown
+//                        true
+//                    }, requiredForCompletion = true)
             ),
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.12, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
                     OtherTask(action= {
@@ -114,12 +119,12 @@ class PaddieMatrickAuto: OpMode() {
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
-                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true),
-                    OtherTask(action= {
-                        hardware.collector.power = 0.1
-                        true
-                    }, requiredForCompletion = false)
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts+300, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
+//                    OtherTask(action= {
+//                        hardware.collector.power = 1.0
+//                        true
+//                    }, requiredForCompletion = false)
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
@@ -133,7 +138,7 @@ class PaddieMatrickAuto: OpMode() {
             ),
             /** Drive to pole */
             AutoTask(
-                    ChassisTask(cycleMidPoint, requiredForCompletion = true),
+                    ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             ),
@@ -169,7 +174,7 @@ class PaddieMatrickAuto: OpMode() {
                     }, requiredForCompletion = false)
             ),
             AutoTask(
-                    ChassisTask(cycleMidPoint, requiredForCompletion = true),
+                    ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             )
@@ -188,7 +193,7 @@ class PaddieMatrickAuto: OpMode() {
         }
         true
     }
-    private val parkTimeout = 27.5
+    private val parkTimeout = 28.0
     private val parkOne: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
@@ -413,6 +418,7 @@ class PaddieMatrickAuto: OpMode() {
     data class ChassisTask(
             val targetPosition: PositionAndRotation,
             val power: ClosedRange<Double> = 0.0..1.0,
+            val accuracyInches: Double = 0.5,
             override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
     data class LiftTask(val targetCounts: Int, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
     data class FourBarTask(val targetDegrees: Double, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
