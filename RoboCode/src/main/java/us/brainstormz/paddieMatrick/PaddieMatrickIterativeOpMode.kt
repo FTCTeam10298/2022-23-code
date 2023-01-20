@@ -11,7 +11,7 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
 
-@Autonomous(name= "PaddieMatrick Iterative Auto", group= "!")
+@Autonomous(name= "PaddieMatrick Auto", group= "!")
 class PaddieMatrickIterativeOpMode: OpMode() {
     private val hardware = PaddieMatrickHardware()
 
@@ -26,7 +26,7 @@ class PaddieMatrickIterativeOpMode: OpMode() {
     private lateinit var depositor: Depositor
 
     /** Auto Tasks */
-    private val depositPosition = PositionAndRotation(x= -5.8, y= -58.2, r= 45.0)
+    private val depositPosition = PositionAndRotation(x= -5.2, y= -58.0, r= 45.0)
     private val depositPreload = listOf(
             AutoTask(
                     ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.8, requiredForCompletion = true),
@@ -174,9 +174,9 @@ class PaddieMatrickIterativeOpMode: OpMode() {
     )
 
     enum class ParkPositions(val pos: PositionAndRotation) {
-        One(PositionAndRotation(x = -20.0, y = -54.0, r = 0.0)),
-        Two(PositionAndRotation(x = 0.0, y = -54.0, r = 0.0)),
-        Three(PositionAndRotation(x = 20.0, y = -54.0, r = 0.0)),
+        One(PositionAndRotation(x = -22.0, y = -52.0, r = 0.0)),
+        Two(PositionAndRotation(x = 0.0, y = -52.0, r = 0.0)),
+        Three(PositionAndRotation(x = 22.0, y = -52.0, r = 0.0)),
     }
     private val compensateForAbruptEnd = {
         hardware.funnelLifter.position = collector.funnelUp
@@ -186,7 +186,7 @@ class PaddieMatrickIterativeOpMode: OpMode() {
         }
         true
     }
-    private val parkTimeout = 27.0
+    private val parkTimeout = 27.5
     private val parkOne: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
@@ -384,7 +384,7 @@ class PaddieMatrickIterativeOpMode: OpMode() {
         }
     }
 
-    fun getEffectiveRuntime() = this.runtime - 2
+    fun getEffectiveRuntime() = this.runtime
 
     data class AutoTask(val chassisTask: ChassisTask,
                         val liftTask: LiftTask,
