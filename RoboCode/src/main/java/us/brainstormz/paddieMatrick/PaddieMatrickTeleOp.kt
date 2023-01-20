@@ -32,26 +32,10 @@ class PaddieMatrickTeleOp: OpMode() {
     companion object {
         var centerPosition = 110.0
     }
-    enum class FourBarDegrees(val degrees: Double) {
-        Collecting(72.0),
-        PreCollection(110.0),
-        Vertical(180.0),
-        PreDeposit(210.0),
-        Deposit(270.0)
-    }
 
     val liftPID = PID(kp= 0.003, ki= 0.0)
     var liftTarget = 0.0
     val liftSpeed = 1200.0
-    enum class LiftCounts(val counts: Int) {
-        HighJunction(3900),
-        MidJunction(2200),
-        StackPreCollection(1200),
-        LowJunction(650),
-        SinglePreCollection(400),
-        Collection(0),
-        Bottom(0)
-    }
 
     override fun init() {
         /** INIT PHASE */
@@ -120,7 +104,7 @@ class PaddieMatrickTeleOp: OpMode() {
         when {
             gamepad2.x || (gamepad1.b && !gamepad1.start) -> {
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.PreCollection.degrees
+                fourBarTarget = Depositor.FourBarDegrees.PreCollection.degrees
             }
             (gamepad1.a && !gamepad1.start) || gamepad2.y -> {} // dummy for preset elsewhere
             abs(gamepad2.right_stick_y) > 0.1 -> {
@@ -155,54 +139,54 @@ class PaddieMatrickTeleOp: OpMode() {
         // Lift
         when {
             gamepad2.dpad_up-> {
-                liftTarget = LiftCounts.HighJunction.counts.toDouble()
+                liftTarget = Depositor.LiftCounts.HighJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.PreDeposit.degrees
+                fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
             }
             (gamepad1.a && !gamepad1.start) || gamepad2.y -> {
                 if (isConeInCollector()) {
-                    liftTarget = LiftCounts.HighJunction.counts.toDouble()
+                    liftTarget = Depositor.LiftCounts.HighJunction.counts.toDouble()
 
                     if (hardware.rightLift.currentPosition >= liftTarget - 300) {
                         fourBarMode = fourBarModes.FOURBAR_PID
-                        fourBarTarget = FourBarDegrees.Deposit.degrees
+                        fourBarTarget = Depositor.FourBarDegrees.Deposit.degrees
 
-                        if (fourBar.current4BarDegrees() >= FourBarDegrees.Deposit.degrees - 5) {
+                        if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.Deposit.degrees - 5) {
                             hardware.collector.power = -1.0
                         }
                     } else {
                         fourBarMode = fourBarModes.FOURBAR_PID
-                        fourBarTarget = FourBarDegrees.PreDeposit.degrees
+                        fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
                     }
                 } else {
                     // once cone drops go back to home
                     fourBarMode = fourBarModes.FOURBAR_PID
-                    fourBarTarget = FourBarDegrees.Vertical.degrees
+                    fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
 
-                    if (fourBar.current4BarDegrees() <= FourBarDegrees.Vertical.degrees + 5) {
-                        liftTarget = LiftCounts.Bottom.counts.toDouble()
+                    if (fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.Vertical.degrees + 5) {
+                        liftTarget = Depositor.LiftCounts.Bottom.counts.toDouble()
                     }
                 }
             }
             gamepad2.dpad_left -> {
-                liftTarget = LiftCounts.MidJunction.counts.toDouble()
+                liftTarget = Depositor.LiftCounts.MidJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.PreDeposit.degrees
+                fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
             }
             gamepad2.dpad_right -> {
-                liftTarget = LiftCounts.LowJunction.counts.toDouble()
+                liftTarget = Depositor.LiftCounts.LowJunction.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.PreDeposit.degrees
+                fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
             }
             gamepad2.dpad_down -> {
 
-                liftTarget = LiftCounts.Bottom.counts.toDouble()
+                liftTarget = Depositor.LiftCounts.Bottom.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = FourBarDegrees.PreCollection.degrees
+                fourBarTarget = Depositor.FourBarDegrees.PreCollection.degrees
             }
             gamepad2.a -> {
                 liftTarget += (-0.5 * liftSpeed / dt)
@@ -271,31 +255,31 @@ class PaddieMatrickTeleOp: OpMode() {
             fourBarMode = fourBarModes.FOURBAR_MANUAL
     }
     fun automatedCollection(multiCone: Boolean) {
-        val preCollectLiftTarget = if (multiCone) LiftCounts.StackPreCollection else LiftCounts.SinglePreCollection
+        val preCollectLiftTarget = if (multiCone) Depositor.LiftCounts.StackPreCollection else Depositor.LiftCounts.SinglePreCollection
 
         if (!isConeInCollector()) {
             hardware.funnelLifter.position = collector.funnelDown
 
-            moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
+            moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
 
             if (isConeInFunnel()) {
                 hardware.collector.power = 1.0
-                moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = LiftCounts.Collection)
+                moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = Depositor.LiftCounts.Collection)
             } else {
-                moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
+                moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
             }
         } else {
             fourBarMode = fourBarModes.FOURBAR_PID
-            fourBarTarget = FourBarDegrees.Vertical.degrees
+            fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
 
-            if (fourBar.is4BarAtPosition(FourBarDegrees.Vertical.degrees)) {
+            if (fourBar.is4BarAtPosition(Depositor.FourBarDegrees.Vertical.degrees)) {
                 hardware.funnelLifter.position = collector.funnelUp
-                liftTarget = if (multiCone) LiftCounts.LowJunction.counts.toDouble() else LiftCounts.Bottom.counts.toDouble()
+                liftTarget = if (multiCone) Depositor.LiftCounts.LowJunction.counts.toDouble() else Depositor.LiftCounts.Bottom.counts.toDouble()
             }
         }
     }
 
-    fun moveDepositer(fourBarPosition: FourBarDegrees, liftPosition: LiftCounts) {
+    fun moveDepositer(fourBarPosition: Depositor.FourBarDegrees, liftPosition: Depositor.LiftCounts ) {
         liftTarget = liftPosition.counts.toDouble()
         fourBarMode = fourBarModes.FOURBAR_PID
         fourBarTarget = fourBarPosition.degrees

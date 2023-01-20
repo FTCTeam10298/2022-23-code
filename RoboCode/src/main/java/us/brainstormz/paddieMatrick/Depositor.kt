@@ -40,7 +40,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
             if (hardware.rightLift.currentPosition >= targetJunction.counts - 300) {
                 moveFourBar(FourBarDegrees.Deposit.degrees)
 
-                if (fourBar.current4BarDegrees() >= PaddieMatrickTeleOp.FourBarDegrees.Deposit.degrees - 5) {
+                if (fourBar.current4BarDegrees() >= FourBarDegrees.Deposit.degrees - 5) {
                     hardware.collector.power = -1.0
                 }
             } else {
@@ -50,7 +50,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
             // once cone drops go back to home
             moveFourBar(FourBarDegrees.Vertical.degrees)
 
-            if (fourBar.current4BarDegrees() <= PaddieMatrickTeleOp.FourBarDegrees.Vertical.degrees + 5) {
+            if (fourBar.current4BarDegrees() <= FourBarDegrees.Vertical.degrees + 5) {
                 moveLift(LiftCounts.Bottom.counts)
             }
         }

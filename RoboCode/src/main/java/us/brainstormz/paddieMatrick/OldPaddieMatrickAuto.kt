@@ -12,7 +12,6 @@ import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
-import us.brainstormz.paddieMatrick.PaddieMatrickTeleOp.FourBarDegrees
 import us.brainstormz.telemetryWizard.TelemetryWizard
 
 //@Autonomous(name= "Old auto for PaddieMatrick", group= "!")
@@ -97,8 +96,8 @@ class OldPaddieMatrickAuto: LinearOpMode() {
         var targetPosition = PositionAndRotation(x= 0.0, y= -49.0, r= 0.0)
         movement.goToPosition(targetPosition, this, 0.0..0.9) {
             movement.precisionInches = 3.0
-            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
+            fourBar.goToPosition(Depositor.FourBarDegrees.PreDeposit.degrees)
+            lift(Depositor.LiftCounts.MidJunction.counts)
         }
 
         val depositPosition = PositionAndRotation(x= -5.8, y= -58.2, r= 45.0) /** Deposit Position */
@@ -106,38 +105,38 @@ class OldPaddieMatrickAuto: LinearOpMode() {
         targetPosition.r = depositPosition.r
         movement.goToPosition(targetPosition, this, 0.0..1.0) {
             movement.precisionInches = 3.0
-            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            fourBar.goToPosition(Depositor.FourBarDegrees.PreDeposit.degrees)
+            lift(Depositor.LiftCounts.HighJunction.counts)
         }
 
         targetPosition = depositPosition
         movement.goToPosition(targetPosition, this, 0.0..0.5) {
-            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            fourBar.goToPosition(Depositor.FourBarDegrees.PreDeposit.degrees)
+            lift(Depositor.LiftCounts.HighJunction.counts)
         }
 
         telemetry.addLine("Depositing done")
         telemetry.update()
 
         while (opModeIsActive()) {
-            fourBar.goToPosition(FourBarDegrees.PreDeposit.degrees)
-            val isLiftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            fourBar.goToPosition(Depositor.FourBarDegrees.PreDeposit.degrees)
+            val isLiftAtPosition = lift(Depositor.LiftCounts.HighJunction.counts)
 
             if (isLiftAtPosition)
                 break
         }
 
         while (opModeIsActive()) {
-            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            val fourBarAtPosition = fourBar.goToPosition(Depositor.FourBarDegrees.Deposit.degrees)
+            lift(Depositor.LiftCounts.HighJunction.counts)
 
             if (fourBarAtPosition)
                 break
         }
 
         while (opModeIsActive()) {
-            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Deposit.degrees)
-            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            val fourBarAtPosition = fourBar.goToPosition(Depositor.FourBarDegrees.Deposit.degrees)
+            val liftAtPosition = lift(Depositor.LiftCounts.HighJunction.counts)
 
             if (fourBarAtPosition && liftAtPosition)
                 break
@@ -150,8 +149,8 @@ class OldPaddieMatrickAuto: LinearOpMode() {
         /** Cone deposited */
 
         while (opModeIsActive()) {
-            val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+            val fourBarAtPosition = fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+            lift(Depositor.LiftCounts.HighJunction.counts)
 
             if (fourBarAtPosition)
                 break
@@ -162,20 +161,20 @@ class OldPaddieMatrickAuto: LinearOpMode() {
         targetPosition = PositionAndRotation(x= -4.0, y= -52.0, r= 45.0)
         movement.goToPosition(targetPosition, this, 0.01..0.8) {
             movement.precisionInches = 1.0
-            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
+            fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+            lift(Depositor.LiftCounts.Bottom.counts)
         }
 
         targetPosition.r = 90.0
         movement.goToPosition(targetPosition, this, 0.0..0.8) {
             movement.precisionDegrees = 1.0
-            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-            lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
+            fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+            lift(Depositor.LiftCounts.Bottom.counts)
         }
 
         while (opModeIsActive()) {
-            fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-            val liftAtPosition = lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
+            fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+            val liftAtPosition = lift(Depositor.LiftCounts.Bottom.counts)
 
             if (liftAtPosition)
                 break
@@ -187,8 +186,8 @@ class OldPaddieMatrickAuto: LinearOpMode() {
 
             targetPosition = precollectionPosition
             movement.goToPosition(targetPosition, this, 0.0..0.5) {
-                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
+                fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+                lift(Depositor.LiftCounts.Bottom.counts)
             }
 
             /** Collect */
@@ -205,16 +204,16 @@ class OldPaddieMatrickAuto: LinearOpMode() {
 
             targetPosition = PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)
             movement.goToPosition(targetPosition, this, 0.0..0.5) {
-                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.MidJunction.counts)
+                fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+                lift(Depositor.LiftCounts.MidJunction.counts)
                 hardware.collector.power = 0.0
             }
 
             /** Deposit */
             targetPosition = depositPosition
             movement.goToPosition(targetPosition, this, 0.0..0.5) {
-                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+                fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+                lift(Depositor.LiftCounts.HighJunction.counts)
             }
 
             while (opModeIsActive() && depositor.isConeInCollector()) {
@@ -222,8 +221,8 @@ class OldPaddieMatrickAuto: LinearOpMode() {
             }
 
             while (opModeIsActive()) {
-                val fourBarAtPosition = fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.HighJunction.counts)
+                val fourBarAtPosition = fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+                lift(Depositor.LiftCounts.HighJunction.counts)
 
                 if (fourBarAtPosition)
                     break
@@ -232,8 +231,8 @@ class OldPaddieMatrickAuto: LinearOpMode() {
 
             targetPosition = PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)
             movement.goToPosition(targetPosition, this, 0.0..0.5) {
-                fourBar.goToPosition(FourBarDegrees.Vertical.degrees)
-                lift(PaddieMatrickTeleOp.LiftCounts.Bottom.counts)
+                fourBar.goToPosition(Depositor.FourBarDegrees.Vertical.degrees)
+                lift(Depositor.LiftCounts.Bottom.counts)
                 hardware.collector.power = 0.0
             }
         }
