@@ -227,7 +227,7 @@ class PaddieMatrickIterativeOpMode: OpMode() {
         depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, telemetry = telemetry)
 
         wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
-        wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto" to null, "New Cycle Auto" to "startPos"), firstMenu = true)
+        wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto" to null, "New Cycle Auto" to "startPos"))
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
     }
 
@@ -257,18 +257,61 @@ class PaddieMatrickIterativeOpMode: OpMode() {
         hardware.leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         val aprilTagGXOutput =  aprilTagGX.signalOrientation ?: SignalOrientation.Three
-        val parkPath = when (aprilTagGXOutput) {
-            SignalOrientation.One -> parkOne
-            SignalOrientation.Two -> parkTwo
-            SignalOrientation.Three -> parkThree
-        }
 
-        /** Auto assembly */
-        autoTasks = depositPreload + cycles + cycles + parkPath
+        val side = if (wizard.wasItemChosen("startPos", "Left"))
+            FieldSide.Left
+        else
+            FieldSide.Right
+
+//        autoTasks = depositPreload + cycles + cycles + parkTwo
+        autoTasks = makePlanForAuto(
+            signalOrientation = aprilTagGXOutput,
+            fieldSide = side)
 
 
         autoTaskIterator = autoTasks.listIterator()
         currentTask = autoTaskIterator.next()
+    }
+
+    private fun flopToLeftSide(task:ChassisTask):ChassisTask {
+        val pos = task.targetPosition
+        return task.copy(
+                targetPosition = PositionAndRotation(
+                        x = flopLateralPosToLeftSide(pos.x),
+                        y = pos.y,
+                        r = flopRotationToLeftSide(pos.r)
+                )
+        )
+    }
+
+    private fun flopRotationToLeftSide(r: Double) = r * -1
+    private fun flopLateralPosToLeftSide(x: Double) = x * -1
+
+    private fun flopToLeftSide(tasks:List<AutoTask>):List<AutoTask> {
+        return tasks.map{task->
+            task.copy(
+                chassisTask = flopToLeftSide(task.chassisTask)
+            )
+        }
+    }
+    enum class FieldSide {
+        Left, Right
+    }
+    private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide):List<AutoTask> {
+        val parkPath = when (signalOrientation) {
+            SignalOrientation.One -> parkOne
+            SignalOrientation.Two -> parkTwo
+            SignalOrientation.Three -> parkThree
+        }
+        return flopped(depositPreload + cycles + cycles, fieldSide) + parkPath
+    }
+
+    private fun PaddieMatrickIterativeOpMode.flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
+        val swichedTasks = when (side) {
+            FieldSide.Left -> flopToLeftSide(coreTasks)
+            FieldSide.Right -> coreTasks
+        }
+        return swichedTasks
     }
 
     private var prevTime = System.currentTimeMillis()
@@ -357,7 +400,10 @@ class PaddieMatrickIterativeOpMode: OpMode() {
     }
 
     open class SubassemblyTask(open val requiredForCompletion: Boolean)
-    data class ChassisTask(val targetPosition: PositionAndRotation, val power: ClosedRange<Double> = 0.0..1.0, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+    data class ChassisTask(
+            val targetPosition: PositionAndRotation,
+            val power: ClosedRange<Double> = 0.0..1.0,
+            override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
     data class LiftTask(val targetCounts: Int, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
     data class FourBarTask(val targetDegrees: Double, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
     data class OtherTask(val action: ()->Boolean, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
