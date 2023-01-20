@@ -253,6 +253,8 @@ class PaddieMatrickIterativeOpMode: OpMode() {
         hardware.rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         hardware.leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         hardware.centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        hardware.leftOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        hardware.leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         val aprilTagGXOutput =  aprilTagGX.signalOrientation ?: SignalOrientation.Three
         val parkPath = when (aprilTagGXOutput) {

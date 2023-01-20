@@ -213,6 +213,7 @@ class PaddieMatrickTeleOp: OpMode() {
         liftTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
             hardware.rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+            hardware.leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
             liftTarget.coerceAtLeast(0.0)
         } else {
             liftTarget

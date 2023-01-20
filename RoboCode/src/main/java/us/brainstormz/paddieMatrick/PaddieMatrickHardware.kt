@@ -91,6 +91,8 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        leftOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         lOdom = EnhancedDCMotor(leftOdomEncoder)
         rOdom = EnhancedDCMotor(rightOdomEncoder)
