@@ -4,7 +4,7 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import us.brainstormz.localizer.PhoHardware
+import com.qualcomm.robotcore.hardware.DcMotor
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
@@ -29,8 +29,8 @@ class PaddieMatrickIterativeOpMode: OpMode() {
     private val depositPosition = PositionAndRotation(x= -5.8, y= -58.2, r= 45.0)
     private val depositPreload = listOf(
             AutoTask(
-                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
+                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.8, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.SafeDriving.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
             ),
             AutoTask(
@@ -75,13 +75,13 @@ class PaddieMatrickIterativeOpMode: OpMode() {
             )
     )
 
-    private val cycleMidPoint = PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)
+    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = -52.0, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 19.0, y = -51.0, r = 90.0)
     private val collectionPosition = PositionAndRotation(x = 30.0, y = -51.0, r = 90.0)
     private val cycles = listOf(
             /** Prepare to collect */
             AutoTask(
-                    ChassisTask(PositionAndRotation(x= -4.0, y= -52.0, r= 90.0), requiredForCompletion = true),
+                    ChassisTask(cycleMidPoint, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true)
             ),
@@ -92,7 +92,7 @@ class PaddieMatrickIterativeOpMode: OpMode() {
             ),
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.05, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.08, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
                     OtherTask(action= {
@@ -174,30 +174,42 @@ class PaddieMatrickIterativeOpMode: OpMode() {
     )
 
     enum class ParkPositions(val pos: PositionAndRotation) {
-        One(PositionAndRotation(x = -20.0, y = -52.0, r = 0.0)),
-        Two(PositionAndRotation(x = 0.0, y = -52.0, r = 0.0)),
-        Three(PositionAndRotation(x = 20.0, y = -52.0, r = 0.0)),
+        One(PositionAndRotation(x = -20.0, y = -54.0, r = 0.0)),
+        Two(PositionAndRotation(x = 0.0, y = -54.0, r = 0.0)),
+        Three(PositionAndRotation(x = 20.0, y = -54.0, r = 0.0)),
     }
+    private val compensateForAbruptEnd = {
+        hardware.funnelLifter.position = collector.funnelUp
+        hardware.collector.power = 0.0
+        if (!fourBar.is4BarAtPosition(Depositor.FourBarDegrees.Vertical.degrees)) {
+            depositor.powerLift(0.0)
+        }
+        true
+    }
+    private val parkTimeout = 27.0
     private val parkOne: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    startDeadlineSeconds = 25.0
+                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    startDeadlineSeconds = parkTimeout
             ))
     private val parkTwo: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    startDeadlineSeconds = 25.0
+                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    startDeadlineSeconds = parkTimeout
             ))
     private val parkThree: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    startDeadlineSeconds = 25.0
+                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    startDeadlineSeconds = parkTimeout
             ))
 
     override fun init() {
@@ -224,6 +236,8 @@ class PaddieMatrickIterativeOpMode: OpMode() {
 
         if (isWizardDone)
             aprilTagGX.runAprilTag(telemetry)
+//        else
+//            telemetry.addLine("Running The Wiz")
 
 //        val fourBarTarget = fourBar.current4BarDegrees() - 70
 //        val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
@@ -235,7 +249,12 @@ class PaddieMatrickIterativeOpMode: OpMode() {
     private lateinit var autoTaskIterator: ListIterator<AutoTask>
     private lateinit var currentTask: AutoTask
     override fun start() {
-        val aprilTagGXOutput = aprilTagGX.signalOrientation ?: SignalOrientation.Three
+        this.resetRuntime()
+        hardware.rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        hardware.leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        hardware.centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+
+        val aprilTagGXOutput =  aprilTagGX.signalOrientation ?: SignalOrientation.Three
         val parkPath = when (aprilTagGXOutput) {
             SignalOrientation.One -> parkOne
             SignalOrientation.Two -> parkTwo
@@ -259,15 +278,16 @@ class PaddieMatrickIterativeOpMode: OpMode() {
         val dt = System.currentTimeMillis() - prevTime
         prevTime = System.currentTimeMillis()
         multipleTelemetry.addLine("dt: $dt")
+        multipleTelemetry.addLine("runtime: ${getEffectiveRuntime()}")
 
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
         val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
-        val isDeadlineUponUs: Boolean = if (nextDeadlineSeconds != null) nextDeadlineSeconds <= getEffectiveRuntime() else false
-        multipleTelemetry.addLine("getEffectiveRuntime(): ${getEffectiveRuntime()}")
-        multipleTelemetry.addLine("nextDeadlineSeconds: $nextDeadlineSeconds")
-        multipleTelemetry.addLine("isDeadlineUponUs: $isDeadlineUponUs")
+        val atOrPastDeadline = if (nextDeadlineSeconds != null) nextDeadlineSeconds <= getEffectiveRuntime() else false
+//        multipleTelemetry.addLine("getEffectiveRuntime(): ${getEffectiveRuntime()}")
+//        multipleTelemetry.addLine("nextDeadlineSeconds: $nextDeadlineSeconds")
+//        multipleTelemetry.addLine("isDeadlineUponUs: $atOrPastDeadline")
 
-        if (isDeadlineUponUs) {
+        if (atOrPastDeadline) {
             multipleTelemetry.addLine("skipping ahead to deadline")
             failSkippedTasks(nextDeadlinedTask!!, autoTasks)
             currentTask = nextDeadlinedTask
