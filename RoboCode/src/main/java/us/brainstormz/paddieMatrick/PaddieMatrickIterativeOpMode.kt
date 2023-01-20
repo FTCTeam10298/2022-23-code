@@ -93,7 +93,7 @@ class PaddieMatrickIterativeOpMode: OpMode() {
             ),
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.08, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.12, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
                     OtherTask(action= {
