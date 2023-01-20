@@ -1,13 +1,17 @@
 package us.brainstormz.paddieMatrick
 
-import com.qualcomm.robotcore.eventloop.opmode.OpMode
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.config.Config
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DistanceSensor
 import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.pid.PID
+import us.brainstormz.telemetryWizard.GlobalConsole
 import us.brainstormz.utils.MathHelps
 
 class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar: FourBar, private val collector: Collector, private val telemetry: Telemetry) {
@@ -16,7 +20,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         PreCollection(110.0),
         Vertical(180.0),
         PreDeposit(210.0),
-        Deposit(270.0)
+        Deposit(262.0)
     }
     enum class LiftCounts(val counts: Int) {
         HighJunction(3900),
@@ -85,7 +89,8 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return fourBar.is4BarAtPosition(fourBarTarget)
     }
 
-    private val liftPID = PID(kp= 0.006, ki= 0.0)
+    var liftPID = PID(kp= 0.005, ki= 0.00000002, kd= 0.075)
+//    private val liftPID = PID(kp= 0.006, ki= 0.0)
     fun moveLift(targetCounts: Int): Boolean {
         val liftTarget = if (!hardware.liftLimitSwitch.state) {
             hardware.rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -101,8 +106,8 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return isLiftAtPosition(targetCounts)
     }
 
+    var accuracy = 300
     fun isLiftAtPosition(target: Int): Boolean {
-        val accuracy = 300
         val targetRange = target - accuracy..target + accuracy
         return hardware.rightLift.currentPosition in targetRange
     }
@@ -143,7 +148,59 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return distance < collectableDistance && (blue > funnelBlueThreshold || red > funnelRedThreshold)
     }
 
+}
 
+
+@TeleOp(name= "Lift PID Tuning")
+class LiftPIDTuning: LinearOpMode() {
+    @Config
+    object LiftPIDsAndTarget {
+        @JvmField var kp = 0.005
+        @JvmField var ki = 0.00000002
+        @JvmField var kd = 0.075
+
+        @JvmField var targetCounts = 0
+
+        @JvmField var precisionCounts = 0
+    }
+
+    val hardware = PaddieMatrickHardware()
+    val console = GlobalConsole.newConsole(telemetry)
+
+    var targetCounts = LiftPIDsAndTarget.targetCounts
+
+    override fun runOpMode() {
+        hardware.init(hardwareMap)
+
+        val dashboard = FtcDashboard.getInstance()
+        val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
+        val collector = Collector()
+        val fourBar = FourBar(telemetry)
+        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
+        val depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, telemetry = telemetry)
+
+        depositor.liftPID = PID(LiftPIDsAndTarget.kp, LiftPIDsAndTarget.ki, LiftPIDsAndTarget.kp)
+        depositor.accuracy = LiftPIDsAndTarget.precisionCounts
+
+        multipleTelemetry.addData("isLiftAtPosition: ", 0)
+        multipleTelemetry.addData("currentPosition: ", 0)
+        multipleTelemetry.addData("power: ", 0)
+        multipleTelemetry.addData("current: ", 0)
+        multipleTelemetry.addData("targetCounts: ", 0)
+        multipleTelemetry.update()
+        waitForStart()
+
+        while (opModeIsActive()) {
+            depositor.moveLift(targetCounts)
+            multipleTelemetry.addData("isLiftAtPosition: ", depositor.isLiftAtPosition(targetCounts))
+            multipleTelemetry.addData("currentPosition: ", hardware.rightLift.currentPosition)
+            multipleTelemetry.addData("power: ", hardware.rightLift.power)
+            multipleTelemetry.addData("current: ", hardware.rightLift.getCurrent(CurrentUnit.AMPS))
+            multipleTelemetry.addData("targetCounts: ", targetCounts)
+            multipleTelemetry.update()
+        }
+    }
+}
 
 
 //    val angleLiftDownHightInch = fourBar.mountHeightInch + fourBar.barLengthInch
@@ -213,8 +270,6 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
 //
 //        return true
 //    }
-}
-
 //@TeleOp(name="Depositor Test", group="!")
 //class DepositorTest: OpMode() {
 //
