@@ -245,6 +245,10 @@ class PaddieMatrickTeleOp: OpMode() {
         }
 
         when {
+            gamepad2.b -> {
+                println("Auto Collection Disabled >:0 UwU OwO >::)")
+                hardware.funnelLifter.position = collector.funnelDown
+            }
             gamepad1.right_bumper || gamepad2.right_bumper -> {
                 automatedCollection(multiCone = false)
             }
