@@ -25,6 +25,9 @@ class PaddieMatrickAuto: OpMode() {
     private lateinit var fourBar: FourBar
     private lateinit var depositor: Depositor
 
+    private var coneCollectionTime:Long? = null
+    private var timeToFinishCollecting = 0.8 * 1000
+
     /** Auto Tasks */
     private val depositPosition = PositionAndRotation(x= -5.3, y= -57.5, r= 45.0)
     private val depositPreload = listOf(
@@ -79,7 +82,7 @@ class PaddieMatrickAuto: OpMode() {
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = -52.0, r = 90.0)
     private val midPointAccuracy = 1.5
     private val preCollectionPosition = PositionAndRotation(x = 19.0, y = -52.0, r = 90.0)
-    private val collectionPosition = PositionAndRotation(x = 30.0, y = -52.0, r = 89.5)
+    private val collectionPosition = PositionAndRotation(x = 29.0, y = -52.0, r = 89.5)
     private val cycle = listOf(
             /** Prepare to collect */
             AutoTask(
@@ -90,23 +93,22 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(preCollectionPosition, accuracyInches= 1.5, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees - 5, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, accuracyDegrees = 5.0, requiredForCompletion = true),
                     OtherTask(action= {
                         hardware.funnelLifter.position = collector.funnelDown
-
-                        fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.Collecting.degrees
-                    }, requiredForCompletion = true)
+                        true
+                    }, requiredForCompletion = false)
             ),
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
-                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 200, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
+                    ChassisTask(collectionPosition, power = 0.0..0.13, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
+                        coneCollectionTime = null
                         depositor.isConeInFunnel()
-                    }, requiredForCompletion = true)
-//                    ,
-//                    timeoutSeconds = 5.0
+                    }, requiredForCompletion = true),
+                    timeoutSeconds = 8.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
@@ -114,11 +116,13 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 1.0
-
-                        depositor.isConeInCollector()
-                    }, requiredForCompletion = true)
-//                    ,
-//                    timeoutSeconds = 5.0
+                        if (coneCollectionTime == null)
+                            coneCollectionTime = System.currentTimeMillis()
+                        val isColeCurrentlyInCollector = depositor.isConeInCollector()
+                        val areWeDoneCollecting = System.currentTimeMillis() - coneCollectionTime!! >= timeToFinishCollecting
+                        isColeCurrentlyInCollector && areWeDoneCollecting
+                    }, requiredForCompletion = true),
+                    timeoutSeconds = 4.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
@@ -394,6 +398,7 @@ class PaddieMatrickAuto: OpMode() {
         val isLiftTaskCompleted = depositor.moveLift(liftTask.targetCounts)
 
         val fourBarTask = currentTask.fourBarTask
+        fourBar.accuracyDegrees = fourBarTask.accuracyDegrees
         val isFourBarTaskCompleted = depositor.moveFourBar(fourBarTask.targetDegrees)
 
         val subassemblyTask = currentTask.subassemblyTask
@@ -439,6 +444,7 @@ class PaddieMatrickAuto: OpMode() {
                         val accuracyCounts: Int = 300,
                         override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
     data class FourBarTask(val targetDegrees: Double,
+                           val accuracyDegrees: Double = 5.0,
                            override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
     data class OtherTask(val action: ()->Boolean,
                          override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
