@@ -89,7 +89,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return fourBar.is4BarAtPosition(fourBarTarget)
     }
 
-    var liftPID = PID(kp= 0.005, ki= 0.00000002, kd= 0.075)
+    var liftPID = PID(kp= 0.005, ki= 0.00000003, kd= 0.075)
 //    private val liftPID = PID(kp= 0.006, ki= 0.0)
     fun moveLift(targetCounts: Int): Boolean {
         val liftTarget = if (!hardware.liftLimitSwitch.state) {
@@ -106,7 +106,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return isLiftAtPosition(targetCounts)
     }
 
-    var accuracy = 300
+    var accuracy = 200
     fun isLiftAtPosition(target: Int): Boolean {
         val targetRange = target - accuracy..target + accuracy
         return hardware.rightLift.currentPosition in targetRange

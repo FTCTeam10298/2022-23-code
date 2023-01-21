@@ -26,7 +26,7 @@ class PaddieMatrickAuto: OpMode() {
     private lateinit var depositor: Depositor
 
     /** Auto Tasks */
-    private val depositPosition = PositionAndRotation(x= -5.3, y= -57.8, r= 45.0)
+    private val depositPosition = PositionAndRotation(x= -5.3, y= -57.5, r= 45.0)
     private val depositPreload = listOf(
             AutoTask(
                     ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.8, accuracyInches = 1.0, requiredForCompletion = true),
@@ -100,7 +100,7 @@ class PaddieMatrickAuto: OpMode() {
             /** Collecting */
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
-                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 200, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
                     OtherTask(action= {
                         depositor.isConeInFunnel()
@@ -429,9 +429,13 @@ class PaddieMatrickAuto: OpMode() {
             val power: ClosedRange<Double> = 0.0..1.0,
             val accuracyInches: Double = 0.5,
             override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
-    data class LiftTask(val targetCounts: Int, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
-    data class FourBarTask(val targetDegrees: Double, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
-    data class OtherTask(val action: ()->Boolean, override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+    data class LiftTask(val targetCounts: Int,
+                        val accuracyCounts: Int = 300,
+                        override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+    data class FourBarTask(val targetDegrees: Double,
+                           override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+    data class OtherTask(val action: ()->Boolean,
+                         override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
 
     enum class TaskStatus {
         Todo,
