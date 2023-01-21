@@ -104,8 +104,9 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
                     OtherTask(action= {
                         depositor.isConeInFunnel()
-                    }, requiredForCompletion = true),
-                    timeoutSeconds = 5.0
+                    }, requiredForCompletion = true)
+//                    ,
+//                    timeoutSeconds = 5.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
@@ -115,8 +116,9 @@ class PaddieMatrickAuto: OpMode() {
                         hardware.collector.power = 1.0
 
                         depositor.isConeInCollector()
-                    }, requiredForCompletion = true),
-                    timeoutSeconds = 5.0
+                    }, requiredForCompletion = true)
+//                    ,
+//                    timeoutSeconds = 5.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
@@ -384,9 +386,11 @@ class PaddieMatrickAuto: OpMode() {
         multipleTelemetry.addLine("\n\ncurrent task: $currentTask")
 
         val chassisTask = currentTask.chassisTask
+        movement.precisionInches = chassisTask.accuracyInches
         val isChassisTaskCompleted = movement.moveTowardTarget(chassisTask.targetPosition, chassisTask.power)
 
         val liftTask = currentTask.liftTask
+        depositor.accuracy = liftTask.accuracyCounts
         val isLiftTaskCompleted = depositor.moveLift(liftTask.targetCounts)
 
         val fourBarTask = currentTask.fourBarTask
