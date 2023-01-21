@@ -35,7 +35,7 @@ class PaddieMatrickTeleOp: OpMode() {
 
     val liftPID = PID(kp= 0.003, ki= 0.0)
     var liftTarget = 0.0
-    val liftSpeed = 1200.0
+    val liftSpeed = 1800.0
 
     override fun init() {
         /** INIT PHASE */
