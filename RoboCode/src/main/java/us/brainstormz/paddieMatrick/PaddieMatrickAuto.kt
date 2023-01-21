@@ -377,13 +377,13 @@ class PaddieMatrickAuto: OpMode() {
             }
         }
 
-        currentTask.taskStatus = TaskStatus.Running
-        if (currentTask.timeStartedSeconds == null) {
+        if (currentTask.taskStatus != TaskStatus.Running) {
             currentTask.timeStartedSeconds = getEffectiveRuntime()
         }
+        currentTask.taskStatus = TaskStatus.Running
         multipleTelemetry.addLine("timeStartedSeconds: ${currentTask.timeStartedSeconds}")
 
-        multipleTelemetry.addLine("\n\ncurrent task: $currentTask")
+//        multipleTelemetry.addLine("\n\ncurrent task: $currentTask")
 
         val chassisTask = currentTask.chassisTask
         movement.precisionInches = chassisTask.accuracyInches
