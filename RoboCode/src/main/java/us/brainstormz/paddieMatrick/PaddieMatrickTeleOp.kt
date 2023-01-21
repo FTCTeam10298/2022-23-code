@@ -145,29 +145,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
             }
             (gamepad1.a && !gamepad1.start) || gamepad2.y -> {
-                if (isConeInCollector()) {
-                    liftTarget = Depositor.LiftCounts.HighJunction.counts.toDouble()
-
-                    if (hardware.rightLift.currentPosition >= liftTarget - 300) {
-                        fourBarMode = fourBarModes.FOURBAR_PID
-                        fourBarTarget = Depositor.FourBarDegrees.Deposit.degrees
-
-                        if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.Deposit.degrees - 5) {
-                            hardware.collector.power = -1.0
-                        }
-                    } else {
-                        fourBarMode = fourBarModes.FOURBAR_PID
-                        fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
-                    }
-                } else {
-                    // once cone drops go back to home
-                    fourBarMode = fourBarModes.FOURBAR_PID
-                    fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
-
-                    if (fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.Vertical.degrees + 5) {
-                        liftTarget = Depositor.LiftCounts.Bottom.counts.toDouble()
-                    }
-                }
+                automaticDeposit()
             }
             gamepad2.dpad_left -> {
                 liftTarget = Depositor.LiftCounts.MidJunction.counts.toDouble()
@@ -223,7 +201,7 @@ class PaddieMatrickTeleOp: OpMode() {
             }
             (gamepad1.a && !gamepad1.start) || gamepad2.y -> {}
             else -> {
-                hardware.collector.power = 0.0
+                hardware.collector.power = 0.05
             }
         }
 
@@ -250,14 +228,41 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("distance: ${hardware.collectorSensor.getDistance(DistanceUnit.MM)}")
     }
 
-    fun doTheAutoCollect(){
+    private fun automaticDeposit() {
+        if (isConeInCollector()) {
+            hardware.collector.power = 0.05
+            liftTarget = Depositor.LiftCounts.HighJunction.counts.toDouble()
 
-            fourBarMode = fourBarModes.FOURBAR_MANUAL
+            if (hardware.rightLift.currentPosition >= liftTarget - 300) {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = Depositor.FourBarDegrees.Deposit.degrees
+
+                if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.Deposit.degrees - 5) {
+                    hardware.collector.power = -1.0
+                }
+            } else {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
+            }
+        } else {
+            hardware.collector.power = 0.0
+            // once cone drops go back to home
+            fourBarMode = fourBarModes.FOURBAR_PID
+            fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
+
+            if (fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.Vertical.degrees + 5) {
+                liftTarget = Depositor.LiftCounts.Bottom.counts.toDouble()
+            }
+        }
     }
+
+    private val timeAfterCollectToKeepCollectingSeconds = 3.0
+    var collectionTimeMilis:Long? = null
     fun automatedCollection(multiCone: Boolean) {
         val preCollectLiftTarget = if (multiCone) Depositor.LiftCounts.StackPreCollection else Depositor.LiftCounts.SinglePreCollection
 
         if (!isConeInCollector()) {
+            collectionTimeMilis = null
             hardware.funnelLifter.position = collector.funnelDown
 
             moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
@@ -269,12 +274,23 @@ class PaddieMatrickTeleOp: OpMode() {
                 moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
             }
         } else {
+            if (collectionTimeMilis == null) {
+                collectionTimeMilis = System.currentTimeMillis()
+            }
+
             fourBarMode = fourBarModes.FOURBAR_PID
             fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
 
             if (fourBar.is4BarAtPosition(Depositor.FourBarDegrees.Vertical.degrees)) {
                 hardware.funnelLifter.position = collector.funnelUp
                 liftTarget = if (multiCone) Depositor.LiftCounts.LowJunction.counts.toDouble() else Depositor.LiftCounts.Bottom.counts.toDouble()
+                hardware.collector.power = 1.0
+            }
+
+            if ((System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds) {
+                hardware.collector.power = 0.0
+            } else {
+                hardware.collector.power = 0.0
             }
         }
     }
