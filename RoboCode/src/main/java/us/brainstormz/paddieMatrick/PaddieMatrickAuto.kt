@@ -104,7 +104,8 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
                     OtherTask(action= {
                         depositor.isConeInFunnel()
-                    }, requiredForCompletion = true)
+                    }, requiredForCompletion = true),
+                    timeoutSeconds = 5.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
@@ -114,7 +115,8 @@ class PaddieMatrickAuto: OpMode() {
                         hardware.collector.power = 1.0
 
                         depositor.isConeInCollector()
-                    }, requiredForCompletion = true)
+                    }, requiredForCompletion = true),
+                    timeoutSeconds = 5.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
