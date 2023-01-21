@@ -29,7 +29,7 @@ class PaddieMatrickAuto: OpMode() {
     private val depositPosition = PositionAndRotation(x= -5.3, y= -57.5, r= 45.0)
     private val depositPreload = listOf(
             AutoTask(
-                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.8, accuracyInches = 1.0, requiredForCompletion = true),
+                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = 1.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.SafeDriving.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
             ),
@@ -89,7 +89,7 @@ class PaddieMatrickAuto: OpMode() {
             ),
             AutoTask(
                     ChassisTask(preCollectionPosition, accuracyInches= 1.5, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees - 5, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.funnelLifter.position = collector.funnelDown
@@ -100,7 +100,7 @@ class PaddieMatrickAuto: OpMode() {
             /** Collecting */
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
-                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 200, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 200, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = true),
                     OtherTask(action= {
                         depositor.isConeInFunnel()
