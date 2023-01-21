@@ -82,7 +82,7 @@ class PaddieMatrickAuto: OpMode() {
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = -52.0, r = 90.0)
     private val midPointAccuracy = 1.5
     private val preCollectionPosition = PositionAndRotation(x = 19.0, y = -52.0, r = 90.0)
-    private val collectionPosition = PositionAndRotation(x = 29.0, y = -52.0, r = 89.5)
+    private val collectionPosition = PositionAndRotation(x = 30.5, y = -52.0, r = 89.5)
     private val cycle = listOf(
             /** Prepare to collect */
             AutoTask(
