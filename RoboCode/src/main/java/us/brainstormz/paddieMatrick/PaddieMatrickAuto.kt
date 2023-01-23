@@ -194,6 +194,14 @@ class PaddieMatrickAuto: OpMode() {
         }
         true
     }
+    private val zeroLift = {
+        val isLimitPressed = !hardware.liftLimitSwitch.state
+        if (!isLimitPressed)
+            depositor.powerLift(-0.05)
+        else
+            depositor.powerLift(0.0)
+        isLimitPressed
+    }
     private val parkTimeout = 28.0
     private val parkOne: List<AutoTask> = listOf(
             AutoTask(
@@ -202,7 +210,12 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
                     startDeadlineSeconds = parkTimeout
-            ))
+            ),
+            AutoTask(
+                    ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= zeroLift, requiredForCompletion = true)))
     private val parkTwo: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
@@ -210,15 +223,24 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
                     startDeadlineSeconds = parkTimeout
-            ))
+            ),
+            AutoTask(
+                    ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= zeroLift, requiredForCompletion = true)))
     private val parkThree: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
-                    startDeadlineSeconds = parkTimeout
-            ))
+                    startDeadlineSeconds = parkTimeout),
+            AutoTask(
+                    ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(action= zeroLift, requiredForCompletion = true)))
 
     override fun init() {
         /** INIT PHASE */
