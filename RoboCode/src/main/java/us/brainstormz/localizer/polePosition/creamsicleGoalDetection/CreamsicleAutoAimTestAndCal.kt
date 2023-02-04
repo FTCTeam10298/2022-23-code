@@ -10,6 +10,7 @@ import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
+import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
 //import us.brainstormz.choivico.robotCode.ChoiVicoHardware
 //import us.brainstormz.choivico.robotCode.hardwareClasses.EncoderDriveMovement
 //import us.brainstormz.choivico.telemetryWizard.TelemetryConsole
@@ -20,7 +21,7 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 @Autonomous(name="Creamsicle Test and Calibration", group="Tests")
 class CreamsicleAutoAimTestAndCal : OpMode() {
     //    val hardware = ChoiVicoHardware()
-//    val console = TelemetryConsole(telemetry)
+    val console = TelemetryConsole(telemetry)
     val opencv = OpenCvAbstraction(this)
 ////    val goalDetector = CreamsicleGoalDetector(console)
 //
@@ -32,10 +33,11 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
 
     private val cameraNameInMap = "Webcam 1"
     override fun init() {
+        val creamsicleGoal = CreamsicleGoalDetector(console)
         opencv.cameraName = cameraNameInMap
         opencv.init(hardwareMap)
         opencv.start()
-////        opencv.onNewFrame(goalDetector::scoopFrame)
+        opencv.onNewFrame(creamsicleGoal::scoopFrame)
     }
 //
 ////    private var varBeingEdited: CreamsicleGoalDetector.NamedVar = goalDetector.goalColor.L_H
