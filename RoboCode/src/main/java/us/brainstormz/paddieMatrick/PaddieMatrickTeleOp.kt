@@ -1,15 +1,19 @@
 package us.brainstormz.paddieMatrick
 
+import com.acmerobotics.dashboard.FtcDashboard
+import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DistanceSensor
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.pid.PID
 import us.brainstormz.utils.MathHelps
+import kotlin.math.IEEErem
 import kotlin.math.abs
 
 @TeleOp(name= "PaddieMatrick Tele-op", group= "!")
@@ -58,6 +62,9 @@ class PaddieMatrickTeleOp: OpMode() {
         prevTime = System.currentTimeMillis()
         telemetry.addLine("dt: $dt")
 
+        val dashboard = FtcDashboard.getInstance()
+        val dashboardTelemetry = dashboard.telemetry
+
         telemetry.addLine("limit switch state: ${hardware.liftLimitSwitch.state}")
 
         // DRONE DRIVE
@@ -68,8 +75,8 @@ class PaddieMatrickTeleOp: OpMode() {
 
 //        val yInput = gamepad1.left_stick_y.toDouble()
 //        val xInput =
-        val rInput = gamepad1.right_stick_x.toDouble()
-        val yInput = when {
+        val gamepadSpeedR = gamepad1.right_stick_x.toDouble()
+        val gamepadSpeedY = when {
             gamepad1.dpad_up -> {
                 slowSpeed
             }
@@ -78,7 +85,7 @@ class PaddieMatrickTeleOp: OpMode() {
             }
             else -> -gamepad1.left_stick_y.toDouble()
         }
-        val xInput = when {
+        val gamepadSpeedX = when {
             gamepad1.dpad_left -> {
                 slowSpeed
             }
@@ -88,10 +95,40 @@ class PaddieMatrickTeleOp: OpMode() {
             else -> -gamepad1.left_stick_x.toDouble()
         }
 
+        val balanceAngle = hardware.getImuOrientation().x
+        telemetry.addLine("balanceAngle: $balanceAngle")
+        val offBalanceThresholdDegrees = 4
+        val robotIsTippedTooFar = abs(balanceAngle) > offBalanceThresholdDegrees
+        telemetry.addLine("robotIsTippedTooFar: $robotIsTippedTooFar")
 
-        val y = -yInput / antiTipModifier
-        val x = xInput / antiTipModifier
-        val r = -rInput * abs(rInput) //square the number and keep the sign
+        val balanceAngularVelocity = hardware.imu.getRobotAngularVelocity(AngleUnit.DEGREES).xRotationRate
+        telemetry.addLine("balanceAngularVelocity: $balanceAngularVelocity")
+        val offBalanceThresholdDegreesPerSecond = 40
+        val robotIsTippingTooFast = (abs(balanceAngularVelocity) > offBalanceThresholdDegreesPerSecond)
+        telemetry.addLine("robotIsTippingTooFast: $robotIsTippingTooFast")
+
+        val robotIsOffBalance = robotIsTippedTooFar || robotIsTippingTooFast
+        telemetry.addLine("robotIsOffBalance: $robotIsOffBalance")
+
+        val cappedSpeed = if (robotIsOffBalance) {
+            val degreesPerSecondToPowerMultiplier: Double = 0.1
+            // if the requested power is in the right direction allow it, otherwise slow it down
+            val powerMax: Double = if (balanceAngularVelocity != 0.0f) (1 / (balanceAngularVelocity * degreesPerSecondToPowerMultiplier)).coerceIn(-1.0..1.0) else 1.0
+            telemetry.addLine("powerMax: $powerMax")
+            dashboardTelemetry.addData("powerMax: ", powerMax)
+            dashboardTelemetry.addData("balanceAngle: ", balanceAngle)
+            dashboardTelemetry.addData("balanceAngularVelocity: ", balanceAngularVelocity)
+            dashboardTelemetry.update()
+
+            capGamepadSpeed(gamepadSpeedY, powerMax)
+        } else gamepadSpeedY
+        telemetry.addLine("cappedSpeed: $cappedSpeed")
+
+
+
+        val y = -cappedSpeed
+        val x = gamepadSpeedX
+        val r = -gamepadSpeedR * abs(gamepadSpeedR) //square the number and keep the sign
         movement.driveSetPower((y + x - r),
                                (y - x + r),
                                (y - x - r),
@@ -228,6 +265,14 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("distance: ${hardware.collectorSensor.getDistance(DistanceUnit.MM)}")
     }
 
+    private fun capGamepadSpeed(gamepadPower: Double, powerMax: Double) =
+            if (powerMax < 0)
+                gamepadPower.coerceIn(powerMax..1.0)
+            else if (powerMax > 0)
+                gamepadPower.coerceIn(-1.0..powerMax)
+            else
+                gamepadPower
+
     private fun automaticDeposit() {
         if (isConeInCollector()) {
             hardware.collector.power = 0.05
@@ -263,6 +308,7 @@ class PaddieMatrickTeleOp: OpMode() {
 
 
         if (!isConeInCollector()) {
+            telemetry.addLine("cone is not in collector")
             collectionTimeMilis = null
             hardware.funnelLifter.position = collector.funnelDown
 
@@ -282,6 +328,8 @@ class PaddieMatrickTeleOp: OpMode() {
             }
 
             val coneIsStayingInCollector = (System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds
+            telemetry.addLine("coneIsStayingInCollector: $coneIsStayingInCollector")
+
             if (coneIsStayingInCollector) {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
