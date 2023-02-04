@@ -60,6 +60,7 @@ class PaddieMatrickAuto: OpMode() {
 
                         if (!depositor.isConeInCollector()) {
                             hardware.collector.power = 0.0
+                            println("Robot has reached target: (x= ${depositPosition.x}, y= ${depositPosition.y} r= ${depositPosition.r}). current position is: (x= ${movement.localizer.currentPositionAndRotation().x}, y= ${movement.localizer.currentPositionAndRotation().y} r= ${movement.localizer.currentPositionAndRotation().r})")
                             true
                         } else {
                             false
@@ -156,7 +157,7 @@ class PaddieMatrickAuto: OpMode() {
                     timeoutSeconds = 2.0
             ),
             AutoTask(
-                    ChassisTask(depositPosition, requiredForCompletion = false),
+                    ChassisTask(depositPosition, accuracyInches = 0.1, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
                     OtherTask(action= {
@@ -436,6 +437,9 @@ class PaddieMatrickAuto: OpMode() {
         }
 
         if (isTaskCompleted) {
+            if (chassisTask.targetPosition == depositPosition) {
+                println("Robot has reached target: (x= ${depositPosition.x}, y= ${depositPosition.y} r= ${depositPosition.r}). current position is: (x= ${movement.localizer.currentPositionAndRotation().x}, y= ${movement.localizer.currentPositionAndRotation().y} r= ${movement.localizer.currentPositionAndRotation().r})")
+            }
             currentTask.taskStatus = TaskStatus.Completed
             currentTask.timeFinishedSeconds = getEffectiveRuntime()
         }
