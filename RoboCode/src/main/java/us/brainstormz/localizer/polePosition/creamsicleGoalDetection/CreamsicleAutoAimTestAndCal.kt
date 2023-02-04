@@ -19,9 +19,9 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 
 @Autonomous(name="Creamsicle Test and Calibration", group="Tests")
 class CreamsicleAutoAimTestAndCal : OpMode() {
-//    //    val hardware = ChoiVicoHardware()
+    //    val hardware = ChoiVicoHardware()
 //    val console = TelemetryConsole(telemetry)
-//    val opencv = OpenCvAbstraction(this)
+    val opencv = OpenCvAbstraction(this)
 ////    val goalDetector = CreamsicleGoalDetector(console)
 //
 //    //    val aimer = UltimateGoalAimer(console, goalDetector, hardware)
@@ -29,10 +29,12 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
 //    val font = Imgproc.FONT_HERSHEY_COMPLEX
 //    var camera: OpenCvCamera? = null
 //
+
+    private val cameraNameInMap = "Webcam 1"
     override fun init() {
-//        opencv.cameraName = "Webcam 1"
-//        opencv.init(hardwareMap)
-//        opencv.start()
+        opencv.cameraName = cameraNameInMap
+        opencv.init(hardwareMap)
+        opencv.start()
 ////        opencv.onNewFrame(goalDetector::scoopFrame)
     }
 //
@@ -103,8 +105,8 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
 //
 
     override fun loop() {
-        val theCam:HardwareDevice? = hardwareMap.get("Webcam 1")
-        println("oh joy, another iteration with our camera ?? $theCam")
+        //val theCam:HardwareDevice? = hardwareMap.get(cameraNameInMap)
+        //println("oh joy, another iteration with our camera ?? $theCam")
 
 //        aimer.updateAimAndAdjustRobot()
     }
