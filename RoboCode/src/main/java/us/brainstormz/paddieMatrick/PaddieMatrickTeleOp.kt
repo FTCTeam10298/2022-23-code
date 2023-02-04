@@ -261,6 +261,7 @@ class PaddieMatrickTeleOp: OpMode() {
     fun automatedCollection(multiCone: Boolean) {
         val preCollectLiftTarget = if (multiCone) Depositor.LiftCounts.StackPreCollection else Depositor.LiftCounts.SinglePreCollection
 
+
         if (!isConeInCollector()) {
             collectionTimeMilis = null
             hardware.funnelLifter.position = collector.funnelDown
@@ -278,19 +279,22 @@ class PaddieMatrickTeleOp: OpMode() {
                 collectionTimeMilis = System.currentTimeMillis()
             }
 
-            fourBarMode = fourBarModes.FOURBAR_PID
-            fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
+            val coneIsStayingInCollector = (System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds
+            if (coneIsStayingInCollector) {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
 
-            if (fourBar.is4BarAtPosition(Depositor.FourBarDegrees.Vertical.degrees)) {
-                hardware.funnelLifter.position = collector.funnelUp
-                liftTarget = if (multiCone) Depositor.LiftCounts.LowJunction.counts.toDouble() else Depositor.LiftCounts.Bottom.counts.toDouble()
-                hardware.collector.power = 1.0
-            }
+                if (fourBar.is4BarAtPosition(Depositor.FourBarDegrees.Vertical.degrees)) {
+                    hardware.funnelLifter.position = collector.funnelUp
+                    liftTarget = if (multiCone) Depositor.LiftCounts.LowJunction.counts.toDouble() else Depositor.LiftCounts.Bottom.counts.toDouble()
+                    hardware.collector.power = 1.0
+                }
 
-            if ((System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds) {
-                hardware.collector.power = 0.0
-            } else {
-                hardware.collector.power = 0.0
+                if ((System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds) {
+                    hardware.collector.power = 0.0
+                } else {
+                    hardware.collector.power = 0.0
+                }
             }
         }
     }
