@@ -3,7 +3,11 @@ package us.brainstormz.paddieMatrick
 import com.qualcomm.hardware.bosch.BNO055IMU
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevColorSensorV3
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
 import com.qualcomm.robotcore.hardware.*
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit
 import us.brainstormz.hardwareClasses.EnhancedDCMotor
 import us.brainstormz.hardwareClasses.MecanumHardware
@@ -44,7 +48,7 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     lateinit var funnelSensor: ColorSensor
 
 
-    lateinit var imu: BNO055IMU
+    lateinit var imu: IMU
 
     lateinit var allHubs: List<LynxModule>
 
@@ -55,26 +59,12 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
 
         allHubs = hwMap.getAll(LynxModule::class.java)
 
-//
-//        // define initialization values for IMU, and then initialize it.
-//        val parameters = BNO055IMU.Parameters()
-//        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES
-//        parameters.mode = BNO055IMU.SensorMode.ACCGYRO
-//        parameters.loggingEnabled = true
-//        parameters.loggingTag     = "IMU"
-//        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC
-////        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-//
-//
-//        imu = hwMap["imu"] as BNO055IMU
-//        imu.initialize(parameters)
-//
-//        val calibrationData = imu.readCalibrationData()
-//
-////        imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES) To get the gyro in all 3 axis
-////        imu.calibrationStatus
-////        imu.readCalibrationData()
-////        imu.writeCalibrationData(BNO055IMU.CalibrationData.deserialize("a"))
+        val imuOrientationOnRobot = RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)
+        val imuParameters = IMU.Parameters(imuOrientationOnRobot)
+
+        imu = hwMap["imu"] as IMU
+        imu.initialize(imuParameters)
+        imu.resetYaw()
 
         // Collector
         collector = hwMap["collector"] as CRServo
@@ -144,6 +134,11 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         rFDrive.direction = DcMotorSimple.Direction.REVERSE
         rBDrive.direction = DcMotorSimple.Direction.REVERSE
     }
-     fun getVoltage(): Double = allHubs[0].getInputVoltage(VoltageUnit.VOLTS)
+    fun getVoltage(): Double = allHubs[0].getInputVoltage(VoltageUnit.VOLTS)
+    data class ImuOrientation(val x: Float, val y: Float, val z: Float)
+    fun getImuOrientation(): ImuOrientation {
+        val orientation = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES)
+        return ImuOrientation(orientation.firstAngle, orientation.secondAngle, orientation.thirdAngle)
+    }
 
 }
