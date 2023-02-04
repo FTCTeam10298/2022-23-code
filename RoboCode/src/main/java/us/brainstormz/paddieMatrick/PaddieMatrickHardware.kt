@@ -1,9 +1,9 @@
 package us.brainstormz.paddieMatrick
 
+import com.qualcomm.hardware.bosch.BNO055IMU
 import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.*
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit
 import us.brainstormz.hardwareClasses.EnhancedDCMotor
 import us.brainstormz.hardwareClasses.MecanumHardware
@@ -43,6 +43,9 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     lateinit var funnelLifter: Servo
     lateinit var funnelSensor: ColorSensor
 
+
+    lateinit var imu: BNO055IMU
+
     lateinit var allHubs: List<LynxModule>
 
     override lateinit var hwMap: HardwareMap
@@ -51,6 +54,27 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         hwMap = ahwMap
 
         allHubs = hwMap.getAll(LynxModule::class.java)
+
+//
+//        // define initialization values for IMU, and then initialize it.
+//        val parameters = BNO055IMU.Parameters()
+//        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES
+//        parameters.mode = BNO055IMU.SensorMode.ACCGYRO
+//        parameters.loggingEnabled = true
+//        parameters.loggingTag     = "IMU"
+//        parameters.accelUnit           = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC
+////        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
+//
+//
+//        imu = hwMap["imu"] as BNO055IMU
+//        imu.initialize(parameters)
+//
+//        val calibrationData = imu.readCalibrationData()
+//
+////        imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES) To get the gyro in all 3 axis
+////        imu.calibrationStatus
+////        imu.readCalibrationData()
+////        imu.writeCalibrationData(BNO055IMU.CalibrationData.deserialize("a"))
 
         // Collector
         collector = hwMap["collector"] as CRServo
