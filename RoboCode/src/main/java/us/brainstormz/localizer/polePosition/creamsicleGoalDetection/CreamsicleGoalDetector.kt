@@ -75,9 +75,9 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
     // trained for rooms so you can prove AAY! IM A G$$D PERS$N! (blame it on Odd1sOut)
 
     private val redColor = ColorRange(
-            L_H = NamedVar("Low Hue", 120.0),
-            L_S = NamedVar("Low Saturation", 115.0),
-            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 120.0),
+            L_H = NamedVar("Low Hue", 0.0),
+            L_S = NamedVar("Low Saturation", 0.0),
+            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 0.0),
             U_H = NamedVar("Uppper Hue", 255.0),
             U_S = NamedVar("Upper Saturation", 255.0),
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
