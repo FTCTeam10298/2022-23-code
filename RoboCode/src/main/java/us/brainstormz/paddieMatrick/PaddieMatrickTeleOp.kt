@@ -269,9 +269,11 @@ class PaddieMatrickTeleOp: OpMode() {
             moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
 
             if (isConeInFunnel()) {
+                telemetry.addLine("Cone is In Funnel")
                 hardware.collector.power = 1.0
                 moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = Depositor.LiftCounts.Collection)
             } else {
+                hardware.collector.power = 0.0
                 moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
             }
         } else {
