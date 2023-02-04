@@ -21,6 +21,12 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 
 class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
+    enum class Mode {
+        FRAME,
+        MASK,
+        KERNEL
+    }
+
     // THIS STUFF DO BE A DETECTOR. PICTURE AN 'APPLE IN A SUNNY ROOM' (thought experiment © 1998 Aperture Science Innovators)
     //RED will detect that apple if it's lit by a halogen bulb (panel, only $200,000,000 per!)
     //BLUE will detect an apple that has been modified with mantis DNA to change its hue.
@@ -34,11 +40,11 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
         absRED
     }
 
-    var targetHue = TargetHue.RED
+    var targetHue = TargetHue.BLUE
 
     private val font = Imgproc.FONT_HERSHEY_COMPLEX
 
-    var displayMode: String = "frame"
+    var displayMode: Mode = Mode.FRAME
 
     class NamedVar(val name: String, var value: Double)
 
@@ -75,9 +81,9 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
     // trained for rooms so you can prove AAY! IM A G$$D PERS$N! (blame it on Odd1sOut)
 
     private val redColor = ColorRange(
-            L_H = NamedVar("Low Hue", 0.0),
-            L_S = NamedVar("Low Saturation", 0.0),
-            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 0.0),
+            L_H = NamedVar("Low Hue", 120.0),
+            L_S = NamedVar("Low Saturation", 115.0),
+            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 120.0),
             U_H = NamedVar("Uppper Hue", 255.0),
             U_S = NamedVar("Upper Saturation", 255.0),
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
@@ -211,10 +217,11 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
         }
 
         return when (displayMode) {
-            "frame" -> frame
-            "kernel" -> kernel
-            "mask" -> maskB
-            else -> frame
+            Mode.FRAME -> frame
+            Mode.KERNEL -> kernel
+            Mode.MASK -> maskB
         }
     }
+
+    private val dummy = Mat()
 }
