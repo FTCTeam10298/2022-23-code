@@ -1,6 +1,8 @@
 package us.brainstormz.hardwareClasses
 
 import com.qualcomm.robotcore.hardware.DcMotor
+import kotlin.math.cos
+import kotlin.math.sin
 
 open class MecanumDriveTrain(private val hardware: MecanumHardware) {
 
@@ -16,6 +18,17 @@ open class MecanumDriveTrain(private val hardware: MecanumHardware) {
         hardware.rFDrive.power = rFPower
         hardware.lBDrive.power = lBPower
         hardware.rBDrive.power = rBPower
+    }
+
+    fun driveFieldCentric(x: Double, y: Double, r: Double, currentHeadingRadians: Double) {
+        val rotX = x * cos(-currentHeadingRadians) - y * sin(-currentHeadingRadians)
+        val rotY = x * sin(-currentHeadingRadians) + y * cos(-currentHeadingRadians)
+
+        driveSetPower(
+                (rotY + rotX + r),
+                (rotY - rotX - r),
+                (rotY - rotX + r),
+                (rotY + rotX - r))
     }
 
     /**
