@@ -418,14 +418,14 @@ class PaddieMatrickAuto: OpMode() {
 
         val liftTask = currentTask.liftTask
         depositor.accuracy = liftTask.accuracyCounts
-        val isLiftTaskCompleted = depositor.moveLift(liftTask.targetCounts)
+        val isLiftTaskCompleted = true//depositor.moveLift(liftTask.targetCounts)
 
         val fourBarTask = currentTask.fourBarTask
         fourBar.accuracyDegrees = fourBarTask.accuracyDegrees
-        val isFourBarTaskCompleted = depositor.moveFourBar(fourBarTask.targetDegrees)
+        val isFourBarTaskCompleted = true//depositor.moveFourBar(fourBarTask.targetDegrees)
 
         val subassemblyTask = currentTask.subassemblyTask
-        val isSubassemblyTaskCompleted = subassemblyTask?.action?.invoke()
+        val isSubassemblyTaskCompleted = true//subassemblyTask?.action?.invoke()
 
 
         val completions = listOf(chassisTask to isChassisTaskCompleted, liftTask to isLiftTaskCompleted, fourBarTask to isFourBarTaskCompleted, subassemblyTask to isSubassemblyTaskCompleted)
@@ -438,7 +438,11 @@ class PaddieMatrickAuto: OpMode() {
 
         if (isTaskCompleted) {
             if (chassisTask.targetPosition == depositPosition) {
-                println("Robot has reached target: (x= ${depositPosition.x}, y= ${depositPosition.y} r= ${depositPosition.r}). current position is: (x= ${movement.localizer.currentPositionAndRotation().x}, y= ${movement.localizer.currentPositionAndRotation().y} r= ${movement.localizer.currentPositionAndRotation().r})")
+                val message = "Robot has reached target: (x= ${depositPosition.x}, y= ${depositPosition.y} r= ${depositPosition.r}). current position is: (x= ${movement.localizer.currentPositionAndRotation().x}, y= ${movement.localizer.currentPositionAndRotation().y} r= ${movement.localizer.currentPositionAndRotation().r})"
+                telemetry.addLine(message)
+                dashboard.telemetry.addData("Robot has reached target: ", depositPosition)
+                dashboard.telemetry.addData("current position is: ", movement.localizer.currentPositionAndRotation())
+                print(message)
             }
             currentTask.taskStatus = TaskStatus.Completed
             currentTask.timeFinishedSeconds = getEffectiveRuntime()
