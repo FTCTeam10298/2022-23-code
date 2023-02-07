@@ -25,7 +25,7 @@ class TestFieldCentric: OpMode() {
 
         val x = -gamepad1.left_stick_x * 1.1 // Counteract imperfect strafing
 
-        val rx = -gamepad1.right_stick_x.toDouble()
+        val rx = gamepad1.right_stick_x.toDouble()
         val ry = -gamepad1.right_stick_y.toDouble()
 
         val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
@@ -35,7 +35,7 @@ class TestFieldCentric: OpMode() {
         fun mod(x: Double, y: Double) = (x%y) * (y/y)
         val rad = if (gamepad1.right_stick_x != 0.0f || gamepad1.right_stick_y != 0.0f) (head-atan)%(2*PI) else 0.0
 
-        movement.driveFieldCentric(x, y, rad, botHeading)
+        movement.driveFieldCentric(x, y, rx, botHeading)
 
         telemetry.addLine("atan: $atan")
         telemetry.addLine("head: $head")
