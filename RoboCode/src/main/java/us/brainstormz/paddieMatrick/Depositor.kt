@@ -123,7 +123,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
     }
 
     fun isConeInCollector(): Boolean {
-        val minCollectedDistance = 56
+        val minCollectedDistance = 45
         val collectedOpticalThreshold = 250 //doesnt work when cone is at an angle
         val collectedRedThreshold = 100
 
@@ -136,16 +136,18 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
 
     fun isConeInFunnel(): Boolean {
         val collectableDistance = 30
+        val opticalThreshold = 2046
         val funnelBlueThreshold = 60
         val funnelRedThreshold = 60
 
         val red = hardware.funnelSensor.red()
         val blue = hardware.funnelSensor.blue()
+        val optical = hardware.funnelSensor.rawOptical()
         val distance = hardware.funnelSensor.getDistance(DistanceUnit.MM)
 //        telemetry.addLine("red: $red")
 //        telemetry.addLine("blue: $blue")
 //        telemetry.addLine("funnel distance: $distance")
-        return distance < collectableDistance && (blue > funnelBlueThreshold || red > funnelRedThreshold)
+        return distance < collectableDistance || optical >= opticalThreshold // && (blue > funnelBlueThreshold || red > funnelRedThreshold)
     }
 
 }
