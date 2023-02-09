@@ -19,14 +19,14 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         Collecting(70.0),//Collecting(72.0),
         PreCollection(110.0),
         Vertical(180.0),
-        PreDeposit(210.0),
+        PreDeposit(220.0),
         Deposit(262.0)
     }
     enum class LiftCounts(val counts: Int) {
         HighJunction(3900),
         MidJunction(2200),
         SafeDriving(1800),
-        StackPreCollection(1080),
+        StackPreCollection(1110),
         LowJunction(650),
         SinglePreCollection(450),
         Collection(0),
@@ -106,7 +106,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return isLiftAtPosition(targetCounts)
     }
 
-    var accuracy = 200
+    var accuracy = 300
     fun isLiftAtPosition(target: Int): Boolean {
         val targetRange = target - accuracy..target + accuracy
         return hardware.rightLift.currentPosition in targetRange
