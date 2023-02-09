@@ -220,12 +220,13 @@ class PaddieMatrickTeleOp: OpMode() {
                 hardware.funnelLifter.position = collector.funnelUp
             }
         }
+        telemetry.addLine("funnel distance(MM): ${hardware.funnelSensor.getDistance(DistanceUnit.MM)}")
 
-        telemetry.addLine("red: ${hardware.collectorSensor.red()}")
-        telemetry.addLine("blue: ${hardware.collectorSensor.blue()}")
-        telemetry.addLine("alpha: ${hardware.collectorSensor.alpha()}")
-        telemetry.addLine("optical: ${hardware.collectorSensor.rawOptical()}")
-        telemetry.addLine("distance: ${hardware.collectorSensor.getDistance(DistanceUnit.MM)}")
+        telemetry.addLine("collectorSensor red: ${hardware.collectorSensor.red()}")
+        telemetry.addLine("collectorSensor blue: ${hardware.collectorSensor.blue()}")
+        telemetry.addLine("collectorSensor alpha: ${hardware.collectorSensor.alpha()}")
+        telemetry.addLine("collectorSensor optical: ${hardware.collectorSensor.rawOptical()}")
+        telemetry.addLine("collectorSensor distance(MM): ${hardware.collectorSensor.getDistance(DistanceUnit.MM)}")
     }
 
     private fun automaticDeposit() {
@@ -320,7 +321,7 @@ class PaddieMatrickTeleOp: OpMode() {
     }
 
     fun isConeInFunnel(): Boolean {
-        val collectableDistance = 75
+        val collectableDistance = 30
         val funnelBlueThreshold = 60
         val funnelRedThreshold = 60
 
