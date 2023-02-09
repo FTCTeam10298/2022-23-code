@@ -141,7 +141,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
 
         val red = hardware.funnelSensor.red()
         val blue = hardware.funnelSensor.blue()
-        val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
+        val distance = hardware.funnelSensor.getDistance(DistanceUnit.MM)
 //        telemetry.addLine("red: $red")
 //        telemetry.addLine("blue: $blue")
 //        telemetry.addLine("funnel distance: $distance")
