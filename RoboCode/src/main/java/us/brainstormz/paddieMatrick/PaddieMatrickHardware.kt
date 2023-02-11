@@ -21,6 +21,7 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     lateinit var liftLimitSwitch: DigitalChannel
     lateinit var leftLift: DcMotorEx
     lateinit var rightLift: DcMotorEx
+    lateinit var extraLift: DcMotorEx
 
     lateinit var encoder4Bar: AnalogInput
     lateinit var left4Bar: CRServo
