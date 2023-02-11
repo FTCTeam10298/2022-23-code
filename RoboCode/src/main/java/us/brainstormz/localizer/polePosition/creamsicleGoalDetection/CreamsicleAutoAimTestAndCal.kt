@@ -11,6 +11,7 @@ import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
 import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
+import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.changeableValues
 //import us.brainstormz.choivico.robotCode.ChoiVicoHardware
 //import us.brainstormz.choivico.robotCode.hardwareClasses.EncoderDriveMovement
 //import us.brainstormz.choivico.telemetryWizard.TelemetryConsole
@@ -49,11 +50,11 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
     override fun init_loop() {
         println("Hi!")
         if (gamepad1.x) {
-            console.display(3, "TrainerMODE; ${goalDetector.displayMode}")
-            when (goalDetector.displayMode) {
-                CreamsicleGoalDetector.Mode.FRAME -> goalDetector.displayMode = CreamsicleGoalDetector.Mode.MASK
-                CreamsicleGoalDetector.Mode.MASK -> goalDetector.displayMode = CreamsicleGoalDetector.Mode.KERNEL
-                CreamsicleGoalDetector.Mode.KERNEL -> goalDetector.displayMode = CreamsicleGoalDetector.Mode.FRAME
+            console.display(3, "TrainerMODE; ${changeableValues.displayMode}")
+            when (changeableValues.displayMode) {
+                CreamsicleGoalDetector.Mode.FRAME -> changeableValues.displayMode = CreamsicleGoalDetector.Mode.MASK
+                CreamsicleGoalDetector.Mode.MASK -> changeableValues.displayMode = CreamsicleGoalDetector.Mode.KERNEL
+                CreamsicleGoalDetector.Mode.KERNEL -> changeableValues.displayMode = CreamsicleGoalDetector.Mode.FRAME
             }
             render()
         }

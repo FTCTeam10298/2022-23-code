@@ -12,12 +12,20 @@
 ////Lie until further notice.
 //
 //
+
+
 package us.brainstormz.localizer.polePosition.creamsicleGoalDetection
 
+import com.acmerobotics.dashboard.config.Config
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
+@Config
+object changeableValues {
+    @JvmField var displayMode: CreamsicleGoalDetector.Mode = CreamsicleGoalDetector.Mode.FRAME
+
+}
 
 class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
@@ -44,9 +52,10 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
     private val font = Imgproc.FONT_HERSHEY_COMPLEX
 
-    var displayMode: Mode = Mode.FRAME
+//    var displayMode: Mode = Mode.FRAME
 
     class NamedVar(val name: String, var value: Double)
+
 
     /*
     # values for Cam Calibrated Goal detection DURING THE DAY: L-H = 95, L-S = 105, L-V = 000, U-H = 111, U-S = 255, U-V = 255
@@ -60,7 +69,7 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
     class ColorRange(val L_H: NamedVar, val L_S: NamedVar, val L_V: NamedVar, val U_H: NamedVar, val U_S: NamedVar, val U_V: NamedVar)
 
     //Trained for Sunlight- useful for Wall-E but not Eve. SOMEDAY I'LL ADD A SWITCHER BTW INDOOR/OUTDOOR MODES BUT NO I DON't wANNA
-    private val redSolarizedColor = ColorRange(
+     val redSolarizedColor = ColorRange(
             L_H = NamedVar("Low Hue", 120.0),
             L_S = NamedVar("Low Saturation", 150.0),
             L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 0.0),
@@ -216,7 +225,7 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
             }
         }
 
-        return when (displayMode) {
+        return when (changeableValues.displayMode) {
             Mode.FRAME -> frame
             Mode.KERNEL -> kernel
             Mode.MASK -> maskB
