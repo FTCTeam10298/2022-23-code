@@ -190,7 +190,7 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("lift position: ${hardware.rightLift.currentPosition}")
         telemetry.addLine("liftTarget: $liftTarget")
         telemetry.addLine("liftPower: $liftPower")
-        telemetry.addLine("Lift Amps:\n    Left: ${hardware.leftLift.getCurrent(CurrentUnit.AMPS)}\n   Right: ${hardware.rightLift.getCurrent(CurrentUnit.AMPS)}")
+        telemetry.addLine("Lift Amps:\n    Left: ${hardware.leftLift.getCurrent(CurrentUnit.AMPS)}\n   Right: ${hardware.rightLift.getCurrent(CurrentUnit.AMPS)}\n   Other: ${hardware.extraLift.getCurrent(CurrentUnit.AMPS)}")
 
         powerLift(liftPower)
 
@@ -222,6 +222,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 hardware.funnelLifter.position = collector.funnelUp
             }
         }
+        telemetry.addLine("tooth conversion: ${Depositor.Tooth.oldToNewCountsConversion}")
         telemetry.addLine("funnel distance(MM): ${hardware.funnelSensor.getDistance(DistanceUnit.MM)}")
 
         telemetry.addLine("collectorSensor red: ${hardware.collectorSensor.red()}")
@@ -361,6 +362,7 @@ class PaddieMatrickTeleOp: OpMode() {
     fun powerLift(power: Double) {
         hardware.leftLift.power = power
         hardware.rightLift.power = power // Direction reversed in hardware map
+        hardware.extraLift.power = power
     }
 }
 

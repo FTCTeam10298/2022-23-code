@@ -84,13 +84,16 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         // Lift
         leftLift = hwMap["leftLift"] as DcMotorEx
         rightLift = hwMap["rightLift"] as DcMotorEx
+        extraLift = hwMap["cEncoder"] as DcMotorEx
         liftLimitSwitch = hwMap["limitSwitch"] as DigitalChannelImpl
 
         rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        extraLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         leftLift.direction = DcMotorSimple.Direction.FORWARD
         rightLift.direction = DcMotorSimple.Direction.REVERSE
+        extraLift.direction = DcMotorSimple.Direction.FORWARD
 
         //Encoders/Deadwheels
         //3 = R; 2 = C; 1 = L
@@ -102,8 +105,9 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
         centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        rightOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         leftOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        centerOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         lOdom = EnhancedDCMotor(leftOdomEncoder)
         rOdom = EnhancedDCMotor(rightOdomEncoder)
