@@ -26,9 +26,9 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         HighJunction(3900),
         MidJunction(2200),
         SafeDriving(1800),
-        StackPreCollection(1110),
-        LowJunction(650),
-        SinglePreCollection(450),
+        StackPreCollection(1250),
+        LowJunction(750),
+        SinglePreCollection(600),
         Collection(0),
         Bottom(0)
     }
