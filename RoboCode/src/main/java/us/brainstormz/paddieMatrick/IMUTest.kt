@@ -1,47 +1,41 @@
-//package us.brainstormz.paddieMatrick
-//
-//import com.qualcomm.hardware.bosch.BNO055IMU
-//import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-//import com.qualcomm.robotcore.eventloop.opmode.OpMode
-//import com.qualcomm.robotcore.eventloop.opmode.TeleOp
-//import com.qualcomm.robotcore.hardware.IMU
-//
-//@TeleOp
-//class IMUTest: LinearOpMode() {
-//
-//    override fun runOpMode() {
-//        // define initialization values for IMU, and then initialize it.
-//        val parameters = BNO055IMU.Parameters()
-//        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES
-////        parameters.mode = BNO055IMU.SensorMode.
-//        parameters.loggingEnabled = true
-//        parameters.loggingTag     = "IMU"
-//        parameters.accelUnit      = BNO055IMU.AccelUnit.METERS_PERSEC_PERSEC
-////        parameters.calibrationDataFile = "BNO055IMUCalibration.json"; // see the calibration sample opmode
-//
-//
-//        val imu: IMU = hardwareMap["imu"] as IMU
-//        imu.initialize(parameters)
-//
-//        val calibrationData = imu.readCalibrationData()
-//
-////        imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES) To get the gyro in all 3 axis
-////        imu.calibrationStatus
-////        imu.readCalibrationData()
-////        imu.writeCalibrationData(BNO055IMU.CalibrationData.deserialize("a"))
-//
-//        while (opModeInInit() || opModeIsActive()) {
-//            telemetry.addLine("Current Time Millis: ${System.currentTimeMillis()}")
-//            telemetry.addLine(
-//                    "Imu: $imu" +
-//                    "Data:\n" +
-//                    "   Acceleration:\n" +
-//                    "       ${imu.acceleration}\n" +
-//                    "   Position:\n" +
-//                    "       ${imu.position}")
-//            telemetry.update()
-//
-//        }
-//
-//    }
-//}
+package us.brainstormz.paddieMatrick
+
+import com.qualcomm.hardware.rev.RevHubOrientationOnRobot
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.IMU
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference
+
+@TeleOp
+class IMUTest: LinearOpMode() {
+
+    override fun runOpMode() {
+        val imuOrientationOnRobot = RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)
+        val imuParameters = IMU.Parameters(imuOrientationOnRobot)
+
+        val imu: IMU = hardwareMap["imu"] as IMU
+        imu.initialize(imuParameters)
+        imu.resetYaw()
+
+        while (opModeInInit() || opModeIsActive()) {
+            telemetry.addLine("Current Time Millis: ${System.currentTimeMillis()}")
+            val orientation = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES)
+            val x = orientation.firstAngle
+            val y = orientation.secondAngle
+            val z = orientation.thirdAngle
+            val angularVelocity = imu.getRobotAngularVelocity(AngleUnit.DEGREES)
+
+            telemetry.addLine(
+                    "Imu Data:\n" +
+                    "   Acceleration:\n" +
+                    "       ${angularVelocity}\n" +
+                    "   Position:\n" +
+                    "       x= $x, y= $y, z= $z")
+            telemetry.update()
+
+        }
+
+    }
+}

@@ -2,13 +2,13 @@ package us.brainstormz.paddieMatrick
 
 import com.qualcomm.robotcore.hardware.CRServo
 
-class Collector() {
+class Collector {
     private lateinit var servo: CRServo
 
     val heightInch = 4.0
 
-    val funnelDown = 0.3
-    val funnelUp = 0.8
+    val funnelDown = 0.2
+    val funnelUp = 1.0
 
     fun init(frontServo: CRServo) {
         this.servo = frontServo

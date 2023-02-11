@@ -1,19 +1,18 @@
 package us.brainstormz.paddieMatrick
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
+import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DistanceSensor
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
-import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.pid.PID
 import us.brainstormz.utils.MathHelps
 import kotlin.math.abs
 
-@TeleOp(name= "PaddieMatrick Tele-op", group= "!")
-class PaddieMatrickTeleOp: OpMode() {
+@TeleOp(name= "Experimental TeleOp", group= "!")
+class ExperimentalTeleOp: OpMode() {
 
     val hardware = PaddieMatrickHardware()
     val movement = MecanumDriveTrain(hardware)
@@ -88,14 +87,13 @@ class PaddieMatrickTeleOp: OpMode() {
             else -> -gamepad1.left_stick_x.toDouble()
         }
 
+        val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
 
         val y = -yInput / antiTipModifier
         val x = xInput / antiTipModifier
-        val r = -rInput * abs(rInput) //square the number and keep the sign
-        movement.driveSetPower((y + x - r),
-                               (y - x + r),
-                               (y - x - r),
-                               (y + x + r))
+        val r = -rInput * abs(rInput)
+
+        movement.driveFieldCentric(x, y, -r, botHeading)
 
         // Four bar
         telemetry.addLine("fourbar position: ${fourBar.current4BarDegrees()}")
@@ -110,12 +108,12 @@ class PaddieMatrickTeleOp: OpMode() {
             abs(gamepad2.right_stick_y) > 0.1 -> {
                 fourBarMode = fourBarModes.FOURBAR_MANUAL
             }
+            gamepad2.right_bumper -> {
+                automaticDrop()
+            }
             abs(gamepad2.right_stick_y) < 0.1 && fourBarMode == fourBarModes.FOURBAR_MANUAL -> {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = fourBar.current4BarDegrees()
-            }
-            gamepad2.right_bumper -> {
-                automaticDrop()
             }
         }
 
@@ -202,7 +200,8 @@ class PaddieMatrickTeleOp: OpMode() {
             gamepad1.left_trigger > 0 || gamepad2.left_trigger > 0 -> {
                 hardware.collector.power = -1.0
             }
-            !((gamepad1.a && !gamepad1.start) || gamepad2.y) -> {
+            (gamepad1.a && !gamepad1.start) || gamepad2.y -> {}
+            else -> {
                 hardware.collector.power = 0.05
             }
         }
@@ -259,7 +258,29 @@ class PaddieMatrickTeleOp: OpMode() {
         }
     }
 
-    private val timeAfterCollectToKeepCollectingSeconds = 0.5
+    private fun automaticDrop() {
+        if (isConeInCollector()) {
+            hardware.collector.power = 0.05
+            if (hardware.rightLift.currentPosition >= liftTarget - 300) {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = Depositor.FourBarDegrees.Deposit.degrees
+
+                if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.Deposit.degrees - 5) {
+                    hardware.collector.power = -1.0
+                }
+            } else {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
+            }
+        } else {
+            hardware.collector.power = 0.0
+            // once cone drops go back to home
+            fourBarMode = fourBarModes.FOURBAR_PID
+            fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
+        }
+    }
+
+    private val timeAfterCollectToKeepCollectingSeconds = 3.0
     var collectionTimeMilis:Long? = null
     fun automatedCollection(multiCone: Boolean) {
         val preCollectLiftTarget = if (multiCone) Depositor.LiftCounts.StackPreCollection else Depositor.LiftCounts.SinglePreCollection
@@ -284,7 +305,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 collectionTimeMilis = System.currentTimeMillis()
             }
 
-            val coneIsStayingInCollector = (System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds * 1000
+            val coneIsStayingInCollector = (System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds
             if (coneIsStayingInCollector) {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
@@ -295,10 +316,10 @@ class PaddieMatrickTeleOp: OpMode() {
                     hardware.collector.power = 1.0
                 }
 
-                if (coneIsStayingInCollector) {
+                if ((System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds) {
                     hardware.collector.power = 0.0
                 } else {
-                    hardware.collector.power = 1.0
+                    hardware.collector.power = 0.0
                 }
             }
         }
@@ -322,28 +343,6 @@ class PaddieMatrickTeleOp: OpMode() {
         return collectorDistance < minCollectedDistance// && collectorRawOptical > collectedOpticalThreshold// || collectorRed > collectedRedThreshold)
     }
 
-    private fun automaticDrop() {
-        if (isConeInCollector()) {
-            hardware.collector.power = 0.05
-            if (hardware.rightLift.currentPosition >= liftTarget - 300) {
-                fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = Depositor.FourBarDegrees.Deposit.degrees
-
-                if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.Deposit.degrees - 5) {
-                    hardware.collector.power = -1.0
-                }
-            } else {
-                fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
-            }
-        } else {
-            hardware.collector.power = 0.0
-            // once cone drops go back to home
-            fourBarMode = fourBarModes.FOURBAR_PID
-            fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
-        }
-    }
-
     fun isConeInFunnel(): Boolean {
         val collectableDistance = 30
         val funnelBlueThreshold = 60
@@ -362,25 +361,4 @@ class PaddieMatrickTeleOp: OpMode() {
         hardware.leftLift.power = power
         hardware.rightLift.power = power // Direction reversed in hardware map
     }
-}
-
-//@TeleOp(name= "4bar Calibrator", group= "A")
-class fourBarCalibrator: LinearOpMode() {
-
-    val hardware = PaddieMatrickHardware()
-    val fourBar = FourBar(telemetry)
-
-    override fun runOpMode() {
-
-        hardware.init(hardwareMap)
-        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-
-
-        while (!isStarted && opModeInInit()) {
-            telemetry.addLine("fourBar position: ${fourBar.current4BarDegrees()}")
-        }
-
-        PaddieMatrickTeleOp.centerPosition = fourBar.current4BarDegrees()
-    }
-
 }

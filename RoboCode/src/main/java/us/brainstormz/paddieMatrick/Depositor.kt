@@ -19,16 +19,16 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         Collecting(70.0),//Collecting(72.0),
         PreCollection(110.0),
         Vertical(180.0),
-        PreDeposit(210.0),
+        PreDeposit(220.0),
         Deposit(262.0)
     }
     enum class LiftCounts(val counts: Int) {
         HighJunction(3900),
         MidJunction(2200),
         SafeDriving(1800),
-        StackPreCollection(1080),
-        LowJunction(650),
-        SinglePreCollection(450),
+        StackPreCollection(1250),
+        LowJunction(750),
+        SinglePreCollection(600),
         Collection(0),
         Bottom(0)
     }
@@ -106,7 +106,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return isLiftAtPosition(targetCounts)
     }
 
-    var accuracy = 200
+    var accuracy = 300
     fun isLiftAtPosition(target: Int): Boolean {
         val targetRange = target - accuracy..target + accuracy
         return hardware.rightLift.currentPosition in targetRange
@@ -123,7 +123,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
     }
 
     fun isConeInCollector(): Boolean {
-        val minCollectedDistance = 56
+        val minCollectedDistance = 45
         val collectedOpticalThreshold = 250 //doesnt work when cone is at an angle
         val collectedRedThreshold = 100
 
@@ -135,17 +135,19 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
     }
 
     fun isConeInFunnel(): Boolean {
-        val collectableDistance = 75
+        val collectableDistance = 30
+        val opticalThreshold = 2046
         val funnelBlueThreshold = 60
         val funnelRedThreshold = 60
 
         val red = hardware.funnelSensor.red()
         val blue = hardware.funnelSensor.blue()
-        val distance = (hardware.funnelSensor as DistanceSensor).getDistance(DistanceUnit.MM)
+        val optical = hardware.funnelSensor.rawOptical()
+        val distance = hardware.funnelSensor.getDistance(DistanceUnit.MM)
 //        telemetry.addLine("red: $red")
 //        telemetry.addLine("blue: $blue")
 //        telemetry.addLine("funnel distance: $distance")
-        return distance < collectableDistance && (blue > funnelBlueThreshold || red > funnelRedThreshold)
+        return distance < collectableDistance || optical >= opticalThreshold // && (blue > funnelBlueThreshold || red > funnelRedThreshold)
     }
 
 }
