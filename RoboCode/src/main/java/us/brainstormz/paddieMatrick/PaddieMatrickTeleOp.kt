@@ -114,6 +114,9 @@ class PaddieMatrickTeleOp: OpMode() {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = fourBar.current4BarDegrees()
             }
+            gamepad2.right_bumper -> {
+                automaticDrop()
+            }
         }
 
         //fourBarTarget += (gamepad2.right_stick_y.toDouble() * fourBarSpeed / dt)
@@ -199,8 +202,7 @@ class PaddieMatrickTeleOp: OpMode() {
             gamepad1.left_trigger > 0 || gamepad2.left_trigger > 0 -> {
                 hardware.collector.power = -1.0
             }
-            (gamepad1.a && !gamepad1.start) || gamepad2.y -> {}
-            else -> {
+            !((gamepad1.a && !gamepad1.start) || gamepad2.y) -> {
                 hardware.collector.power = 0.05
             }
         }
@@ -210,10 +212,10 @@ class PaddieMatrickTeleOp: OpMode() {
                 println("Auto Collection Disabled >:0 UwU OwO >::)")
                 hardware.funnelLifter.position = collector.funnelDown
             }
-            gamepad1.right_bumper || gamepad2.right_bumper -> {
+            gamepad1.right_bumper -> {
                 automatedCollection(multiCone = false)
             }
-            gamepad1.left_bumper || gamepad2.left_bumper -> {
+            gamepad1.left_bumper -> {
                 automatedCollection(multiCone = true)
             }
             else -> {
@@ -257,7 +259,7 @@ class PaddieMatrickTeleOp: OpMode() {
         }
     }
 
-    private val timeAfterCollectToKeepCollectingSeconds = 3.0
+    private val timeAfterCollectToKeepCollectingSeconds = 0.5
     var collectionTimeMilis:Long? = null
     fun automatedCollection(multiCone: Boolean) {
         val preCollectLiftTarget = if (multiCone) Depositor.LiftCounts.StackPreCollection else Depositor.LiftCounts.SinglePreCollection
@@ -282,7 +284,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 collectionTimeMilis = System.currentTimeMillis()
             }
 
-            val coneIsStayingInCollector = (System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds
+            val coneIsStayingInCollector = (System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds * 1000
             if (coneIsStayingInCollector) {
                 fourBarMode = fourBarModes.FOURBAR_PID
                 fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
@@ -293,10 +295,10 @@ class PaddieMatrickTeleOp: OpMode() {
                     hardware.collector.power = 1.0
                 }
 
-                if ((System.currentTimeMillis() - collectionTimeMilis!!) >= timeAfterCollectToKeepCollectingSeconds) {
+                if (coneIsStayingInCollector) {
                     hardware.collector.power = 0.0
                 } else {
-                    hardware.collector.power = 0.0
+                    hardware.collector.power = 1.0
                 }
             }
         }
@@ -318,6 +320,28 @@ class PaddieMatrickTeleOp: OpMode() {
         val collectorRed = hardware.collectorSensor.red()
 
         return collectorDistance < minCollectedDistance// && collectorRawOptical > collectedOpticalThreshold// || collectorRed > collectedRedThreshold)
+    }
+
+    private fun automaticDrop() {
+        if (isConeInCollector()) {
+            hardware.collector.power = 0.05
+            if (hardware.rightLift.currentPosition >= liftTarget - 300) {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = Depositor.FourBarDegrees.Deposit.degrees
+
+                if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.Deposit.degrees - 5) {
+                    hardware.collector.power = -1.0
+                }
+            } else {
+                fourBarMode = fourBarModes.FOURBAR_PID
+                fourBarTarget = Depositor.FourBarDegrees.PreDeposit.degrees
+            }
+        } else {
+            hardware.collector.power = 0.0
+            // once cone drops go back to home
+            fourBarMode = fourBarModes.FOURBAR_PID
+            fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
+        }
     }
 
     fun isConeInFunnel(): Boolean {
