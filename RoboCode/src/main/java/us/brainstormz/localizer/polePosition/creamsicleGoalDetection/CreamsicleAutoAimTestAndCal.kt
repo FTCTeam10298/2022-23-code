@@ -21,6 +21,12 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 
 @Autonomous(name = "Creamsicle Test and Calibration", group = "Tests")
 class CreamsicleAutoAimTestAndCal : OpMode() {
+    var yPressed = false
+    var aPressed = false
+    var dpadLeftPressed = false
+    var rBumperPressed = false
+    var lBumperPressed = false
+
     //        val hardware = ChoiVicoHardware()
     val console = TelemetryConsole(telemetry)
     val opencv = OpenCvAbstraction(this)
@@ -34,11 +40,7 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
 
     private val cameraNameInMap = "Webcam 1"
     override fun init() {
-        val yPressed = false
-        val aPressed = false
-        val dpadLeftPressed = false
-        val rBumperPressed = false
-        val lBumperPressed = false
+
 
 
         val creamsicleGoal = CreamsicleGoalDetector(console)
@@ -67,7 +69,7 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
         }
 
 
-        if (gamepad1.dpad_left) {
+        if (gamepad1.dpad_left && !dpadLeftPressed) {
                 when (varBeingEdited) {
                     goalDetector.goalColor.L_H -> varBeingEdited = goalDetector.goalColor.L_S
                     goalDetector.goalColor.L_S -> varBeingEdited = goalDetector.goalColor.L_V
@@ -80,7 +82,7 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
             }
 
 
-        if (gamepad1.y) {
+        if (gamepad1.y && !yPressed) {
             console.display(1, "Vals Zeroed")
             goalDetector.goalColor.L_H.value = 0.0
             goalDetector.goalColor.L_S.value = 0.0
@@ -91,16 +93,16 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
             render()
         }
 
-        if (gamepad1.right_bumper) {
+        if (gamepad1.right_bumper && !rBumperPressed) {
             varBeingEdited.value += 5
             render()
         }
-        if (gamepad1.left_bumper) {
+        if (gamepad1.left_bumper && !lBumperPressed) {
             varBeingEdited.value -= 5
             render()
         }
 
-        if (gamepad1.a) {
+        if (gamepad1.a && !aPressed) {
             goalDetector.goalColor.L_H.value = 0.0
             goalDetector.goalColor.L_S.value = 0.0
             goalDetector.goalColor.L_V.value = 0.0
@@ -110,11 +112,11 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
             console.display(1, "Vals Squonked")
             render()
 
-            val yPressed = false
-            val aPressed = false
-            val dpadLeftPressed = false
-            val rBumperPressed = false
-            val lBumperPressed = false
+//            yPressed = gamepad1.y
+//            aPressed = gamepad1.a
+//            dpadLeftPressed = gamepad1.dpad_left
+//            rBumperPressed = gamepad1.right_bumper
+//            lBumperPressed = gamepad1.left_bumper
         }
 //
 //
