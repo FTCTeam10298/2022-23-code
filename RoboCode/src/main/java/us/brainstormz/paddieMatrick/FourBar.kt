@@ -30,7 +30,7 @@ class FourBar(private val telemetry: Telemetry) {
         var degreesWhenVertical: Double = -110.0
     }
 
-    var pid = PID(kp= 0.011)
+    var pid = PID(kp= 0.010)
     var accuracyDegrees = 5.0
 
     val mountHeightInch = 10.5

@@ -22,13 +22,17 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         PreDeposit(220.0),
         Deposit(262.0)
     }
+    //Old tooth count: 30
+    //New tooth count: 46
+    object Tooth { const val oldToNewCountsConversion = 0.652173913043478}
+
     enum class LiftCounts(val counts: Int) {
-        HighJunction(3900),
-        MidJunction(2200),
-        SafeDriving(1800),
-        StackPreCollection(1250),
-        LowJunction(750),
-        SinglePreCollection(600),
+        HighJunction((3900 * Tooth.oldToNewCountsConversion).toInt()),
+        MidJunction((2200 * Tooth.oldToNewCountsConversion).toInt()),
+        SafeDriving((1800 * Tooth.oldToNewCountsConversion).toInt()),
+        StackPreCollection((1280 * Tooth.oldToNewCountsConversion).toInt()),
+        LowJunction((750 * Tooth.oldToNewCountsConversion).toInt()),
+        SinglePreCollection((600 * Tooth.oldToNewCountsConversion).toInt()),
         Collection(0),
         Bottom(0)
     }
@@ -115,6 +119,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
     fun powerLift(power: Double) {
         hardware.leftLift.power = power
         hardware.rightLift.power = power // Direction reversed in hardware map
+        hardware.extraLift.power = power
     }
 
     fun moveDepositer(fourBarPosition: FourBarDegrees, liftPosition: LiftCounts) {

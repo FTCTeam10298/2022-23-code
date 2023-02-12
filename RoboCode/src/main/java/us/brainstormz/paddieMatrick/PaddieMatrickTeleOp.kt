@@ -190,7 +190,7 @@ class PaddieMatrickTeleOp: OpMode() {
         telemetry.addLine("lift position: ${hardware.rightLift.currentPosition}")
         telemetry.addLine("liftTarget: $liftTarget")
         telemetry.addLine("liftPower: $liftPower")
-        telemetry.addLine("Lift Amps:\n    Left: ${hardware.leftLift.getCurrent(CurrentUnit.AMPS)}\n   Right: ${hardware.rightLift.getCurrent(CurrentUnit.AMPS)}")
+        telemetry.addLine("Lift Amps:\n    Left: ${hardware.leftLift.getCurrent(CurrentUnit.AMPS)}\n   Right: ${hardware.rightLift.getCurrent(CurrentUnit.AMPS)}\n   Other: ${hardware.extraLift.getCurrent(CurrentUnit.AMPS)}")
 
         powerLift(liftPower)
 
@@ -222,6 +222,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 hardware.funnelLifter.position = collector.funnelUp
             }
         }
+        telemetry.addLine("tooth conversion: ${Depositor.Tooth.oldToNewCountsConversion}")
         telemetry.addLine("funnel distance(MM): ${hardware.funnelSensor.getDistance(DistanceUnit.MM)}")
 
         telemetry.addLine("collectorSensor red: ${hardware.collectorSensor.red()}")
@@ -253,13 +254,13 @@ class PaddieMatrickTeleOp: OpMode() {
             fourBarMode = fourBarModes.FOURBAR_PID
             fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
 
-            if (fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.Vertical.degrees + 5) {
+            if (fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.Deposit.degrees - 10) {
                 liftTarget = Depositor.LiftCounts.Bottom.counts.toDouble()
             }
         }
     }
 
-    private val timeAfterCollectToKeepCollectingSeconds = 0.5
+    private val timeAfterCollectToKeepCollectingSeconds = 0.11
     var collectionTimeMilis:Long? = null
     fun automatedCollection(multiCone: Boolean) {
         val preCollectLiftTarget = if (multiCone) Depositor.LiftCounts.StackPreCollection else Depositor.LiftCounts.SinglePreCollection
@@ -271,7 +272,9 @@ class PaddieMatrickTeleOp: OpMode() {
 
             moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
 
+            println("Teleop: Just before Checking funnel")
             if (isConeInFunnel()) {
+                println("Teleop: cone in funnel")
                 telemetry.addLine("Cone is In Funnel")
                 hardware.collector.power = 1.0
                 moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = Depositor.LiftCounts.Collection)
@@ -345,10 +348,12 @@ class PaddieMatrickTeleOp: OpMode() {
     }
 
     fun isConeInFunnel(): Boolean {
-        val collectableDistance = 30
+        val collectableDistance = 25
         val funnelBlueThreshold = 60
         val funnelRedThreshold = 60
 
+
+        println("Teleop: checking funnel sensor")
         val red = hardware.funnelSensor.red()
         val blue = hardware.funnelSensor.blue()
         val distance = hardware.funnelSensor.getDistance(DistanceUnit.MM)
@@ -361,6 +366,7 @@ class PaddieMatrickTeleOp: OpMode() {
     fun powerLift(power: Double) {
         hardware.leftLift.power = power
         hardware.rightLift.power = power // Direction reversed in hardware map
+        hardware.extraLift.power = power
     }
 }
 
