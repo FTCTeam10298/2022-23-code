@@ -10,8 +10,8 @@ import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraFactory
 import org.openftc.easyopencv.OpenCvCameraRotation
+import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleConfig
 import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
-import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.changeableValues
 //import us.brainstormz.choivico.robotCode.ChoiVicoHardware
 //import us.brainstormz.choivico.robotCode.hardwareClasses.EncoderDriveMovement
 //import us.brainstormz.choivico.telemetryWizard.TelemetryConsole
@@ -34,6 +34,13 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
 
     private val cameraNameInMap = "Webcam 1"
     override fun init() {
+        val yPressed = false
+        val aPressed = false
+        val dpadLeftPressed = false
+        val rBumperPressed = false
+        val lBumperPressed = false
+
+
         val creamsicleGoal = CreamsicleGoalDetector(console)
         opencv.cameraName = cameraNameInMap
         opencv.init(hardwareMap)
@@ -50,18 +57,17 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
     override fun init_loop() {
         println("Hi!")
         if (gamepad1.x) {
-            console.display(3, "TrainerMODE; ${changeableValues.displayMode}")
-            when (changeableValues.displayMode) {
-                CreamsicleGoalDetector.Mode.FRAME -> changeableValues.displayMode = CreamsicleGoalDetector.Mode.MASK
-                CreamsicleGoalDetector.Mode.MASK -> changeableValues.displayMode = CreamsicleGoalDetector.Mode.KERNEL
-                CreamsicleGoalDetector.Mode.KERNEL -> changeableValues.displayMode = CreamsicleGoalDetector.Mode.FRAME
+            console.display(3, "TrainerMODE; ${CreamsicleConfig.displayMode}")
+            when (CreamsicleConfig.displayMode) {
+                CreamsicleGoalDetector.Mode.FRAME -> CreamsicleConfig.displayMode = CreamsicleGoalDetector.Mode.MASK
+                CreamsicleGoalDetector.Mode.MASK -> CreamsicleConfig.displayMode = CreamsicleGoalDetector.Mode.KERNEL
+                CreamsicleGoalDetector.Mode.KERNEL -> CreamsicleConfig.displayMode = CreamsicleGoalDetector.Mode.FRAME
             }
             render()
         }
 
 
-        when {
-            gamepad1.dpad_left -> {
+        if (gamepad1.dpad_left) {
                 when (varBeingEdited) {
                     goalDetector.goalColor.L_H -> varBeingEdited = goalDetector.goalColor.L_S
                     goalDetector.goalColor.L_S -> varBeingEdited = goalDetector.goalColor.L_V
@@ -72,7 +78,7 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
                 }
                 render()
             }
-        }
+
 
         if (gamepad1.y) {
             console.display(1, "Vals Zeroed")
@@ -103,6 +109,12 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
             goalDetector.goalColor.U_V.value = 255.0
             console.display(1, "Vals Squonked")
             render()
+
+            val yPressed = false
+            val aPressed = false
+            val dpadLeftPressed = false
+            val rBumperPressed = false
+            val lBumperPressed = false
         }
 //
 //
