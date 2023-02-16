@@ -1,20 +1,17 @@
 package us.brainstormz.choivico.creamsicleGoalDetection
 
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous
-import com.qualcomm.robotcore.eventloop.opmode.OpMode
-import com.qualcomm.robotcore.hardware.HardwareDevice
-import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 //import us.brainstormz.choivico.openCvAbstraction.OpenCvAbstraction
-import org.opencv.imgproc.Imgproc
-import org.openftc.easyopencv.OpenCvCamera
-import org.openftc.easyopencv.OpenCvCameraFactory
-import org.openftc.easyopencv.OpenCvCameraRotation
-import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleConfig
-import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
 //import us.brainstormz.choivico.robotCode.ChoiVicoHardware
 //import us.brainstormz.choivico.robotCode.hardwareClasses.EncoderDriveMovement
 //import us.brainstormz.choivico.telemetryWizard.TelemetryConsole
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
+import com.qualcomm.robotcore.eventloop.opmode.OpMode
+import com.qualcomm.robotcore.hardware.HardwareDevice
+import org.opencv.imgproc.Imgproc
+import org.openftc.easyopencv.OpenCvCamera
+import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleConfig
+import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
@@ -27,6 +24,12 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
     var dpadLeftPressed = false
     var rBumperPressed = false
     var lBumperPressed = false
+
+    enum class Mode {
+        FRAME,
+        MASK,
+        KERNEL
+    }
 
     //        val hardware = ChoiVicoHardware()
     val console = TelemetryConsole(telemetry)
@@ -58,7 +61,6 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
     }
 
     override fun init_loop() {
-        println("Hi!")
         if (gamepad1.x && !xPressed) {
             console.display(3, "TrainerMODE; ${CreamsicleConfig.displayMode}")
             when (CreamsicleConfig.displayMode) {
@@ -111,9 +113,8 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
             goalDetector.goalColor.U_S.value = 255.0
             goalDetector.goalColor.U_V.value = 255.0
             console.display(1, "Vals Squonked")
+            print("Reality: ${goalDetector.goalColor.L_H.value},\n ${goalDetector.goalColor.L_S.value} \n ${goalDetector.goalColor.L_V.value}, \n ${goalDetector.goalColor.U_H.value}, \n${goalDetector.goalColor.U_S.value},\n ${goalDetector.goalColor.U_V.value}")
             render()
-
-
         }
 
         yPressed = gamepad1.y
@@ -122,8 +123,6 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
         dpadLeftPressed = gamepad1.dpad_left
         rBumperPressed = gamepad1.right_bumper
         lBumperPressed = gamepad1.left_bumper
-//
-//
     }
 
     override fun loop() {

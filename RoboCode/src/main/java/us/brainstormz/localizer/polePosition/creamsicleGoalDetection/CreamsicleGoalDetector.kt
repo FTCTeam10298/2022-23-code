@@ -102,7 +102,7 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
             U_S = NamedVar("Upper Saturation", 255.0),
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
 
-    val goalColor = when(CreamsicleConfig.targetHue){
+    val goalColor: ColorRange = when(CreamsicleConfig.targetHue){
         TargetHue.RED -> redColor
         TargetHue.BLUE -> blueColor
         TargetHue.absRED -> redAbsoluteColor
@@ -123,6 +123,9 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
         val lower = Scalar(goalColor.L_H.value, goalColor.L_S.value, goalColor.L_V.value)
         val upper = Scalar(goalColor.U_H.value, goalColor.U_S.value, goalColor.U_V.value)
+//        val lower = Scalar(0.0, 0.0, 0.0)
+//        val upper = Scalar(225.0, 225.0, 225.0)
+
         Core.inRange(hsv, lower, upper, maskA)
 
         Imgproc.erode(maskA, maskB, kernel)
