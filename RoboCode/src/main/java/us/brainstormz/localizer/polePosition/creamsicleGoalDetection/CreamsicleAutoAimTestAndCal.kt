@@ -23,6 +23,7 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 class CreamsicleAutoAimTestAndCal : OpMode() {
     var yPressed = false
     var aPressed = false
+    var xPressed = false
     var dpadLeftPressed = false
     var rBumperPressed = false
     var lBumperPressed = false
@@ -58,7 +59,7 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
 
     override fun init_loop() {
         println("Hi!")
-        if (gamepad1.x) {
+        if (gamepad1.x && !xPressed) {
             console.display(3, "TrainerMODE; ${CreamsicleConfig.displayMode}")
             when (CreamsicleConfig.displayMode) {
                 CreamsicleGoalDetector.Mode.FRAME -> CreamsicleConfig.displayMode = CreamsicleGoalDetector.Mode.MASK
@@ -112,12 +113,15 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
             console.display(1, "Vals Squonked")
             render()
 
-//            yPressed = gamepad1.y
-//            aPressed = gamepad1.a
-//            dpadLeftPressed = gamepad1.dpad_left
-//            rBumperPressed = gamepad1.right_bumper
-//            lBumperPressed = gamepad1.left_bumper
+
         }
+
+        yPressed = gamepad1.y
+        aPressed = gamepad1.a
+        xPressed = gamepad1.x
+        dpadLeftPressed = gamepad1.dpad_left
+        rBumperPressed = gamepad1.right_bumper
+        lBumperPressed = gamepad1.left_bumper
 //
 //
     }
