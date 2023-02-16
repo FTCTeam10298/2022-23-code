@@ -49,7 +49,7 @@ class AprilTagEx() {
         camera?.setPipeline(aprilTagDetectionPipeline)
         camera?.openCameraDeviceAsync(object : AsyncCameraOpenListener {
             override fun onOpened() {
-                camera?.startStreaming(800, 448, OpenCvCameraRotation.UPRIGHT)
+                camera?.startStreaming(640, 480, OpenCvCameraRotation.UPRIGHT)
             }
 
             override fun onError(errorCode: Int) {}
@@ -137,13 +137,17 @@ class AprilTagEx() {
 
 @Autonomous
 
+//This tests AprilTag.
+//ARDUCAM SPECS: Max resolution: 3264*2448 ; Compression format: MJPG / YUY2;
+// High frame rates, MJPG 15fps@3264 x 2448, 30fps@1080P; YUY2 30fps@640x 480.
 class monthOfApril: LinearOpMode(){
 
     var aprilTagGX = AprilTagEx()
 
     override fun runOpMode() {
         aprilTagGX.initAprilTag(hardwareMap, telemetry, this)
+        while (!isStopRequested())
+            aprilTagGX.runAprilTag(telemetry)
     }
-
 
 }
