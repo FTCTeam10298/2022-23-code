@@ -47,11 +47,10 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
 
 
 
-        val creamsicleGoal = CreamsicleGoalDetector(console)
         opencv.cameraName = cameraNameInMap
         opencv.init(hardwareMap)
         opencv.start()
-        opencv.onNewFrame(creamsicleGoal::scoopFrame)
+        opencv.onNewFrame(goalDetector::scoopFrame)
     }
 
     private var varBeingEdited: CreamsicleGoalDetector.NamedVar = goalDetector.goalColor.L_H
@@ -73,13 +72,14 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
 
 
         if (gamepad1.dpad_left && !dpadLeftPressed) {
-                when (varBeingEdited) {
-                    goalDetector.goalColor.L_H -> varBeingEdited = goalDetector.goalColor.L_S
-                    goalDetector.goalColor.L_S -> varBeingEdited = goalDetector.goalColor.L_V
-                    goalDetector.goalColor.L_V -> varBeingEdited = goalDetector.goalColor.U_H
-                    goalDetector.goalColor.U_H -> varBeingEdited = goalDetector.goalColor.U_S
-                    goalDetector.goalColor.U_S -> varBeingEdited = goalDetector.goalColor.U_V
-                    goalDetector.goalColor.U_V -> varBeingEdited = goalDetector.goalColor.L_H
+            varBeingEdited = when (varBeingEdited) {
+                    goalDetector.goalColor.L_H -> goalDetector.goalColor.L_S
+                    goalDetector.goalColor.L_S -> goalDetector.goalColor.L_V
+                    goalDetector.goalColor.L_V -> goalDetector.goalColor.U_H
+                    goalDetector.goalColor.U_H -> goalDetector.goalColor.U_S
+                    goalDetector.goalColor.U_S -> goalDetector.goalColor.U_V
+                    goalDetector.goalColor.U_V -> goalDetector.goalColor.L_H
+                    else-> goalDetector.goalColor.L_H
                 }
                 render()
             }
