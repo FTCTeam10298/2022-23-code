@@ -189,13 +189,23 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 //                verticalSegments.forEach{(a, b) ->
 //                    Imgproc.drawContours(frame, mutableListOf(convert(MatOfPoint2f(a, b))), 0, Scalar(0.0, 0.0, 0.0), 5)
 //                }
+//                val numbers = listOf(23, 2, -2, 5990)
+//
+//                numbers.filter{number ->
+//                    number > 2
+//                }
+
+                val sufficientSegments:List<Pair<Point, Point>> = verticalSegments.filter{(a, b) ->
+                    val fudge = 50
+                    (b.y - a.y >= fudge)
+                }
 
                 fun heightOfLineOnScreen(line:Pair<Point, Point>):Double {
                     return line.second.y - line.first.y
 
                 }
 
-                val tallestLine = verticalSegments.maxByOrNull(::heightOfLineOnScreen)
+                val tallestLine = sufficientSegments.maxByOrNull(::heightOfLineOnScreen)
 
                 if(tallestLine!=null){
                     currentGoalXPosition = tallestLine.first.x
