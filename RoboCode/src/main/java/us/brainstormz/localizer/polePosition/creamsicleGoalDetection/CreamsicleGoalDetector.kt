@@ -94,10 +94,11 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
             U_S = NamedVar("Upper Saturation", 255.0),
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
 
+    //trained for yellow
     val blueColor = ColorRange(
-            L_H = NamedVar("Low Hue", 155.0),
-            L_S = NamedVar("Low Saturation", 155.0),
-            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 155.0),
+            L_H = NamedVar("Low Hue", 90.0),
+            L_S = NamedVar("Low Saturation", 15.0),
+            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 85.0),
             U_H = NamedVar("Upper Hue", 255.0),
             U_S = NamedVar("Upper Saturation", 255.0),
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
@@ -177,7 +178,7 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                         Imgproc.putText(frame, "triangle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
                     }
                     4 -> {
-                        Imgproc.putText(frame, "rectangle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
+                        Imgproc.putText(frame, "rectangle", Point(point.x - 80, point.y - 80), font, 1.0, Scalar(22.0, 100.0, 100.0))
                     }
                     in 11..19 -> {
                         Imgproc.putText(frame, "circle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))

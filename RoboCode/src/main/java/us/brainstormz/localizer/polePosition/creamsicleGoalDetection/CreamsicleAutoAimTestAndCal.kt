@@ -45,8 +45,6 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
     private val cameraNameInMap = "Webcam 1"
     override fun init() {
 
-
-
         opencv.cameraName = cameraNameInMap
         opencv.init(hardwareMap)
         opencv.start()
