@@ -1,4 +1,4 @@
-package us.brainstormz.choivico.creamsicleGoalDetection
+package us.brainstormz.localizer.polePosition.creamsicleGoalDetection.elysium
 
 
 //import us.brainstormz.choivico.openCvAbstraction.OpenCvAbstraction
@@ -16,7 +16,7 @@ import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
 
-@Autonomous(name = "Creamsicle Test and Calibration", group = "Tests")
+@Autonomous(name = "steweeeCreamsicle Test and Calibration", group = "Tests")
 class CreamsicleAutoAimTestAndCal : OpMode() {
     var yPressed = false
     var aPressed = false

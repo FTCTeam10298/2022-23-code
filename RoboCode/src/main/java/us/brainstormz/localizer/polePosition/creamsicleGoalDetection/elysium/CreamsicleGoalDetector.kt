@@ -12,7 +12,7 @@
 ////Lie until further notice.
 //
 //
-package us.brainstormz.localizer.polePosition.creamsicleGoalDetection
+package us.brainstormz.localizer.polePosition.creamsicleGoalDetection.elysium
 
 import com.acmerobotics.dashboard.config.Config
 import org.opencv.core.*
@@ -121,8 +121,8 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
         Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV)
 
-        val lower = Scalar(blueColor.L_H.value, blueColor.L_S.value, blueColor.L_V.value)
-        val upper = Scalar(blueColor.U_H.value, blueColor.U_S.value, blueColor.U_V.value)
+        val lower = Scalar(goalColor.L_H.value, goalColor.L_S.value, goalColor.L_V.value)
+        val upper = Scalar(goalColor.U_H.value, goalColor.U_S.value, goalColor.U_V.value)
 //        val lower = Scalar(0.0, 0.0, 0.0)
 //        val upper = Scalar(225.0, 225.0, 225.0)
 
