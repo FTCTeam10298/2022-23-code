@@ -196,7 +196,7 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 //                }
 
                 val sufficientSegments:List<Pair<Point, Point>> = verticalSegments.filter{(a, b) ->
-                    val fudge = 50
+                    val fudge = 78
                     (b.y - a.y >= fudge)
                 }
 
@@ -209,8 +209,26 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
                 if(tallestLine!=null){
                     currentGoalXPosition = tallestLine.first.x
-                    Imgproc.drawContours(frame, mutableListOf(convert(MatOfPoint2f(tallestLine.first, tallestLine.second))), 0, Scalar(0.0, 0.0, 0.0), 5)
-                    Imgproc.putText(frame, "${tallestLine.first.x}", Point(tallestLine.first.x, tallestLine.first.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
+//                    Imgproc.drawContours(
+//                            frame,
+//                            mutableListOf(convert(MatOfPoint2f(tallestLine.first, tallestLine.second))),
+//                            0,
+//                            Scalar(0.0, 0.0, 0.0),
+//                            5)
+
+                    val top:Point =  Point(tallestLine.first.x, 0.0)
+                    val bottom:Point = Point(tallestLine.first.x, 220.0)
+
+                    Imgproc.drawContours(
+                            frame,
+                            mutableListOf(convert(MatOfPoint2f(top, bottom))),
+                            0,
+                            Scalar(0.0, 255.0, 0.0),
+                            2)
+
+//
+//                    Imgproc.putText(frame, "${tallestLine.second.y - tallestLine.first.y}", Point(tallestLine.first.x, tallestLine.first.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
+//                    Imgproc.line(frame, tallestLine.second, tallestLine.first, (255.0, 0, 0))
 
                 }
 
