@@ -18,6 +18,7 @@ import com.acmerobotics.dashboard.config.Config
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import us.brainstormz.telemetryWizard.TelemetryConsole
+import kotlin.math.abs
 
 @Config
 object CreamsicleConfig {
@@ -118,6 +119,10 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
     private val maskB = Mat()
     private val kernel = Mat(5, 5, CvType.CV_8U)
 
+    private var currentGoalXPosition:Double? = null
+
+    fun xPositionOfJunction():Double? =  currentGoalXPosition
+
     fun scoopFrame(frame: Mat): Mat {
 
         Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV)
@@ -170,58 +175,88 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                 //In java this code transalates to Here Be Dragons and Kotlin is little better.
 
                 // cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
-                Imgproc.drawContours(frame, mutableListOf(convert(points)), 0, Scalar(0.0, 0.0, 0.0), 5)
+                val pointsArray = points.toArray()
 
-                when (points.toArray().size) {
-                    3 -> {
-                        // cv2.putText(frame, "triangle", (x, y), font, 1, (22, 100, 100))
-                        Imgproc.putText(frame, "triangle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
-                    }
-                    4 -> {
-                        Imgproc.putText(frame, "rectangle", Point(point.x - 80, point.y - 80), font, 1.0, Scalar(22.0, 100.0, 100.0))
-                    }
-                    in 11..19 -> {
-                        Imgproc.putText(frame, "circle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
-                    }
-                    8-> {
-                        Imgproc.putText(frame, "goalCandidate", Point(point.x, point.y), font, 0.05, Scalar(22.0, 100.0, 100.0))
+                val a = (pointsArray + listOf(pointsArray.first()))
+                val b = listOf(pointsArray.last()) + pointsArray
+                val pairsOfSequentialPoints = a.zip(b)
 
-                        val pointsArray = points.toArray()
-
-                        val xValues = pointsArray.map{it.x}
-                        val yValues = pointsArray.map{it.y}
-
-                        val minX = xValues.minOrNull()!!
-                        val minY = yValues.minOrNull()!!
-
-                        val maxX = xValues.maxOrNull()!!
-                        val maxY = yValues.maxOrNull()!!
-
-                        val width = maxX - minX
-                        val height = maxY - minY
-                        val area = width * height
-                        val aspect = width / height
-
-                        //determine if it isn't a floating spot.
-
-                        if (aspect > 1.3) {
-                            x = point.x
-                            y = point.y
-                            Imgproc.putText(frame, "goal", Point(point.x, point.y), font, 1.5, Scalar(22.0, 100.0, 100.0))
-                        }
-
-
-
-
-                        console.display(5, "width $width")
-                        console.display(6, "Last known goal position: $x, $y")
-                        console.display(7, "My God, THE FALSE POSITIVES are filled with stars!: $height")
-                        console.display(8, "there can only be one: $area")
-                        console.display(9, "Aspects are bright: $aspect")
-
-
-                    }
+                val verticalSegments = pairsOfSequentialPoints.filter{(a, b) ->
+                    areRoughlyInSameXPlane(a, b)
                 }
+
+
+//                verticalSegments.forEach{(a, b) ->
+//                    Imgproc.drawContours(frame, mutableListOf(convert(MatOfPoint2f(a, b))), 0, Scalar(0.0, 0.0, 0.0), 5)
+//                }
+
+                fun heightOfLineOnScreen(line:Pair<Point, Point>):Double {
+                    return line.second.y - line.first.y
+
+                }
+
+                val tallestLine = verticalSegments.maxByOrNull(::heightOfLineOnScreen)
+
+                if(tallestLine!=null){
+                    currentGoalXPosition = tallestLine.first.x
+                    Imgproc.drawContours(frame, mutableListOf(convert(MatOfPoint2f(tallestLine.first, tallestLine.second))), 0, Scalar(0.0, 0.0, 0.0), 5)
+                    Imgproc.putText(frame, "${tallestLine.first.x}", Point(tallestLine.first.x, tallestLine.first.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
+
+                }
+
+
+//                Imgproc.putText(frame, "${pointsArray.size}", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
+
+//                when (pointsArray.size) {
+//                    3 -> {
+//                        // cv2.putText(frame, "triangle", (x, y), font, 1, (22, 100, 100))
+//                        Imgproc.putText(frame, "triangle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
+//                    }
+//                    4 -> {
+//                        Imgproc.putText(frame, "rectangle", Point(point.x - 80, point.y - 80), font, 1.0, Scalar(22.0, 100.0, 100.0))
+//                    }
+//                    in 11..19 -> {
+//                        Imgproc.putText(frame, "circle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
+//                    }
+//                    8-> {
+//                        Imgproc.putText(frame, "goalCandidate", Point(point.x, point.y), font, 0.05, Scalar(22.0, 100.0, 100.0))
+//
+//                        val pointsArray = points.toArray()
+//
+//                        val xValues = pointsArray.map{it.x}
+//                        val yValues = pointsArray.map{it.y}
+//
+//                        val minX = xValues.minOrNull()!!
+//                        val minY = yValues.minOrNull()!!
+//
+//                        val maxX = xValues.maxOrNull()!!
+//                        val maxY = yValues.maxOrNull()!!
+//
+//                        val width = maxX - minX
+//                        val height = maxY - minY
+//                        val area = width * height
+//                        val aspect = width / height
+//
+//                        //determine if it isn't a floating spot.
+//
+//                        if (aspect > 1.3) {
+//                            x = point.x
+//                            y = point.y
+//                            Imgproc.putText(frame, "goal", Point(point.x, point.y), font, 1.5, Scalar(22.0, 100.0, 100.0))
+//                        }
+//
+//
+//
+//
+//                        console.display(5, "width $width")
+//                        console.display(6, "Last known goal position: $x, $y")
+//                        console.display(7, "My God, THE FALSE POSITIVES are filled with stars!: $height")
+//                        console.display(8, "there can only be one: $area")
+//                        console.display(9, "Aspects are bright: $aspect")
+//
+//
+//                    }
+//                }
             }
         }
 
@@ -232,5 +267,9 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
         }
     }
 
-    private val dummy = Mat()
+    private fun areRoughlyInSameXPlane(a: Point, b: Point): Boolean {
+        val fudge = 42
+        return abs(b.x - a.x) <= fudge
+    }
+
 }

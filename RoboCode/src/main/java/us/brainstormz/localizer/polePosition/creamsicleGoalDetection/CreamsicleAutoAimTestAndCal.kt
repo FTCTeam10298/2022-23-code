@@ -58,6 +58,9 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
     }
 
     override fun init_loop() {
+
+        console.display(1, "Steer for ${goalDetector.xPositionOfJunction()}")
+
         if (gamepad1.x && !xPressed) {
             console.display(3, "TrainerMODE; ${CreamsicleConfig.displayMode}")
             when (CreamsicleConfig.displayMode) {
