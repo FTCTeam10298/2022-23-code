@@ -20,8 +20,8 @@ class PaddieMatrickAuto: OpMode() {
 
     private val console = TelemetryConsole(telemetry)
     private val wizard = TelemetryWizard(console, null)
-//    val dashboard = FtcDashboard.getInstance()
-    val multipleTelemetry = MultipleTelemetry(telemetry)//, dashboard.telemetry)
+    val dashboard = FtcDashboard.getInstance()
+    val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
 
 
     var aprilTagGX = AprilTagEx()
@@ -89,7 +89,7 @@ class PaddieMatrickAuto: OpMode() {
         multipleTelemetry.addLine("targetAngle: $targetAngle")
 
         val currentPosition = previousTask.chassisTask.targetPosition
-        val newPosition = currentPosition + PositionAndRotation(r= targetAngle)
+        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)//currentPosition + PositionAndRotation(r= targetAngle)
         multipleTelemetry.addLine("position: $newPosition")
 
 

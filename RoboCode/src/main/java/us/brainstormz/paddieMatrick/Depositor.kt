@@ -28,7 +28,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
 
     enum class LiftCounts(val counts: Int) {
         HighJunction((3900 * Tooth.oldToNewCountsConversion).toInt()),
-        Detection((3000 * Tooth.oldToNewCountsConversion).toInt()),
+        Detection((3100 * Tooth.oldToNewCountsConversion).toInt()),
         MidJunction((2200 * Tooth.oldToNewCountsConversion).toInt()),
         StackPreCollection((1160 * Tooth.oldToNewCountsConversion).toInt()),
         LowJunction((750 * Tooth.oldToNewCountsConversion).toInt()),
