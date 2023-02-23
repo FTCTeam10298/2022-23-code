@@ -74,16 +74,6 @@ class PaddieMatrickAuto: OpMode() {
                     nextTaskIteration = ::stayLinedUp,
 //                    timeoutSeconds = 5.0
             ),
-            AutoTask(
-                    ChassisTask(depositPosition, requiredForCompletion = false),
-                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = true),
-//                    OtherTask(action= {
-//                        hardware.collector.power = -0.9
-//                        !depositor.isConeInCollector()
-//                    }, requiredForCompletion = true)
-                    nextTaskIteration = ::stayLinedUp
-            ),
     )
     private fun lineUp(previousTask: AutoTask): AutoTask {
         val targetAngle = movement.localizer.currentPositionAndRotation().r - junctionAimer.getAngleFromPole()
@@ -122,7 +112,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             )
     )
-    private val collectionY = -51.0
+    private val collectionY = -51.5
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
     private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = 80.0)
@@ -145,7 +135,7 @@ class PaddieMatrickAuto: OpMode() {
             ),
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.25, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
@@ -195,7 +185,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 0.0
-                        fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.Vertical.degrees - 10
+                        fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.PreDeposit.degrees
                     }, requiredForCompletion = false)
             ),
             AutoTask(
