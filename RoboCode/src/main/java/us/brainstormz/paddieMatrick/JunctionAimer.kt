@@ -32,7 +32,7 @@ class JunctionAimer {
         val junctionX = junctionDetector.xPositionOfJunction() ?: centeredPosition
         val junctionErrorFromCenter = junctionX - centeredPosition
 
-        val turnSpeed = 0.4
+        val turnSpeed = 0.38
         val angleToPole = (junctionErrorFromCenter *turnSpeed).coerceIn(-180.0..180.0)
 
 //        if (lastPoleAngle == null)
