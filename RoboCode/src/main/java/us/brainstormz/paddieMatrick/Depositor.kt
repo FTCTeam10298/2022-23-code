@@ -15,12 +15,12 @@ import us.brainstormz.utils.MathHelps
 
 class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar: FourBar, private val collector: Collector, private val telemetry: Telemetry) {
     enum class FourBarDegrees(val degrees: Double) {
-        Collecting(66.0),//Collecting(72.0),
+        Collecting(66.0),
         PreCollection(110.0),
         Vertical(180.0),
         PreDeposit(220.0),
         DepositOk(250.0),
-        DepositTarget(262.0)
+        DepositTarget(259.0)
     }
     //Old tooth count: 30
     //New tooth count: 46
