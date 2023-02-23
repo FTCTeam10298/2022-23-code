@@ -38,7 +38,7 @@ class PaddieMatrickAuto: OpMode() {
 
     /** Auto Tasks */
     private val midPointAccuracy = 2.5
-    private val depositPosition = PositionAndRotation(x= -5.1, y= -58.5, r= 45.0)
+    private var depositPosition = PositionAndRotation(x= -5.0, y= -57.5, r= 45.0)
     private val depositRoutine = listOf(
             /** Lineup */
             AutoTask(
@@ -58,6 +58,7 @@ class PaddieMatrickAuto: OpMode() {
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
                     OtherTask(action= {
+                        hardware.collector.power = 0.2
                         val isFourBarPastTarget = fourBar.current4BarDegrees() > Depositor.FourBarDegrees.Deposit.degrees - 10
                         isFourBarPastTarget
                     }, requiredForCompletion = true),
@@ -123,7 +124,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             )
     )
-    private val collectionY = -51.5
+    private val collectionY = -51.0
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
     private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = 80.0)
