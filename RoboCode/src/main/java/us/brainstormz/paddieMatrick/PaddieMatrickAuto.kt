@@ -57,9 +57,10 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(depositPosition, accuracyInches = 0.2, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 0.2
-                        val isFourBarPastTarget = fourBar.current4BarDegrees() > Depositor.FourBarDegrees.Deposit.degrees - 10
+                        val isFourBarPastTarget = fourBar.current4BarDegrees() > Depositor.FourBarDegrees.DepositOk.degrees
                         isFourBarPastTarget
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::stayLinedUp,
@@ -68,7 +69,7 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = -0.9
                         !depositor.isConeInCollector()
@@ -79,7 +80,7 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = true),
 //                    OtherTask(action= {
 //                        hardware.collector.power = -0.9
 //                        !depositor.isConeInCollector()

@@ -127,7 +127,7 @@ class OldPaddieMatrickAuto: LinearOpMode() {
         }
 
         while (opModeIsActive()) {
-            val fourBarAtPosition = fourBar.goToPosition(Depositor.FourBarDegrees.Deposit.degrees)
+            val fourBarAtPosition = fourBar.goToPosition(Depositor.FourBarDegrees.DepositTarget.degrees)
             lift(Depositor.LiftCounts.HighJunction.counts)
 
             if (fourBarAtPosition)
@@ -135,7 +135,7 @@ class OldPaddieMatrickAuto: LinearOpMode() {
         }
 
         while (opModeIsActive()) {
-            val fourBarAtPosition = fourBar.goToPosition(Depositor.FourBarDegrees.Deposit.degrees)
+            val fourBarAtPosition = fourBar.goToPosition(Depositor.FourBarDegrees.DepositTarget.degrees)
             val liftAtPosition = lift(Depositor.LiftCounts.HighJunction.counts)
 
             if (fourBarAtPosition && liftAtPosition)

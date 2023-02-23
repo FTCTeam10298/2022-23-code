@@ -20,7 +20,8 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         PreCollection(110.0),
         Vertical(180.0),
         PreDeposit(220.0),
-        Deposit(262.0)
+        DepositOk(250.0),
+        DepositTarget(262.0)
     }
     //Old tooth count: 30
     //New tooth count: 46
@@ -48,9 +49,9 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
             moveLift(targetJunction.counts)
 
             if (hardware.rightLift.currentPosition >= targetJunction.counts - 300) {
-                moveFourBar(FourBarDegrees.Deposit.degrees)
+                moveFourBar(FourBarDegrees.DepositTarget.degrees)
 
-                if (fourBar.current4BarDegrees() >= FourBarDegrees.Deposit.degrees - 5) {
+                if (fourBar.current4BarDegrees() >= FourBarDegrees.DepositTarget.degrees - 5) {
                     hardware.collector.power = -1.0
                 }
             } else {

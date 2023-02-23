@@ -237,9 +237,9 @@ class ExperimentalTeleOp: OpMode() {
 
             if (hardware.rightLift.currentPosition >= liftTarget - 300) {
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = Depositor.FourBarDegrees.Deposit.degrees
+                fourBarTarget = Depositor.FourBarDegrees.DepositTarget.degrees
 
-                if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.Deposit.degrees - 5) {
+                if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.DepositTarget.degrees - 5) {
                     hardware.collector.power = -1.0
                 }
             } else {
@@ -263,9 +263,9 @@ class ExperimentalTeleOp: OpMode() {
             hardware.collector.power = 0.05
             if (hardware.rightLift.currentPosition >= liftTarget - 300) {
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = Depositor.FourBarDegrees.Deposit.degrees
+                fourBarTarget = Depositor.FourBarDegrees.DepositTarget.degrees
 
-                if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.Deposit.degrees - 5) {
+                if (fourBar.current4BarDegrees() >= Depositor.FourBarDegrees.DepositTarget.degrees - 5) {
                     hardware.collector.power = -1.0
                 }
             } else {

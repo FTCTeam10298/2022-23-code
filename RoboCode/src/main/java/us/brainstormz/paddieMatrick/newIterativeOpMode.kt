@@ -33,7 +33,7 @@ class newIterativeOpMode: OpMode() {
 
     /** Auto Tasks */
     private val depositPosition = PositionAndRotation(x= -5.8, y= -58.2, r= 45.0)
-    private val depositPreload = listOf(
+    private val depositTargetPreload = listOf(
             AutoTask(listOf(
                     ChassisTask(PositionAndRotation(x = 0.0, y = -49.0, r = 0.0), movement= movement, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.MidJunction.counts, depositor= depositor, requiredForCompletion = false),
@@ -52,12 +52,12 @@ class newIterativeOpMode: OpMode() {
             AutoTask(listOf(
                     ChassisTask(depositPosition, movement= movement, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, depositor= depositor, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, depositor= depositor, requiredForCompletion = true)
+                    FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, depositor= depositor, requiredForCompletion = true)
             )),
             AutoTask(listOf(
                     ChassisTask(depositPosition, movement= movement, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, depositor= depositor, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, depositor= depositor, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, depositor= depositor, requiredForCompletion = true),
                     OtherTask(action = {
                         hardware.collector.power = -1.0
 
@@ -151,12 +151,12 @@ class newIterativeOpMode: OpMode() {
             AutoTask(listOf(
                     ChassisTask(depositPosition, movement= movement, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, depositor= depositor, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, depositor= depositor, requiredForCompletion = true)
+                    FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, depositor= depositor, requiredForCompletion = true)
             )),
             AutoTask(listOf(
                     ChassisTask(depositPosition, movement= movement, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, depositor= depositor, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, depositor= depositor, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, depositor= depositor, requiredForCompletion = false),
                     OtherTask(action = {
                         hardware.collector.power = -1.0
                         !depositor.isConeInCollector()
@@ -244,7 +244,7 @@ class newIterativeOpMode: OpMode() {
         }
 
         /** Auto assembly */
-        iterativeOpMode.init(tasksTodo = depositPreload + cycles + cycles + parkPath)
+        iterativeOpMode.init(tasksTodo = depositTargetPreload + cycles + cycles + parkPath)
     }
 
     override fun loop() {
