@@ -16,7 +16,7 @@ import us.brainstormz.utils.MathHelps
 
 class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar: FourBar, private val collector: Collector, private val telemetry: Telemetry) {
     enum class FourBarDegrees(val degrees: Double) {
-        Collecting(70.0),//Collecting(72.0),
+        Collecting(68.0),//Collecting(72.0),
         PreCollection(110.0),
         Vertical(180.0),
         PreDeposit(220.0),

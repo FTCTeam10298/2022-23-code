@@ -109,7 +109,7 @@ class FourBar(private val telemetry: Telemetry) {
         //0* = 0V
         //360* = 3.3V
 //        telemetry.addLine("voltage: ${encoder.voltage}")
-        val degrees = encoder.voltage * 109.091
+        val degrees = encoder.voltage * 72
 //        telemetry.addLine("degrees: $degrees")
         return degrees
     }

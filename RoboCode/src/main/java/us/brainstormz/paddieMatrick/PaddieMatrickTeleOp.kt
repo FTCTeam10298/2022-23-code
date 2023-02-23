@@ -29,9 +29,6 @@ class PaddieMatrickTeleOp: OpMode() {
         FOURBAR_MANUAL
     }
     var fourBarMode = fourBarModes.FOURBAR_PID
-    companion object {
-        var centerPosition = 110.0
-    }
 
     val liftPID = PID(kp= 0.003, ki= 0.0)
     var liftTarget = 0.0
@@ -167,7 +164,7 @@ class PaddieMatrickTeleOp: OpMode() {
                 liftTarget = Depositor.LiftCounts.Bottom.counts.toDouble()
 
                 fourBarMode = fourBarModes.FOURBAR_PID
-                fourBarTarget = Depositor.FourBarDegrees.PreCollection.degrees
+                fourBarTarget = Depositor.FourBarDegrees.Vertical.degrees
             }
             gamepad2.a -> {
                 liftTarget += (-0.5 * liftSpeed / dt)
@@ -187,6 +184,7 @@ class PaddieMatrickTeleOp: OpMode() {
 
         val liftPower = liftPID.calcPID(liftTarget, hardware.rightLift.currentPosition.toDouble())
 
+        telemetry.addLine("fourbar degrees when vertical: ${FourBar.degreesWhenVertical}")
         telemetry.addLine("lift position: ${hardware.rightLift.currentPosition}")
         telemetry.addLine("liftTarget: $liftTarget")
         telemetry.addLine("liftPower: $liftPower")
@@ -368,25 +366,4 @@ class PaddieMatrickTeleOp: OpMode() {
         hardware.rightLift.power = power // Direction reversed in hardware map
         hardware.extraLift.power = power
     }
-}
-
-//@TeleOp(name= "4bar Calibrator", group= "A")
-class fourBarCalibrator: LinearOpMode() {
-
-    val hardware = PaddieMatrickHardware()
-    val fourBar = FourBar(telemetry)
-
-    override fun runOpMode() {
-
-        hardware.init(hardwareMap)
-        fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-
-
-        while (!isStarted && opModeInInit()) {
-            telemetry.addLine("fourBar position: ${fourBar.current4BarDegrees()}")
-        }
-
-        PaddieMatrickTeleOp.centerPosition = fourBar.current4BarDegrees()
-    }
-
 }
