@@ -31,12 +31,12 @@ class PaddieMatrickAuto: OpMode() {
 
     /** Auto Tasks */
     private val midPointAccuracy = 2.5
-    private val depositPosition = PositionAndRotation(x= -5.3, y= -57.5, r= 45.0)
+    private val depositPosition = PositionAndRotation(x= -5.1, y= -58.5, r= 45.0)
     private val depositRoutine = listOf(
             /** Lineup */
             AutoTask(
                     ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 700, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, accuracyCounts = 700, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
             ),
             /** Deposit */
@@ -72,7 +72,7 @@ class PaddieMatrickAuto: OpMode() {
     private val depositPreload = listOf(
             AutoTask(
                     ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.SafeDriving.counts, accuracyCounts = 500, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 500, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
             )) + depositRoutine + listOf(
             AutoTask(
@@ -90,9 +90,10 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             )
     )
-    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = -52.0, r = 90.0)
-    private val preCollectionPosition = PositionAndRotation(x = 20.0, y = -52.0, r = 90.0)
-    private val collectionPosition = PositionAndRotation(x = 30.5, y = -52.0, r = 80.0)
+    private val collectionY = -51.5
+    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
+    private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
+    private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = 80.0)
     private val cycle = listOf(
             /** Prepare to collect */
             AutoTask(
@@ -103,7 +104,7 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, accuracyDegrees = 5.0, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     OtherTask(action= {
                         hardware.funnelLifter.position = collector.funnelDown
                         true
@@ -148,7 +149,7 @@ class PaddieMatrickAuto: OpMode() {
             /** Drive to pole */
             AutoTask(
                     ChassisTask(cycleMidPoint, power = 0.0..0.85, accuracyInches= midPointAccuracy, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.SafeDriving.counts, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.funnelLifter.position = collector.funnelUp

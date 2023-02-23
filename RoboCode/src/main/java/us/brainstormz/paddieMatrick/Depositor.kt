@@ -36,6 +36,12 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         Bottom(0)
     }
 
+    //fix lift pid
+    //dampen 4 bar more
+    //dont go for 4th cone
+    //dont drop early
+    //wait for cone to fully leave collector 
+
     fun automatedDeposit(targetJunction: LiftCounts) {
         if (isConeInCollector()) {
             moveLift(targetJunction.counts)
