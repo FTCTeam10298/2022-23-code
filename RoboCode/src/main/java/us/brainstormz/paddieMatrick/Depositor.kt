@@ -16,7 +16,7 @@ import us.brainstormz.utils.MathHelps
 
 class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar: FourBar, private val collector: Collector, private val telemetry: Telemetry) {
     enum class FourBarDegrees(val degrees: Double) {
-        Collecting(68.0),//Collecting(72.0),
+        Collecting(66.0),//Collecting(72.0),
         PreCollection(110.0),
         Vertical(180.0),
         PreDeposit(220.0),
@@ -29,8 +29,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
     enum class LiftCounts(val counts: Int) {
         HighJunction((3900 * Tooth.oldToNewCountsConversion).toInt()),
         MidJunction((2200 * Tooth.oldToNewCountsConversion).toInt()),
-        SafeDriving((1800 * Tooth.oldToNewCountsConversion).toInt()),
-        StackPreCollection((1150 * Tooth.oldToNewCountsConversion).toInt()),
+        StackPreCollection((1160 * Tooth.oldToNewCountsConversion).toInt()),
         LowJunction((750 * Tooth.oldToNewCountsConversion).toInt()),
         SinglePreCollection((680 * Tooth.oldToNewCountsConversion).toInt()),
         Collection(0),
@@ -110,7 +109,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return isLiftAtPosition(targetCounts)
     }
 
-    var accuracy = 300
+    var accuracy = 100
     fun isLiftAtPosition(target: Int): Boolean {
         val targetRange = target - accuracy..target + accuracy
         return hardware.rightLift.currentPosition in targetRange
