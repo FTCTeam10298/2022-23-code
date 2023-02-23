@@ -21,7 +21,7 @@ object MathHelps {
 //        return if (degrees < 0)
 //            360 - degrees
 //        else
-           return degrees % 360
+           return degrees.mod(360.0)
     }
     fun smallestHeadingChange(currentHeading: Double, targetHeading: Double): Double {
 

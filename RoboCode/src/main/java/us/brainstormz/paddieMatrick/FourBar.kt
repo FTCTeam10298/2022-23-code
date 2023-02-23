@@ -27,11 +27,12 @@ class FourBar(private val telemetry: Telemetry) {
     }
 
     companion object {
-        var degreesWhenVertical: Double = 265.0
+        var degreesWhenVertical: Double = 277.0
     }
 
-    var pid = PID(kp= 0.010)
+    var pid = PID(kp= 0.018, kd= 0.0005)
     var accuracyDegrees = 5.0
+    var allowedZone = 50.0..300.0
 
     val mountHeightInch = 10.5
     val barLengthInch = 9.5
@@ -41,8 +42,8 @@ class FourBar(private val telemetry: Telemetry) {
 
     fun goToPosition(targetDegrees: Double): Boolean {
         val wrappedTarget = MathHelps.wrap360(targetDegrees)
-        val wrappedError = MathHelps.wrap360(wrappedTarget - current4BarDegrees())//calculateBestHeadingPath(wrappedTarget, current4BarDegrees(), 120.0, 240.0)
-//        telemetry.addLine("\nwrappedTarget: $wrappedTarget\nwrappedError: $wrappedError\n")
+        val wrappedError = (wrappedTarget - current4BarDegrees())//calculateBestHeadingPath(wrappedTarget, current4BarDegrees(), 120.0, 240.0)
+        telemetry.addLine("\nwrappedTarget: $wrappedTarget\nwrappedError: $wrappedError\n")
 
         val power = pid.calcPID(wrappedError)
 
@@ -68,6 +69,7 @@ class FourBar(private val telemetry: Telemetry) {
 //        telemetry.addLine("degreesWhenVertical: $degreesWhenVertical")
 
         return MathHelps.wrap360(degrees - degreesWhenVertical + 180)
+        //360-277+180
     }
 
     private fun calculateBestHeadingPath(currentHeading: Double, targetHeading: Double, deadzoneFront: Double, deadzoneBack: Double): Double {
