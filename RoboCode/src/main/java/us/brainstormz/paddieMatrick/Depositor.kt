@@ -30,9 +30,9 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         HighJunction((3900 * Tooth.oldToNewCountsConversion).toInt()),
         MidJunction((2200 * Tooth.oldToNewCountsConversion).toInt()),
         SafeDriving((1800 * Tooth.oldToNewCountsConversion).toInt()),
-        StackPreCollection((1280 * Tooth.oldToNewCountsConversion).toInt()),
+        StackPreCollection((1150 * Tooth.oldToNewCountsConversion).toInt()),
         LowJunction((750 * Tooth.oldToNewCountsConversion).toInt()),
-        SinglePreCollection((600 * Tooth.oldToNewCountsConversion).toInt()),
+        SinglePreCollection((680 * Tooth.oldToNewCountsConversion).toInt()),
         Collection(0),
         Bottom(0)
     }

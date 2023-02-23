@@ -27,7 +27,7 @@ class FourBar(private val telemetry: Telemetry) {
     }
 
     companion object {
-        var degreesWhenVertical: Double = -110.0
+        var degreesWhenVertical: Double = 265.0
     }
 
     var pid = PID(kp= 0.010)
@@ -67,7 +67,7 @@ class FourBar(private val telemetry: Telemetry) {
 //        telemetry.addLine("degrees: $degrees")
 //        telemetry.addLine("degreesWhenVertical: $degreesWhenVertical")
 
-        return MathHelps.wrap360(degrees + degreesWhenVertical + 180)
+        return MathHelps.wrap360(degrees - degreesWhenVertical + 180)
     }
 
     private fun calculateBestHeadingPath(currentHeading: Double, targetHeading: Double, deadzoneFront: Double, deadzoneBack: Double): Double {

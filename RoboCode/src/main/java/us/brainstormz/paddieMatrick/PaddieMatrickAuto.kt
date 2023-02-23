@@ -36,7 +36,7 @@ class PaddieMatrickAuto: OpMode() {
             /** Lineup */
             AutoTask(
                     ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.HighJunction.counts, accuracyCounts = 700, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 700, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
             ),
             /** Deposit */
