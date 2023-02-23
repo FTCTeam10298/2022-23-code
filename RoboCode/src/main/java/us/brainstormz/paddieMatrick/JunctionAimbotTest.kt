@@ -41,10 +41,10 @@ class JunctionAimbotTest: OpMode() {
         opencv.onNewFrame(junctionDetector::scoopFrame)
     }
 
-    var initAngle = 0.0
-    override fun start() {
-        initAngle = movement.localizer.currentPositionAndRotation().r
-    }
+//    var initAngle = 0.0
+//    override fun start() {
+//        initAngle = movement.localizer.currentPositionAndRotation().r
+//    }
 
     override fun loop() {
 
@@ -53,17 +53,17 @@ class JunctionAimbotTest: OpMode() {
         val junctionErrorFromCenter = junctionX - centeredPosition
 
         val turnSpeed = 0.4
-        val targetAngle = initAngle - (junctionErrorFromCenter *turnSpeed).coerceIn(-180.0..180.0)
-        val position = PositionAndRotation(r= targetAngle)
+        val targetAngle = (junctionErrorFromCenter *turnSpeed).coerceIn(-180.0..180.0)
+        val position = PositionAndRotation(r= -targetAngle) + movement.localizer.currentPositionAndRotation()
 
-        val robotIsAimedTrue = movement.moveTowardTarget(position, 0.0..0.2)
+        val robotIsAtTarget = movement.moveTowardTarget(position, 0.0..0.2)
 
         multiTelemetry.addLine("junctionX: $junctionX")
         multiTelemetry.addLine("centeredPosition: $centeredPosition")
         multiTelemetry.addLine("junctionErrorFromCenter: $junctionErrorFromCenter")
         multiTelemetry.addLine("\ntargetAngle: $targetAngle")
         multiTelemetry.addLine("position: $position")
-        multiTelemetry.addLine("\nrobotIsAimedTrue: $robotIsAimedTrue")
+        multiTelemetry.addLine("\nrobotIsAtTarget: $robotIsAtTarget")
         multiTelemetry.addLine("current time: ${System.currentTimeMillis()}")
         multiTelemetry.update()
 
