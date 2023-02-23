@@ -140,7 +140,7 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
         Imgproc.findContours(maskB, contours, Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
 
         //  for cnt in contours:
-        contours.forEach { cnt ->
+        val listOfPoles = contours.filter { cnt ->
 
             val area = Imgproc.contourArea(cnt)
 
@@ -225,12 +225,13 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                             0,
                             Scalar(0.0, 255.0, 0.0),
                             2)
-
-//
+                    true
+//                  true
 //                    Imgproc.putText(frame, "${tallestLine.second.y - tallestLine.first.y}", Point(tallestLine.first.x, tallestLine.first.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
 //                    Imgproc.line(frame, tallestLine.second, tallestLine.first, (255.0, 0, 0))
 
-                }
+                } else
+                    false
 
 
 //                Imgproc.putText(frame, "${pointsArray.size}", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
@@ -285,8 +286,11 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 //
 //                    }
 //                }
-            }
+            } else
+                false
         }
+
+        println("numberOfPolesFound: ${listOfPoles.size}")
 
         return when (CreamsicleConfig.displayMode) {
             Mode.FRAME -> frame
