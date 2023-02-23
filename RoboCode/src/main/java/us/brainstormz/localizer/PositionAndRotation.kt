@@ -8,7 +8,7 @@ import kotlin.math.hypot
  * @param y Y position
  * @param r Angle, in degrees
  */
-open class PositionAndRotation(var x: Double = 0.0, var y: Double = 0.0, var r: Double = 0.0) {
+data class PositionAndRotation(var x: Double = 0.0, var y: Double = 0.0, var r: Double = 0.0) {
 
     /**
      * Sets the parameters of the Coordinate.

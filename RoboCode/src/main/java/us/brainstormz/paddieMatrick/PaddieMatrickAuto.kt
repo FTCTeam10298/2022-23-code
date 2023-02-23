@@ -5,11 +5,14 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotor
+import org.openftc.easyopencv.OpenCvCamera
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
+import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
+import java.lang.Thread.sleep
 
 @Autonomous(name= "PaddieMatrick Auto", group= "!")
 class PaddieMatrickAuto: OpMode() {
@@ -17,9 +20,12 @@ class PaddieMatrickAuto: OpMode() {
 
     private val console = TelemetryConsole(telemetry)
     private val wizard = TelemetryWizard(console, null)
-    val dashboard = FtcDashboard.getInstance()
-    val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
+//    val dashboard = FtcDashboard.getInstance()
+    val multipleTelemetry = MultipleTelemetry(telemetry)//, dashboard.telemetry)
+
+
     var aprilTagGX = AprilTagEx()
+    private val junctionAimer = JunctionAimer()
 
     private lateinit var movement: MecanumMovement
 
@@ -38,22 +44,24 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, accuracyCounts = 700, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
+            ),
+            AutoTask(
+                    ChassisTask(depositPosition, accuracyInches = 0.2, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false),
-//                    nextTaskIteration = { previousTask ->
-//                        val newTarget = movement.localizer.currentPositionAndRotation() + PositionAndRotation(x= -10.0)
-//
-//                        previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newTarget))
-//                    }
+                    nextTaskIteration = ::lineUp
             ),
             /** Deposit */
             AutoTask(
-                    ChassisTask(depositPosition, accuracyInches = 0.2, requiredForCompletion = true),
+                    ChassisTask(depositPosition, accuracyInches = 0.2, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         val isFourBarPastTarget = fourBar.current4BarDegrees() > Depositor.FourBarDegrees.Deposit.degrees - 10
                         isFourBarPastTarget
                     }, requiredForCompletion = true),
+                    nextTaskIteration = ::lineUp,
                     timeoutSeconds = 1.0
             ),
             AutoTask(
@@ -75,6 +83,18 @@ class PaddieMatrickAuto: OpMode() {
 //                    }, requiredForCompletion = true)
             ),
     )
+    private fun lineUp(previousTask: AutoTask): AutoTask {
+        val targetAngle = movement.localizer.currentPositionAndRotation().r - junctionAimer.getAngleFromPole()
+        multipleTelemetry.addLine("angleFromPole: ${junctionAimer.getAngleFromPole()}")
+        multipleTelemetry.addLine("targetAngle: $targetAngle")
+
+        val currentPosition = previousTask.chassisTask.targetPosition
+        val newPosition = currentPosition + PositionAndRotation(r= targetAngle)
+        multipleTelemetry.addLine("position: $newPosition")
+
+
+        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
+    }
     private val depositPreload = listOf(
             AutoTask(
                     ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
@@ -286,6 +306,13 @@ class PaddieMatrickAuto: OpMode() {
         hardware.leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         val aprilTagGXOutput =  aprilTagGX.signalOrientation ?: SignalOrientation.Three
+        aprilTagGX.camera?.closeCameraDevice()
+        aprilTagGX.camera?.stopRecordingPipeline()
+//        aprilTagGX.camera?.stopStreaming()
+        aprilTagGX.camera?.closeCameraDeviceAsync{}
+
+        val opencv = OpenCvAbstraction(this)
+        junctionAimer.start(opencv, hardwareMap)
 
         val side = if (wizard.wasItemChosen("startPos", "Left"))
             FieldSide.Left
@@ -301,14 +328,29 @@ class PaddieMatrickAuto: OpMode() {
             else -> 4
         }
 
-        autoTasks = makePlanForAuto(
-            signalOrientation = aprilTagGXOutput,
-            fieldSide = side,
-            numberOfCycles = numberOfCycles)
+//        autoTasks = makePlanForAuto(
+//            signalOrientation = aprilTagGXOutput,
+//            fieldSide = side,
+//            numberOfCycles = numberOfCycles)
+        autoTasks = listOf(
+                AutoTask(
+                        ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
+                        LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 500, requiredForCompletion = false),
+                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+                ),
+                AutoTask(
+                        ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
+                        LiftTask(Depositor.LiftCounts.Detection.counts, accuracyCounts = 700, requiredForCompletion = true),
+                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+                ),
+                AutoTask(
+                        ChassisTask(depositPosition, power= 0.0..0.2, accuracyInches = 0.2, requiredForCompletion = true),
+                        LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
+                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                        nextTaskIteration = ::lineUp
+                ))
 
         currentTask = getTask(null)
-//        autoTaskIterator = autoTasks.listIterator()
-//        currentTask = autoTaskIterator.next()
     }
 
     private fun flopToLeftSide(task:ChassisTask):ChassisTask {
@@ -369,13 +411,12 @@ class PaddieMatrickAuto: OpMode() {
             val pastOrAtTaskTimeout: Boolean = if (previousTask.timeoutSeconds != null) previousTask.timeoutSeconds <= timeSinceTaskStart else false
 
 
-            return if (previousTask.isFinished() || pastOrAtTaskTimeout) {
+            return if ((previousTask.isFinished() || pastOrAtTaskTimeout) && taskListIterator.hasNext()) {
                 previousTask.taskStatus = TaskStatus.Completed
                 taskListIterator.next()
             } else {
                 previousTask.nextTaskIteration(previousTask)
             }
-
 
         } else {
             taskListIterator = autoTasks.listIterator()
@@ -442,8 +483,8 @@ class PaddieMatrickAuto: OpMode() {
             if (chassisTask.targetPosition == depositPosition) {
                 val message = "Robot has reached target: (x= ${depositPosition.x}, y= ${depositPosition.y} r= ${depositPosition.r}). current position is: (x= ${movement.localizer.currentPositionAndRotation().x}, y= ${movement.localizer.currentPositionAndRotation().y} r= ${movement.localizer.currentPositionAndRotation().r})"
                 telemetry.addLine(message)
-                dashboard.telemetry.addData("Robot has reached target: ", depositPosition)
-                dashboard.telemetry.addData("current position is: ", movement.localizer.currentPositionAndRotation())
+//                dashboard.telemetry.addData("Robot has reached target: ", depositPosition)
+//                dashboard.telemetry.addData("current position is: ", movement.localizer.currentPositionAndRotation())
                 print(message)
             }
             currentTask.taskStatus = TaskStatus.Completed
