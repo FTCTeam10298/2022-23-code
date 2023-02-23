@@ -1,13 +1,12 @@
 package us.brainstormz.paddieMatrick
 
-import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DistanceSensor
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
+import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.pid.PID
 import us.brainstormz.utils.MathHelps
 import kotlin.math.abs
@@ -34,6 +33,9 @@ class PaddieMatrickTeleOp: OpMode() {
     var liftTarget = 0.0
     val liftSpeed = 1800.0
 
+    val opencv = OpenCvAbstraction(this)
+    private val junctionAimer = JunctionAimer()
+
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
@@ -42,6 +44,9 @@ class PaddieMatrickTeleOp: OpMode() {
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         fourBarTarget = fourBar.current4BarDegrees()
 //        fourBar.pid = PID(kp= 0.011, kd= 0.001)//0000001)
+
+
+        junctionAimer.start(opencv, hardwareMap)
     }
 
     override fun start() {
@@ -85,10 +90,16 @@ class PaddieMatrickTeleOp: OpMode() {
             else -> -gamepad1.left_stick_x.toDouble()
         }
 
+        val powerToReachPole = -junctionAimer.getAngleFromPole() * 0.08
+        telemetry.addLine("powerToReachPole: $powerToReachPole")
 
         val y = -yInput / antiTipModifier
         val x = xInput / antiTipModifier
-        val r = -rInput * abs(rInput) //square the number and keep the sign
+        val r = if (!gamepad1.right_stick_button) {
+            -rInput * abs(rInput) //square the number and keep the sign
+        } else {
+            powerToReachPole
+        }
         movement.driveSetPower((y + x - r),
                                (y - x + r),
                                (y - x - r),
