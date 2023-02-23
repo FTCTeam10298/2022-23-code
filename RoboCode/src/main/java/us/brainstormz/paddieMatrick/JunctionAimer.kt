@@ -70,11 +70,6 @@ class JunctionAimbotTest: OpMode() {
         junctionAimer.start(opencv, hardwareMap)
     }
 
-//    var initAngle = 0.0
-//    override fun start() {
-//        initAngle = movement.localizer.currentPositionAndRotation().r
-//    }
-
     override fun loop() {
 
         val targetAngle = junctionAimer.getAngleFromPole()

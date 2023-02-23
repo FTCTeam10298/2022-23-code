@@ -8,7 +8,6 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
-import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
 
@@ -18,6 +17,8 @@ class PaddieMatrickAuto: OpMode() {
 
     private val console = TelemetryConsole(telemetry)
     private val wizard = TelemetryWizard(console, null)
+    val dashboard = FtcDashboard.getInstance()
+    val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
     var aprilTagGX = AprilTagEx()
 
     private lateinit var movement: MecanumMovement
@@ -37,7 +38,12 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, accuracyCounts = 700, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
+                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false),
+//                    nextTaskIteration = { previousTask ->
+//                        val newTarget = movement.localizer.currentPositionAndRotation() + PositionAndRotation(x= -10.0)
+//
+//                        previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newTarget))
+//                    }
             ),
             /** Deposit */
             AutoTask(
@@ -269,8 +275,8 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     private lateinit var autoTasks: List<AutoTask>
-    private lateinit var autoTaskIterator: ListIterator<AutoTask>
     private lateinit var currentTask: AutoTask
+//    private lateinit var autoTaskIterator: ListIterator<AutoTask>
     override fun start() {
         this.resetRuntime()
         hardware.rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -300,9 +306,9 @@ class PaddieMatrickAuto: OpMode() {
             fieldSide = side,
             numberOfCycles = numberOfCycles)
 
-
-        autoTaskIterator = autoTasks.listIterator()
-        currentTask = autoTaskIterator.next()
+        currentTask = getTask(null)
+//        autoTaskIterator = autoTasks.listIterator()
+//        currentTask = autoTaskIterator.next()
     }
 
     private fun flopToLeftSide(task:ChassisTask):ChassisTask {
@@ -354,10 +360,31 @@ class PaddieMatrickAuto: OpMode() {
         return swichedTasks
     }
 
+    private lateinit var taskListIterator: ListIterator<AutoTask>
+    private fun getTask(previousTask: AutoTask?): AutoTask {
+        if (previousTask != null) {
+
+            val timeSinceTaskStart = getEffectiveRuntime() - (previousTask.timeStartedSeconds
+                    ?: (getEffectiveRuntime() + 1))
+            val pastOrAtTaskTimeout: Boolean = if (previousTask.timeoutSeconds != null) previousTask.timeoutSeconds <= timeSinceTaskStart else false
+
+
+            return if (previousTask.isFinished() || pastOrAtTaskTimeout) {
+                previousTask.taskStatus = TaskStatus.Completed
+                taskListIterator.next()
+            } else {
+                previousTask.nextTaskIteration(previousTask)
+            }
+
+
+        } else {
+            taskListIterator = autoTasks.listIterator()
+            return taskListIterator.next()
+        }
+    }
+
     private var prevTime = System.currentTimeMillis()
     override fun loop() {
-        val dashboard = FtcDashboard.getInstance()
-        val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
 
         /** AUTONOMOUS  PHASE */
         val dt = System.currentTimeMillis() - prevTime
@@ -368,38 +395,16 @@ class PaddieMatrickAuto: OpMode() {
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
         val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
         val atOrPastDeadline = if (nextDeadlineSeconds != null) nextDeadlineSeconds <= getEffectiveRuntime() else false
-//        multipleTelemetry.addLine("getEffectiveRuntime(): ${getEffectiveRuntime()}")
-//        multipleTelemetry.addLine("nextDeadlineSeconds: $nextDeadlineSeconds")
-//        multipleTelemetry.addLine("isDeadlineUponUs: $atOrPastDeadline")
 
-        if (atOrPastDeadline) {
-            multipleTelemetry.addLine("skipping ahead to deadline")
-            failSkippedTasks(nextDeadlinedTask!!, autoTasks)
-            currentTask = nextDeadlinedTask
-            multipleTelemetry.addLine("deadlined Task: $nextDeadlinedTask")
+        currentTask = if (atOrPastDeadline) {
+//            multipleTelemetry.addLine("skipping ahead to deadline")
+//            failSkippedTasks(nextDeadlinedTask!!, autoTasks)
+
+            nextDeadlinedTask!!
         } else {
-            val timeSinceTaskStart = getEffectiveRuntime() - (currentTask.timeStartedSeconds ?: (getEffectiveRuntime() + 1))
-            val pastOrAtTaskTimeout: Boolean = if (currentTask.timeoutSeconds != null) currentTask.timeoutSeconds!! <= timeSinceTaskStart else false
-
-            multipleTelemetry.addLine("pastOrAtTaskTimeout: $pastOrAtTaskTimeout")
-            multipleTelemetry.addLine("timeSinceTaskStart: $timeSinceTaskStart")
-
-            if (currentTask.isFinished() || pastOrAtTaskTimeout) {
-                if (autoTaskIterator.hasNext()) {
-                    multipleTelemetry.addLine("current task finished: $currentTask")
-                    currentTask.taskStatus = TaskStatus.Completed
-                    currentTask = autoTaskIterator.next()
-                    multipleTelemetry.addLine("next task is: $currentTask")
-                } else {
-                    multipleTelemetry.addLine("Tasks Completed")
-                    val taskReport = autoTasks.fold("") { acc, it ->
-                        acc + it.taskStatus.toString() + ", "
-                    }
-                    multipleTelemetry.addLine("Task Report: $taskReport")
-                    //requestOpModeStop()
-                }
-            }
+            getTask(currentTask)
         }
+
 
         if (currentTask.taskStatus != TaskStatus.Running) {
             currentTask.timeStartedSeconds = getEffectiveRuntime()
@@ -453,6 +458,7 @@ class PaddieMatrickAuto: OpMode() {
                         val liftTask: LiftTask,
                         val fourBarTask: FourBarTask,
                         val subassemblyTask: OtherTask? = null,
+                        val nextTaskIteration: (AutoTask) -> AutoTask = {it},
                         val startDeadlineSeconds: Double? = null /* time after start by which this is guaranteed to start */,
                         val timeoutSeconds: Double? = null /* time after which the task will be skipped if not already complete */,
                         var taskStatus: TaskStatus = TaskStatus.Todo,
