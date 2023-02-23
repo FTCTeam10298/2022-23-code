@@ -123,6 +123,11 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
     fun xPositionOfJunction():Double? =  currentGoalXPosition
 
+    fun convert(matOfPoint2f: MatOfPoint2f): MatOfPoint {
+        val foo = MatOfPoint()
+        matOfPoint2f.convertTo(foo, CvType.CV_32S)
+        return foo
+    }
     fun scoopFrame(frame: Mat): Mat {
 
         Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV)
@@ -140,7 +145,7 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
         Imgproc.findContours(maskB, contours, Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
 
         //  for cnt in contours:
-        val listOfPoles = contours.filter { cnt ->
+        val realPole = contours.fold(null) { acc: Pair<Point, Point>?, cnt ->
 
             val area = Imgproc.contourArea(cnt)
 
@@ -165,16 +170,10 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                 */
             if (area > 400) {
 
-                fun convert(matOfPoint2f: MatOfPoint2f): MatOfPoint {
-                    val foo = MatOfPoint()
-                    matOfPoint2f.convertTo(foo, CvType.CV_32S)
-                    return foo
-                }
 
                 //Detects shapes. Commentation isn't great in this, learn to use this in the Python CreamsiclePy port instead...
                 //In java this code transalates to Here Be Dragons and Kotlin is little better.
 
-                // cv2.drawContours(frame, [approx], 0, (0, 0, 0), 5)
                 val pointsArray = points.toArray()
 
                 val a = (pointsArray + listOf(pointsArray.first()))
@@ -184,16 +183,6 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                 val verticalSegments = pairsOfSequentialPoints.filter{(a, b) ->
                     areRoughlyInSameXPlane(a, b)
                 }
-
-
-//                verticalSegments.forEach{(a, b) ->
-//                    Imgproc.drawContours(frame, mutableListOf(convert(MatOfPoint2f(a, b))), 0, Scalar(0.0, 0.0, 0.0), 5)
-//                }
-//                val numbers = listOf(23, 2, -2, 5990)
-//
-//                numbers.filter{number ->
-//                    number > 2
-//                }
 
                 val sufficientSegments:List<Pair<Point, Point>> = verticalSegments.filter{(a, b) ->
                     val fudge = 78
@@ -207,90 +196,41 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
                 val tallestLine = sufficientSegments.maxByOrNull(::heightOfLineOnScreen)
 
-                if(tallestLine!=null){
-                    currentGoalXPosition = tallestLine.first.x
+                tallestLine ?: acc
+//                if(tallestLine!=null){
+//                    currentGoalXPosition = tallestLine.first.x
+//
+//                    val top:Point =  Point(tallestLine.first.x, 0.0)
+//                    val bottom:Point = Point(tallestLine.first.x, 220.0)
+//
 //                    Imgproc.drawContours(
 //                            frame,
-//                            mutableListOf(convert(MatOfPoint2f(tallestLine.first, tallestLine.second))),
+//                            mutableListOf(convert(MatOfPoint2f(top, bottom))),
 //                            0,
-//                            Scalar(0.0, 0.0, 0.0),
-//                            5)
-
-                    val top:Point =  Point(tallestLine.first.x, 0.0)
-                    val bottom:Point = Point(tallestLine.first.x, 220.0)
-
-                    Imgproc.drawContours(
-                            frame,
-                            mutableListOf(convert(MatOfPoint2f(top, bottom))),
-                            0,
-                            Scalar(0.0, 255.0, 0.0),
-                            2)
-                    true
-//                  true
-//                    Imgproc.putText(frame, "${tallestLine.second.y - tallestLine.first.y}", Point(tallestLine.first.x, tallestLine.first.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
-//                    Imgproc.line(frame, tallestLine.second, tallestLine.first, (255.0, 0, 0))
-
-                } else
-                    false
-
-
-//                Imgproc.putText(frame, "${pointsArray.size}", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
-
-//                when (pointsArray.size) {
-//                    3 -> {
-//                        // cv2.putText(frame, "triangle", (x, y), font, 1, (22, 100, 100))
-//                        Imgproc.putText(frame, "triangle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
-//                    }
-//                    4 -> {
-//                        Imgproc.putText(frame, "rectangle", Point(point.x - 80, point.y - 80), font, 1.0, Scalar(22.0, 100.0, 100.0))
-//                    }
-//                    in 11..19 -> {
-//                        Imgproc.putText(frame, "circle", Point(point.x, point.y), font, 1.0, Scalar(22.0, 100.0, 100.0))
-//                    }
-//                    8-> {
-//                        Imgproc.putText(frame, "goalCandidate", Point(point.x, point.y), font, 0.05, Scalar(22.0, 100.0, 100.0))
-//
-//                        val pointsArray = points.toArray()
-//
-//                        val xValues = pointsArray.map{it.x}
-//                        val yValues = pointsArray.map{it.y}
-//
-//                        val minX = xValues.minOrNull()!!
-//                        val minY = yValues.minOrNull()!!
-//
-//                        val maxX = xValues.maxOrNull()!!
-//                        val maxY = yValues.maxOrNull()!!
-//
-//                        val width = maxX - minX
-//                        val height = maxY - minY
-//                        val area = width * height
-//                        val aspect = width / height
-//
-//                        //determine if it isn't a floating spot.
-//
-//                        if (aspect > 1.3) {
-//                            x = point.x
-//                            y = point.y
-//                            Imgproc.putText(frame, "goal", Point(point.x, point.y), font, 1.5, Scalar(22.0, 100.0, 100.0))
-//                        }
-//
-//
-//
-//
-//                        console.display(5, "width $width")
-//                        console.display(6, "Last known goal position: $x, $y")
-//                        console.display(7, "My God, THE FALSE POSITIVES are filled with stars!: $height")
-//                        console.display(8, "there can only be one: $area")
-//                        console.display(9, "Aspects are bright: $aspect")
-//
-//
-//                    }
-//                }
+//                            Scalar(0.0, 255.0, 0.0),
+//                            2)
+//                    true
+//                } else
+//                    false
             } else
-                false
+                acc
         }
 
-        println("numberOfPolesFound: ${listOfPoles.size}")
+        if (realPole != null) {
+            currentGoalXPosition = realPole.first.x
+
+            val top:Point =  Point(realPole.first.x, 0.0)
+            val bottom:Point = Point(realPole.first.x, 220.0)
+
+            Imgproc.drawContours(
+                    frame,
+                    mutableListOf(convert(MatOfPoint2f(top, bottom))),
+                    0,
+                    Scalar(0.0, 255.0, 0.0),
+                    2)
+        }
+
+//        println("numberOfPolesFound: ${listOfPoles}")
 
         return when (CreamsicleConfig.displayMode) {
             Mode.FRAME -> frame
