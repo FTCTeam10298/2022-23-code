@@ -10,13 +10,14 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.HardwareDevice
 import org.opencv.imgproc.Imgproc
 import org.openftc.easyopencv.OpenCvCamera
+import org.openftc.easyopencv.OpenCvCameraRotation
 import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleConfig
 import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
 
-@Autonomous(name = "Creamsicle Test and Calibration", group = "Tests")
+@Autonomous(name = "Junction Detector Test and Calibration", group = "Tests")
 class CreamsicleAutoAimTestAndCal : OpMode() {
     var yPressed = false
     var aPressed = false
@@ -42,11 +43,14 @@ class CreamsicleAutoAimTestAndCal : OpMode() {
     var camera: OpenCvCamera? = null
 //
 
-    private val cameraNameInMap = "Webcam 1"
+    private val cameraNameInMap = "liftCam"
     override fun init() {
 
         opencv.cameraName = cameraNameInMap
+        opencv.cameraOrientation = OpenCvCameraRotation.UPSIDE_DOWN
         opencv.init(hardwareMap)
+        opencv.cameraName = cameraNameInMap
+        opencv.cameraOrientation = OpenCvCameraRotation.UPSIDE_DOWN
         opencv.start()
         opencv.onNewFrame(goalDetector::scoopFrame)
     }
