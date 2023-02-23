@@ -43,13 +43,13 @@ class PaddieMatrickAuto: OpMode() {
             /** Lineup */
             AutoTask(
                     ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.HighJunction.counts, accuracyCounts = 700, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
+                    LiftTask(Depositor.LiftCounts.Detection.counts, accuracyCounts = 700, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             ),
             AutoTask(
-                    ChassisTask(depositPosition, accuracyInches = 0.2, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false),
+                    ChassisTask(depositPosition, power= 0.0..0.2, accuracyInches = 0.2, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     nextTaskIteration = ::lineUp
             ),
             /** Deposit */
@@ -61,7 +61,7 @@ class PaddieMatrickAuto: OpMode() {
                         val isFourBarPastTarget = fourBar.current4BarDegrees() > Depositor.FourBarDegrees.Deposit.degrees - 10
                         isFourBarPastTarget
                     }, requiredForCompletion = true),
-                    nextTaskIteration = ::lineUp,
+                    nextTaskIteration = ::stayLinedUp,
                     timeoutSeconds = 1.0
             ),
             AutoTask(
@@ -71,7 +71,9 @@ class PaddieMatrickAuto: OpMode() {
                     OtherTask(action= {
                         hardware.collector.power = -0.9
                         !depositor.isConeInCollector()
-                    }, requiredForCompletion = true)
+                    }, requiredForCompletion = true),
+                    nextTaskIteration = ::stayLinedUp,
+                    timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = true),
@@ -81,6 +83,7 @@ class PaddieMatrickAuto: OpMode() {
 //                        hardware.collector.power = -0.9
 //                        !depositor.isConeInCollector()
 //                    }, requiredForCompletion = true)
+                    nextTaskIteration = ::stayLinedUp
             ),
     )
     private fun lineUp(previousTask: AutoTask): AutoTask {
@@ -88,13 +91,17 @@ class PaddieMatrickAuto: OpMode() {
         multipleTelemetry.addLine("angleFromPole: ${junctionAimer.getAngleFromPole()}")
         multipleTelemetry.addLine("targetAngle: $targetAngle")
 
-        val currentPosition = previousTask.chassisTask.targetPosition
-        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)//currentPosition + PositionAndRotation(r= targetAngle)
+        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)
         multipleTelemetry.addLine("position: $newPosition")
 
-
+        depositPosition = newPosition
         return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
     }
+    private fun stayLinedUp(previousTask: AutoTask): AutoTask {
+        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= depositPosition))
+    }
+
+
     private val depositPreload = listOf(
             AutoTask(
                     ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
@@ -328,27 +335,27 @@ class PaddieMatrickAuto: OpMode() {
             else -> 4
         }
 
-//        autoTasks = makePlanForAuto(
-//            signalOrientation = aprilTagGXOutput,
-//            fieldSide = side,
-//            numberOfCycles = numberOfCycles)
-        autoTasks = listOf(
-                AutoTask(
-                        ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
-                        LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 500, requiredForCompletion = false),
-                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
-                ),
-                AutoTask(
-                        ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
-                        LiftTask(Depositor.LiftCounts.Detection.counts, accuracyCounts = 700, requiredForCompletion = true),
-                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
-                ),
-                AutoTask(
-                        ChassisTask(depositPosition, power= 0.0..0.2, accuracyInches = 0.2, requiredForCompletion = true),
-                        LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
-                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                        nextTaskIteration = ::lineUp
-                ))
+        autoTasks = makePlanForAuto(
+            signalOrientation = aprilTagGXOutput,
+            fieldSide = side,
+            numberOfCycles = numberOfCycles)
+//        autoTasks = listOf(
+//                AutoTask(
+//                        ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
+//                        LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 500, requiredForCompletion = false),
+//                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+//                ),
+//                AutoTask(
+//                        ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
+//                        LiftTask(Depositor.LiftCounts.Detection.counts, accuracyCounts = 700, requiredForCompletion = true),
+//                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+//                ),
+//                AutoTask(
+//                        ChassisTask(depositPosition, power= 0.0..0.2, accuracyInches = 0.2, requiredForCompletion = true),
+//                        LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
+//                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+//                        nextTaskIteration = ::lineUp
+//                ))
 
         currentTask = getTask(null)
     }
