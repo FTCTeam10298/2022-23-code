@@ -56,17 +56,17 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = -0.9
-                        true
-                    }, requiredForCompletion = false)
+                        !depositor.isConeInCollector()
+                    }, requiredForCompletion = true)
             ),
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false),
-                    OtherTask(action= {
-                        hardware.collector.power = -0.9
-                        !depositor.isConeInCollector()
-                    }, requiredForCompletion = true)
+//                    OtherTask(action= {
+//                        hardware.collector.power = -0.9
+//                        !depositor.isConeInCollector()
+//                    }, requiredForCompletion = true)
             ),
     )
     private val depositPreload = listOf(
