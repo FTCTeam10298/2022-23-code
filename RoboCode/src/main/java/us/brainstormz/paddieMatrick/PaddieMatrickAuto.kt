@@ -45,16 +45,15 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             ),
             AutoTask(
-                    ChassisTask(depositPosition, power= 0.0..0.2, accuracyInches = 0.2, requiredForCompletion = true),
+                    ChassisTask(depositPosition, power= 0.0..0.3, accuracyInches = 0.4, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     nextTaskIteration = ::lineUp
             ),
             /** Deposit */
             AutoTask(
-                    ChassisTask(depositPosition, accuracyInches = 0.2, requiredForCompletion = false),
-                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Deposit.degrees, requiredForCompletion = false),
+                    ChassisTask(depositPosition, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, accuracyCounts = 500, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 0.2
@@ -62,10 +61,10 @@ class PaddieMatrickAuto: OpMode() {
                         isFourBarPastTarget
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::stayLinedUp,
-                    timeoutSeconds = 1.0
+//                    timeoutSeconds = 3.0
             ),
             AutoTask(
-                    ChassisTask(depositPosition, requiredForCompletion = true),
+                    ChassisTask(depositPosition, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, requiredForCompletion = false),
                     OtherTask(action= {
@@ -73,10 +72,10 @@ class PaddieMatrickAuto: OpMode() {
                         !depositor.isConeInCollector()
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::stayLinedUp,
-                    timeoutSeconds = 2.0
+//                    timeoutSeconds = 5.0
             ),
             AutoTask(
-                    ChassisTask(depositPosition, requiredForCompletion = true),
+                    ChassisTask(depositPosition, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = true),
 //                    OtherTask(action= {
