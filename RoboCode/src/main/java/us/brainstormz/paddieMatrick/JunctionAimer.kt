@@ -4,15 +4,48 @@ import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
+import com.qualcomm.robotcore.hardware.HardwareMap
 import org.openftc.easyopencv.OpenCvCameraRotation
-import us.brainstormz.hardwareClasses.MecOdometry
-import us.brainstormz.localizer.OdometryLocalizer
+import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
 import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
+
+class JunctionAimer {
+    private val junctionDetector = CreamsicleGoalDetector(TelemetryConsole(PhoHardware.PhoTelemetry()))
+
+    fun start(opencv: OpenCvAbstraction, hardwareMap: HardwareMap) {
+
+        opencv.cameraName = "liftCam"
+        opencv.cameraOrientation = OpenCvCameraRotation.UPSIDE_DOWN
+        opencv.init(hardwareMap)
+        opencv.start()
+        opencv.onNewFrame(junctionDetector::scoopFrame)
+    }
+
+//    var lastPoleAngle: Double? = null
+    fun getAngleFromPole(): Double {
+        val centeredPosition: Double = 160.0
+        val junctionX = junctionDetector.xPositionOfJunction() ?: centeredPosition
+        val junctionErrorFromCenter = junctionX - centeredPosition
+
+        val turnSpeed = 0.4
+        val angleToPole = (junctionErrorFromCenter *turnSpeed).coerceIn(-180.0..180.0)
+
+//        if (lastPoleAngle == null)
+//            lastPoleAngle = angleToPole
+
+//        multiTelemetry.addLine("junctionX: $junctionX")
+//        multiTelemetry.addLine("centeredPosition: $centeredPosition")
+//        multiTelemetry.addLine("junctionErrorFromCenter: $junctionErrorFromCenter")
+
+        return angleToPole
+    }
+}
+
 
 @TeleOp
 class JunctionAimbotTest: OpMode() {
@@ -27,18 +60,14 @@ class JunctionAimbotTest: OpMode() {
     val multiTelemetry = MultipleTelemetry(telemetry, dashTelemetry)
 
     val opencv = OpenCvAbstraction(this)
-    private val junctionDetector = CreamsicleGoalDetector(console)
+    private val junctionAimer = JunctionAimer()
 
     override fun init() {
         hardware.init(hardwareMap)
         val localizer= RRLocalizer(hardware)
         movement = MecanumMovement(localizer, hardware, telemetry)
 
-        opencv.cameraName = "liftCam"
-        opencv.cameraOrientation = OpenCvCameraRotation.UPSIDE_DOWN
-        opencv.init(hardwareMap)
-        opencv.start()
-        opencv.onNewFrame(junctionDetector::scoopFrame)
+        junctionAimer.start(opencv, hardwareMap)
     }
 
 //    var initAngle = 0.0
@@ -48,19 +77,11 @@ class JunctionAimbotTest: OpMode() {
 
     override fun loop() {
 
-        val centeredPosition: Double = 165.0
-        val junctionX = junctionDetector.xPositionOfJunction() ?: centeredPosition
-        val junctionErrorFromCenter = junctionX - centeredPosition
-
-        val turnSpeed = 0.4
-        val targetAngle = (junctionErrorFromCenter *turnSpeed).coerceIn(-180.0..180.0)
+        val targetAngle = junctionAimer.getAngleFromPole()
         val position = PositionAndRotation(r= -targetAngle) + movement.localizer.currentPositionAndRotation()
 
-        val robotIsAtTarget = movement.moveTowardTarget(position, 0.0..0.2)
+        val robotIsAtTarget = movement.moveTowardTarget(position, 0.0..1.0)
 
-        multiTelemetry.addLine("junctionX: $junctionX")
-        multiTelemetry.addLine("centeredPosition: $centeredPosition")
-        multiTelemetry.addLine("junctionErrorFromCenter: $junctionErrorFromCenter")
         multiTelemetry.addLine("\ntargetAngle: $targetAngle")
         multiTelemetry.addLine("position: $position")
         multiTelemetry.addLine("\nrobotIsAtTarget: $robotIsAtTarget")
