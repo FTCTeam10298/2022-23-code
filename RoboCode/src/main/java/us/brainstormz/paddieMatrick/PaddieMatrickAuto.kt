@@ -112,10 +112,10 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             )
     )
-    private val collectionY = -51.5
+    private val collectionY = -52.0
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
-    private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = 80.0)
+    private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = 90.0)
     private val cycle = listOf(
             /** Prepare to collect */
             AutoTask(
@@ -135,13 +135,13 @@ class PaddieMatrickAuto: OpMode() {
             ),
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.25, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 0.7
                         coneCollectionTime = null
-                        depositor.isConeInFunnel()
+                        depositor.isConeInFunnel(10.0)
                     }, requiredForCompletion = true),
                     timeoutSeconds = 5.0
             ),
@@ -185,8 +185,8 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 0.0
-                        fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.PreDeposit.degrees
-                    }, requiredForCompletion = false)
+                        fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.PreDeposit.degrees-5
+                    }, requiredForCompletion = true)
             ),
             AutoTask(
                     ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),

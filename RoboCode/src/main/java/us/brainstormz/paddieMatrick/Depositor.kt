@@ -142,8 +142,8 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return collectorDistance < minCollectedDistance// && collectorRawOptical > collectedOpticalThreshold// || collectorRed > collectedRedThreshold)
     }
 
-    fun isConeInFunnel(): Boolean {
-        val collectableDistance = 30
+    fun isConeInFunnel(collectableDistance: Double = 30.0): Boolean {
+//        val collectableDistance = 30
         val opticalThreshold = 2046
         val funnelBlueThreshold = 60
         val funnelRedThreshold = 60
