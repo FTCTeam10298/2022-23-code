@@ -5,12 +5,23 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotor
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
+
+// Problems as of 2/23/23 11:20
+// Gets penalties from stack
+// Moves stack more than one inch
+// Odometry does not track good enough during collection
+// Odometry hardware has issues
+// Tests show that right and left encoders are about 1000 counts off. That's significant.
+// i don't like to fix them
+// imu could fix the rotation part
+
 
 @Autonomous(name= "PaddieMatrick Auto", group= "!")
 class PaddieMatrickAuto: OpMode() {
@@ -436,12 +447,14 @@ class PaddieMatrickAuto: OpMode() {
 
     private var prevTime = System.currentTimeMillis()
     override fun loop() {
-
         /** AUTONOMOUS  PHASE */
         val dt = System.currentTimeMillis() - prevTime
         prevTime = System.currentTimeMillis()
         multipleTelemetry.addLine("dt: $dt")
         multipleTelemetry.addLine("runtime: ${getEffectiveRuntime()}")
+
+        val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
+        multipleTelemetry.addLine("botHeading: $botHeading")
 
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
         val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
