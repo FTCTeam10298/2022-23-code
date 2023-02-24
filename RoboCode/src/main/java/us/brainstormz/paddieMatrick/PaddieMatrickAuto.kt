@@ -112,10 +112,14 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             )
     )
+    private fun holdCollectionPos(previousTask: AutoTask): AutoTask {
+        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = previousTask.chassisTask.targetPosition.copy(x= actualCollectionX)))
+    }
     private val collectionY = -52.0
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
     private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = 90.0)
+    private var actualCollectionX = collectionPosition.x
     private val cycle = listOf(
             /** Prepare to collect */
             AutoTask(
@@ -139,14 +143,22 @@ class PaddieMatrickAuto: OpMode() {
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
+                        val message = "Collecting, position is ${movement.localizer.currentPositionAndRotation()}"
+                        multipleTelemetry.addLine(message)
+                        multipleTelemetry.update()
+
                         hardware.collector.power = 0.7
                         coneCollectionTime = null
                         depositor.isConeInFunnel(10.0)
                     }, requiredForCompletion = true),
+                    nextTaskIteration = {previousTask ->
+                        actualCollectionX = movement.localizer.currentPositionAndRotation().x
+                        previousTask
+                    },
                     timeoutSeconds = 5.0
             ),
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.Collection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
@@ -157,16 +169,18 @@ class PaddieMatrickAuto: OpMode() {
                         val areWeDoneCollecting = System.currentTimeMillis() - coneCollectionTime!! >= timeToFinishCollectingMilis
                         isColeCurrentlyInCollector && areWeDoneCollecting
                     }, requiredForCompletion = true),
+                    nextTaskIteration = ::holdCollectionPos,
                     timeoutSeconds = 2.0
             ),
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts+300, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 0.05
                         true
-                    }, requiredForCompletion = false)
+                    }, requiredForCompletion = false),
+                    nextTaskIteration = ::holdCollectionPos
             ),
             /** Drive to pole */
             AutoTask(
@@ -478,9 +492,9 @@ class PaddieMatrickAuto: OpMode() {
         if (isTaskCompleted) {
             if (chassisTask.targetPosition == depositPosition) {
                 val message = "Robot has reached target: (x= ${depositPosition.x}, y= ${depositPosition.y} r= ${depositPosition.r}). current position is: (x= ${movement.localizer.currentPositionAndRotation().x}, y= ${movement.localizer.currentPositionAndRotation().y} r= ${movement.localizer.currentPositionAndRotation().r})"
-                telemetry.addLine(message)
-//                dashboard.telemetry.addData("Robot has reached target: ", depositPosition)
-//                dashboard.telemetry.addData("current position is: ", movement.localizer.currentPositionAndRotation())
+//                telemetry.addLine(message)
+                multipleTelemetry.addData("Robot has reached target: ", depositPosition)
+                multipleTelemetry.addData("current position is: ", movement.localizer.currentPositionAndRotation())
                 print(message)
             }
             currentTask.taskStatus = TaskStatus.Completed
