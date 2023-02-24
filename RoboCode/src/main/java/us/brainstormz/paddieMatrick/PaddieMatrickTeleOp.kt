@@ -261,22 +261,24 @@ class PaddieMatrickTeleOp: OpMode() {
     fun automatedCollection(multiCone: Boolean) {
         val preCollectLiftTarget = if (multiCone) Depositor.LiftCounts.StackPreCollection else Depositor.LiftCounts.SinglePreCollection
 
+        val collectFourbarTarget = if (multiCone) Depositor.FourBarDegrees.StackCollecting else Depositor.FourBarDegrees.Collecting
+
 
         if (!isConeInCollector()) {
             collectionTimeMilis = null
             hardware.funnelLifter.position = collector.funnelDown
 
-            moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
+            moveDepositer(fourBarPosition = collectFourbarTarget, liftPosition = preCollectLiftTarget)
 
             println("Teleop: Just before Checking funnel")
             if (isConeInFunnel()) {
                 println("Teleop: cone in funnel")
                 telemetry.addLine("Cone is In Funnel")
                 hardware.collector.power = 1.0
-                moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = Depositor.LiftCounts.Collection)
+                moveDepositer(fourBarPosition = collectFourbarTarget, liftPosition = Depositor.LiftCounts.Collection)
             } else {
                 hardware.collector.power = 0.0
-                moveDepositer(fourBarPosition = Depositor.FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
+                moveDepositer(fourBarPosition = collectFourbarTarget, liftPosition = preCollectLiftTarget)
             }
         } else {
             if (collectionTimeMilis == null) {

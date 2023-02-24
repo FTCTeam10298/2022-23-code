@@ -121,12 +121,12 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false)
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false)
             ),
             AutoTask(
                     ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     OtherTask(action= {
                         hardware.funnelLifter.position = collector.funnelDown
                         true
@@ -137,7 +137,7 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.25, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 0.7
                         coneCollectionTime = null
@@ -148,7 +148,7 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.Collection.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 1.0
                         if (coneCollectionTime == null)
@@ -162,7 +162,7 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.0, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts+300, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(action= {
                         hardware.collector.power = 0.05
                         true
