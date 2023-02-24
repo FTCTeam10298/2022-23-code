@@ -232,8 +232,8 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                 whenDetected = System.currentTimeMillis()
             )
 
-            val top:Point =  Point(realPole.first.x, 0.0)
-            val bottom:Point = Point(realPole.first.x, 220.0)
+            val top:Point =  highestPole.first //Point(highestPole.first.x, 0.0)
+            val bottom:Point = highestPole.second //Point(highestPole.first.x, 220.0)
 
             Imgproc.drawContours(
                     frame,
