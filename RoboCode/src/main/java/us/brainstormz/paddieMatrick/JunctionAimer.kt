@@ -29,7 +29,7 @@ class JunctionAimer {
 //    var lastPoleAngle: Double? = null
     fun getAngleFromPole(): Double {
         val centeredPosition: Double = 160.0
-        val junctionX = junctionDetector.xPositionOfJunction() ?: centeredPosition
+        val junctionX = junctionDetector.detectedPosition(staleThresholdAgeMillis = 100) ?: centeredPosition
         val junctionErrorFromCenter = junctionX - centeredPosition
 
         val turnSpeed = 0.38

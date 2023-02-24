@@ -20,6 +20,11 @@ import org.opencv.imgproc.Imgproc
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import kotlin.math.abs
 
+data class JunctionDetection(
+     val xPosition:Double,
+     val whenDetected:Long
+)
+
 @Config
 object CreamsicleConfig {
     @JvmField var displayMode: CreamsicleGoalDetector.Mode = CreamsicleGoalDetector.Mode.FRAME
@@ -119,15 +124,26 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
     private val maskB = Mat()
     private val kernel = Mat(5, 5, CvType.CV_8U)
 
-    private var currentGoalXPosition:Double? = null
+    private var mostRecentDetection:JunctionDetection? = null
 
-    fun xPositionOfJunction():Double? =  currentGoalXPosition
+    fun detectedPosition(staleThresholdAgeMillis:Long):Double? {
+        return mostRecentDetection?.let{detection ->
+            val t = System.currentTimeMillis() - staleThresholdAgeMillis
+            if(detection.whenDetected >= t) detection.xPosition else null
+        }
+    }
 
     fun convert(matOfPoint2f: MatOfPoint2f): MatOfPoint {
         val foo = MatOfPoint()
         matOfPoint2f.convertTo(foo, CvType.CV_32S)
         return foo
     }
+
+    private fun heightOfLineOnScreen(line:Pair<Point, Point>):Double {
+        return line.second.y - line.first.y
+
+    }
+
     fun scoopFrame(frame: Mat): Mat {
 
         Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV)
@@ -144,8 +160,11 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
         val contours = mutableListOf<MatOfPoint>()
         Imgproc.findContours(maskB, contours, Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
 
+        //find max
+        //filter edges
+
         //  for cnt in contours:
-        val realPole = contours.fold(null) { acc: Pair<Point, Point>?, cnt ->
+        val poles = contours.mapNotNull{ cnt ->
 
             val area = Imgproc.contourArea(cnt)
 
@@ -169,11 +188,6 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                 if area > 400:
                 */
             if (area > 400) {
-
-
-                //Detects shapes. Commentation isn't great in this, learn to use this in the Python CreamsiclePy port instead...
-                //In java this code transalates to Here Be Dragons and Kotlin is little better.
-
                 val pointsArray = points.toArray()
 
                 val a = (pointsArray + listOf(pointsArray.first()))
@@ -189,14 +203,9 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                     (b.y - a.y >= fudge)
                 }
 
-                fun heightOfLineOnScreen(line:Pair<Point, Point>):Double {
-                    return line.second.y - line.first.y
-
-                }
-
                 val tallestLine = sufficientSegments.maxByOrNull(::heightOfLineOnScreen)
 
-                tallestLine ?: acc
+                tallestLine
 //                if(tallestLine!=null){
 //                    currentGoalXPosition = tallestLine.first.x
 //
@@ -213,11 +222,15 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 //                } else
 //                    false
             } else
-                acc
+                null
         }
 
-        if (realPole != null) {
-            currentGoalXPosition = realPole.first.x
+        val highestPole = poles.maxByOrNull(::heightOfLineOnScreen)
+        if (highestPole != null) {
+            mostRecentDetection = JunctionDetection(
+                xPosition = highestPole.first.x,
+                whenDetected = System.currentTimeMillis()
+            )
 
             val top:Point =  Point(realPole.first.x, 0.0)
             val bottom:Point = Point(realPole.first.x, 220.0)
