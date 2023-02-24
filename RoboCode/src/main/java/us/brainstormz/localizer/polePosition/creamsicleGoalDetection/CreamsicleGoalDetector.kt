@@ -202,8 +202,13 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                     val fudge = 78
                     (b.y - a.y >= fudge)
                 }
+                val notEdgeOfScreen = 30.0..300.0
+                val contoursWithinBounds = sufficientSegments.filter {
+                    (it.first.x in notEdgeOfScreen) && (it.second.x in notEdgeOfScreen)
+                }
 
-                val tallestLine = sufficientSegments.maxByOrNull(::heightOfLineOnScreen)
+                val tallestLine = contoursWithinBounds.maxByOrNull(::heightOfLineOnScreen)
+
 
                 tallestLine
 //                if(tallestLine!=null){
@@ -234,6 +239,8 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
             val top:Point =  highestPole.first //Point(highestPole.first.x, 0.0)
             val bottom:Point = highestPole.second //Point(highestPole.first.x, 220.0)
+//            val top:Point =  Point(30.0, 100.0)
+//            val bottom:Point = Point(300.0, 100.0)
 
             Imgproc.drawContours(
                     frame,
