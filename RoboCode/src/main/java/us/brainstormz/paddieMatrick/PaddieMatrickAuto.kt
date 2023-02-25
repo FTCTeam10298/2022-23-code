@@ -252,9 +252,9 @@ class PaddieMatrickAuto: OpMode() {
             }
         }
 
-        val finalTurnPower = 0.05
-        val relativeTargetAwayFromTape = -45.0
-        val relativeTargetTowardTape = 45.0
+        val finalTurnPower = 0.08
+        val awayFromTapeSign = -1
+        val relativeTarget = 45.0
 
         val lookAwayFromTape = templateLinupTask.copy(
                 subassemblyTask = OtherTask({
@@ -262,7 +262,7 @@ class PaddieMatrickAuto: OpMode() {
                     funnel.getColor() == Funnel.Color.Neither
                 }, requiredForCompletion = true),
 
-                nextTaskIteration = changeTargetAngle(relativeTargetAwayFromTape)
+                nextTaskIteration = changeTargetAngle(awayFromTapeSign * relativeTarget)
         )
         val lookToTape = templateLinupTask.copy(
                 subassemblyTask = OtherTask({
@@ -270,7 +270,7 @@ class PaddieMatrickAuto: OpMode() {
                     funnel.getColor() == colorToLookFor
                 }, requiredForCompletion = true),
 
-                nextTaskIteration = changeTargetAngle(relativeTargetTowardTape)
+                nextTaskIteration = changeTargetAngle(relativeTarget)
         )
 
         val panToOtherSideOfLine = when {
