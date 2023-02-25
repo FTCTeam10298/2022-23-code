@@ -431,7 +431,7 @@ class PaddieMatrickAuto: OpMode() {
         val opencv = OpenCvAbstraction(this)
         junctionAimer.start(opencv, hardwareMap)
 
-        val alliance = if (wizard.wasItemChosen("startPos", "Left")) {
+        val alliance = if (wizard.wasItemChosen("alliance", "Red")) {
             Alliance.Red
         } else {
             Alliance.Blue
