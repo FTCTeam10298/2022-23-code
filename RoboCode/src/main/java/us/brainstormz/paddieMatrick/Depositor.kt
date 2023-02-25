@@ -15,7 +15,7 @@ import us.brainstormz.utils.MathHelps
 
 class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar: FourBar, private val collector: Collector, private val telemetry: Telemetry) {
     enum class FourBarDegrees(val degrees: Double) {
-        StackCollecting(62.0),
+        StackCollecting(65.0),
         Collecting(68.0),
         PreCollection(110.0),
         Vertical(180.0),
@@ -31,7 +31,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         HighJunction((3900 * Tooth.oldToNewCountsConversion).toInt()),
         Detection((3100 * Tooth.oldToNewCountsConversion).toInt()),
         MidJunction((2200 * Tooth.oldToNewCountsConversion).toInt()),
-        StackPreCollection((1260 * Tooth.oldToNewCountsConversion).toInt()),
+        StackPreCollection((1280 * Tooth.oldToNewCountsConversion).toInt()),
         LowJunction((750 * Tooth.oldToNewCountsConversion).toInt()),
         SinglePreCollection((680 * Tooth.oldToNewCountsConversion).toInt()),
         Collection(0),
