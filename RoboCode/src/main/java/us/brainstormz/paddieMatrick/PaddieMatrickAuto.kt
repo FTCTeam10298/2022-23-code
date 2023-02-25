@@ -159,6 +159,29 @@ class PaddieMatrickAuto: OpMode() {
             )
     )
 
+    fun withPrelinupCorrection(t:AutoTask):AutoTask {
+        return (prelinupCorrection?.let {
+//            changeTaskTargetPosition(it, previousTask)
+            t.copy(
+                chassisTask = t.chassisTask.copy(
+                    t.chassisTask.targetPosition.copy(r = it.r)
+                )
+            )
+        } ?: t)
+
+    }
+
+    fun withCollectionCorrections(t:AutoTask):AutoTask{
+        val withPrelinupCorrection = withPrelinupCorrection(t)
+
+        val withActualCollectionX = withPrelinupCorrection.copy(
+                chassisTask = withPrelinupCorrection.chassisTask.copy(
+                        withPrelinupCorrection.chassisTask.targetPosition.copy(x = actualCollectionX)
+                )
+        )
+        return withActualCollectionX
+    }
+
     private val cycleCollectAndDepo = listOf(
             /** Collecting */
             AutoTask(
@@ -170,15 +193,13 @@ class PaddieMatrickAuto: OpMode() {
                         multipleTelemetry.addLine(message)
                         multipleTelemetry.update()
 
+                        actualCollectionX = movement.localizer.currentPositionAndRotation().x
+
                         hardware.collector.power = 0.7
                         coneCollectionTime = null
                         depositor.isConeInFunnel(10.0)
                     }, requiredForCompletion = true),
-                    nextTaskIteration = { previousTask ->
-                        prelinupCorrection?.let{
-                            changeTaskTargetPosition(it, previousTask)
-                        } ?: previousTask
-                    },
+                    nextTaskIteration = ::withPrelinupCorrection,
                     timeoutSeconds = 5.0
             ),
             AutoTask(
@@ -193,11 +214,7 @@ class PaddieMatrickAuto: OpMode() {
                         val areWeDoneCollecting = System.currentTimeMillis() - coneCollectionTime!! >= timeToFinishCollectingMilis
                         isConeCurrentlyInCollector && areWeDoneCollecting
                     }, requiredForCompletion = true),
-                    nextTaskIteration = { previousTask ->
-                        prelinupCorrection?.let{
-                            changeTaskTargetPosition(it, previousTask)
-                        } ?: previousTask
-                    },
+                    nextTaskIteration = ::withCollectionCorrections,
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
@@ -207,11 +224,7 @@ class PaddieMatrickAuto: OpMode() {
                         hardware.collector.power = 0.05
                         true
                     }, requiredForCompletion = false),
-                    nextTaskIteration = { previousTask ->
-                        prelinupCorrection?.let{
-                            changeTaskTargetPosition(it, previousTask)
-                        } ?: previousTask
-                    },
+                    nextTaskIteration = ::withCollectionCorrections,
             ),
             /** Drive to pole */
             AutoTask(
@@ -279,7 +292,17 @@ class PaddieMatrickAuto: OpMode() {
                         val currentAngle = movement.localizer.currentPositionAndRotation().r
                         val initialBearing = previousState.initialBearing ?: currentAngle
                         val currentColor = funnel.getColor()
+
+
+                        fun log(m:String){
+                            println("Lineup: $m")
+                        }
+
+                        if(previousState.color==null){
+                            log("Starting color lineup $previousState ")
+                        }
                         val previousColor = previousState.color ?: currentColor
+
 
                         val bearingDelta = abs(currentAngle - initialBearing)
                         // see if we've moved too far to either side
@@ -288,6 +311,7 @@ class PaddieMatrickAuto: OpMode() {
                             when(previousState.direction){
                                 initialState.direction -> {
                                     // ok, time to turn
+                                    log("turning direction from ${initialState.direction} to $otherDirection")
                                     otherDirection
                                 }
                                 else -> {
@@ -296,12 +320,16 @@ class PaddieMatrickAuto: OpMode() {
                                 }
                             }
                         }else if(previousColor != currentColor) {
+                            log("color changed $previousColor to $currentColor")
                             otherDirection
                         }else{
+                            log("Continuing to turn ${previousState.direction} ")
                             previousState.direction
                         }
 
                         if (updatedDirection == null) {
+                            log("we never lined-up: ${previousState.direction} $bearingDelta ")
+
                             completedTask(previousTask)
                         } else {
                             val nextState = ScanState(
@@ -319,23 +347,28 @@ class PaddieMatrickAuto: OpMode() {
                                 }
                             )
 
-                            fun isColor(v:Funnel.Color?) = v !=null && v != Funnel.Color.Neither
+                            fun isColor(v:Funnel.Color) = v != Funnel.Color.Neither
 
                             previousTask.copy(
-                                    subassemblyTask = OtherTask(
-                                            isDone = {
-                                                 val didLineUp = when(previousState.direction){
-                                                     ScanDirection.right -> isColor(previousState.color) && !isColor(currentColor)
-                                                     ScanDirection.left -> !isColor(previousState.color) && isColor(currentColor)
-                                                 }
-                                                if(didLineUp){
-                                                    prelinupCorrection = currentPosAndR
-                                                }
-                                                didLineUp
-                                             },
-                                            requiredForCompletion = true),
-                                    chassisTask = previousTask.chassisTask.copy(targetPosition = newTarget),
-                                    extraState = nextState
+                                subassemblyTask = OtherTask(
+                                    isDone = {
+                                         val didLineUp = if(previousState.color ==null ){
+                                             false
+                                         }else{
+                                             when(previousState.direction){
+                                                 ScanDirection.right -> isColor(previousState.color) && !isColor(currentColor)
+                                                 ScanDirection.left -> !isColor(previousState.color) && isColor(currentColor)
+                                             }
+                                         }
+                                        if(didLineUp){
+                                            prelinupCorrection = currentPosAndR
+                                            log("we lined-up (${previousState.direction}: ${previousState.color} -> $currentColor): establishing correction at $prelinupCorrection")
+                                        }
+                                        didLineUp
+                                     },
+                                    requiredForCompletion = true),
+                                chassisTask = previousTask.chassisTask.copy(targetPosition = newTarget),
+                                extraState = nextState
                             )
                         }
                     },
