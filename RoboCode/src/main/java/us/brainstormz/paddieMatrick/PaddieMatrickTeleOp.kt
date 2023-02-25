@@ -17,6 +17,7 @@ class PaddieMatrickTeleOp: OpMode() {
     val movement = MecanumDriveTrain(hardware)
     val fourBar = FourBar(telemetry)
 
+    val funnel = Funnel()
     val collector = Collector()
 
     var fourBarTarget = 0.0
@@ -39,6 +40,7 @@ class PaddieMatrickTeleOp: OpMode() {
         hardware.odomRaiser2.position = 1.0
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         fourBarTarget = fourBar.current4BarDegrees()
+        funnel.init(hardware.lineSensor)
 //        fourBar.pid = PID(kp= 0.011, kd= 0.001)//0000001)
     }
 
@@ -220,6 +222,13 @@ class PaddieMatrickTeleOp: OpMode() {
         }
         telemetry.addLine("tooth conversion: ${Depositor.Tooth.oldToNewCountsConversion}")
         telemetry.addLine("funnel distance(MM): ${hardware.funnelSensor.getDistance(DistanceUnit.MM)}")
+
+
+        telemetry.addLine("lineSensor color: ${funnel.getColor()}")
+        telemetry.addLine("lineSensor red threshold: ${funnel.dataWhenRed}")
+        telemetry.addLine("lineSensor blue threshold: ${funnel.dataWhenBlue}")
+        telemetry.addLine("lineSensor blue: ${hardware.lineSensor.blue()}")
+        telemetry.addLine("lineSensor red: ${hardware.lineSensor.red()}")
 
         telemetry.addLine("collectorSensor red: ${hardware.collectorSensor.red()}")
         telemetry.addLine("collectorSensor blue: ${hardware.collectorSensor.blue()}")

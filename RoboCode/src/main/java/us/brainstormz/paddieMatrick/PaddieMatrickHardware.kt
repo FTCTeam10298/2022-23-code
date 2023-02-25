@@ -43,6 +43,7 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
 
     lateinit var funnelLifter: Servo
     lateinit var funnelSensor: RevColorSensorV3
+    lateinit var lineSensor: ColorSensor
 
 
     lateinit var imu: IMU
@@ -71,6 +72,8 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         funnelLifter.position = 1.0
 
         funnelSensor = hwMap["funnelSensor"] as RevColorSensorV3
+
+        lineSensor = hwMap["lineSensor"] as ColorSensor
 
         // 4 Bar
         left4Bar = hwMap["left4Bar"] as CRServo

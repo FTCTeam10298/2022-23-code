@@ -14,6 +14,7 @@ class Collector {
         this.servo = frontServo
     }
 
+
     enum class Powers(val power: Double) {
         Intaking(1.0),
         Scoring(-1.0)
