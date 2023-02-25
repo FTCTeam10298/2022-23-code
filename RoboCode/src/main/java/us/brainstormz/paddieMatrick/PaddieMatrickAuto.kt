@@ -138,6 +138,8 @@ class PaddieMatrickAuto: OpMode() {
     private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = correctedCollectionAngle)
     private var actualCollectionX = collectionPosition.x
 
+    private var prelinupCorrection:PositionAndRotation? = null
+
     private val cyclePreLinup = listOf(
             /** Prepare to collect */
             AutoTask(
@@ -172,10 +174,11 @@ class PaddieMatrickAuto: OpMode() {
                         coneCollectionTime = null
                         depositor.isConeInFunnel(10.0)
                     }, requiredForCompletion = true),
-//                    nextTaskIteration = { previousTask ->
-//                        actualCollectionX = movement.localizer.currentPositionAndRotation().x
-//                        this.adjustTargetToCorrectedCollectionRotation(previousTask)
-//                    },
+                    nextTaskIteration = { previousTask ->
+                        prelinupCorrection?.let{
+                            changeTaskTargetPosition(it, previousTask)
+                        } ?: previousTask
+                    },
                     timeoutSeconds = 5.0
             ),
             AutoTask(
@@ -190,8 +193,11 @@ class PaddieMatrickAuto: OpMode() {
                         val areWeDoneCollecting = System.currentTimeMillis() - coneCollectionTime!! >= timeToFinishCollectingMilis
                         isConeCurrentlyInCollector && areWeDoneCollecting
                     }, requiredForCompletion = true),
-//                    nextTaskIteration = this::adjustTargetToRealCollectionPosition,
-//                    timeoutSeconds = 2.0
+                    nextTaskIteration = { previousTask ->
+                        prelinupCorrection?.let{
+                            changeTaskTargetPosition(it, previousTask)
+                        } ?: previousTask
+                    },
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
@@ -201,7 +207,11 @@ class PaddieMatrickAuto: OpMode() {
                         hardware.collector.power = 0.05
                         true
                     }, requiredForCompletion = false),
-//                    nextTaskIteration = this::adjustTargetToRealCollectionPosition
+                    nextTaskIteration = { previousTask ->
+                        prelinupCorrection?.let{
+                            changeTaskTargetPosition(it, previousTask)
+                        } ?: previousTask
+                    },
             ),
             /** Drive to pole */
             AutoTask(
@@ -314,10 +324,14 @@ class PaddieMatrickAuto: OpMode() {
                             previousTask.copy(
                                     subassemblyTask = OtherTask(
                                             isDone = {
-                                                 when(previousState.direction){
+                                                 val didLineUp = when(previousState.direction){
                                                      ScanDirection.right -> isColor(previousState.color) && !isColor(currentColor)
                                                      ScanDirection.left -> !isColor(previousState.color) && isColor(currentColor)
                                                  }
+                                                if(didLineUp){
+                                                    prelinupCorrection = currentPosAndR
+                                                }
+                                                didLineUp
                                              },
                                             requiredForCompletion = true),
                                     chassisTask = previousTask.chassisTask.copy(targetPosition = newTarget),
@@ -373,7 +387,7 @@ class PaddieMatrickAuto: OpMode() {
     private fun changeTaskTargetPosition(newTarget: PositionAndRotation, previousTask: AutoTask): AutoTask =
         previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = newTarget))
 
-    private fun adjustTargetToCorrectedCollectionRotation(previousTask: AutoTask): AutoTask {
+    private fun adjustTargetToCorrectedCollectionRotation(previousTask: AutoTask, correctedCollectionAngle:Double): AutoTask {
         val previousTarget = previousTask.chassisTask.targetPosition
         val correctedPosition = previousTarget.copy(r= correctedCollectionAngle)
 
