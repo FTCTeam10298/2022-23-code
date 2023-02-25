@@ -511,7 +511,7 @@ class PaddieMatrickAuto: OpMode() {
 
         wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
         wizard.newMenu("program", "Which auto are we starting?", listOf("Cycle Auto" to "cycles", "Park Auto" to null))
-        wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+3", "1+2", "1+1", "1+0"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
+        wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
     }
 
@@ -566,7 +566,7 @@ class PaddieMatrickAuto: OpMode() {
             wizard.wasItemChosen("cycles", "1+1") -> 1
             wizard.wasItemChosen("cycles", "1+2") -> 2
             wizard.wasItemChosen("cycles", "1+3") -> 3
-            else -> 3
+            else -> 0
         }
 
         autoTasks = makePlanForAuto(
