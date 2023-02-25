@@ -12,6 +12,7 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
+import kotlin.math.abs
 
 // Problems as of 2/23/23 11:20
 // Gets penalties from stack
@@ -71,7 +72,7 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(depositPosition, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, accuracyCounts = 500, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, requiredForCompletion = false),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         hardware.collector.power = 0.2
                         val isFourBarPastTarget = fourBar.current4BarDegrees() > Depositor.FourBarDegrees.DepositOk.degrees
                         isFourBarPastTarget
@@ -83,7 +84,7 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(depositPosition, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.DepositTarget.degrees, requiredForCompletion = false),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         hardware.collector.power = -0.9
                         !depositor.isConeInCollector()
                     }, requiredForCompletion = true),
@@ -117,7 +118,7 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(depositPosition, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         hardware.collector.power = 0.0
                         true
                     }, requiredForCompletion = false)
@@ -148,7 +149,7 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         hardware.funnelLifter.position = collector.funnelDown
                         true
                     }, requiredForCompletion = false),
@@ -159,10 +160,10 @@ class PaddieMatrickAuto: OpMode() {
     private val cycleCollectAndDepo = listOf(
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.2, accuracyDegrees = 2.0, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         val message = "Collecting, position is ${movement.localizer.currentPositionAndRotation()}"
                         multipleTelemetry.addLine(message)
                         multipleTelemetry.update()
@@ -171,43 +172,43 @@ class PaddieMatrickAuto: OpMode() {
                         coneCollectionTime = null
                         depositor.isConeInFunnel(10.0)
                     }, requiredForCompletion = true),
-                    nextTaskIteration = { previousTask ->
-                        actualCollectionX = movement.localizer.currentPositionAndRotation().x
-                        this.adjustTargetToCorrectedCollectionRotation(previousTask)
-                    },
+//                    nextTaskIteration = { previousTask ->
+//                        actualCollectionX = movement.localizer.currentPositionAndRotation().x
+//                        this.adjustTargetToCorrectedCollectionRotation(previousTask)
+//                    },
                     timeoutSeconds = 5.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.Collection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         hardware.collector.power = 1.0
                         if (coneCollectionTime == null)
                             coneCollectionTime = System.currentTimeMillis()
-                        val isColeCurrentlyInCollector = depositor.isConeInCollector()
+                        val isConeCurrentlyInCollector = depositor.isConeInCollector()
                         val areWeDoneCollecting = System.currentTimeMillis() - coneCollectionTime!! >= timeToFinishCollectingMilis
-                        isColeCurrentlyInCollector && areWeDoneCollecting
+                        isConeCurrentlyInCollector && areWeDoneCollecting
                     }, requiredForCompletion = true),
-                    nextTaskIteration = this::adjustTargetToRealCollectionPosition,
-                    timeoutSeconds = 2.0
+//                    nextTaskIteration = this::adjustTargetToRealCollectionPosition,
+//                    timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
-                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts+300, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         hardware.collector.power = 0.05
                         true
                     }, requiredForCompletion = false),
-                    nextTaskIteration = this::adjustTargetToRealCollectionPosition
+//                    nextTaskIteration = this::adjustTargetToRealCollectionPosition
             ),
             /** Drive to pole */
             AutoTask(
                     ChassisTask(cycleMidPoint, power = 0.0..0.85, accuracyInches= midPointAccuracy, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         hardware.funnelLifter.position = collector.funnelUp
                         true
                     }, requiredForCompletion = false)
@@ -217,7 +218,7 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(cycleMidPoint, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(action= {
+                    OtherTask(isDone= {
                         hardware.collector.power = 0.0
                         fourBar.current4BarDegrees() <= Depositor.FourBarDegrees.PreDeposit.degrees-5
                     }, requiredForCompletion = true)
@@ -229,73 +230,143 @@ class PaddieMatrickAuto: OpMode() {
             )
     )
 
-    private fun generateTapeLinupSequence(alliance: Alliance, fieldSide: FieldSide): List<AutoTask> {
-
-        val colorToLookFor: Funnel.Color = when (alliance) {
-            Alliance.Red -> Funnel.Color.Red
-            Alliance.Blue -> Funnel.Color.Blue
-        }
+    enum class ScanDirection {
+        left, right
+    }
+    data class ScanState(
+            val initialBearing:Double?,
+            val color:Funnel.Color?,
+            val direction:ScanDirection
+    )
+    private fun generateTapeLinupSequence(): List<AutoTask> {
 
         val templateLinupTask = AutoTask(
-                ChassisTask(preCollectionPosition, accuracyInches= 0.2, power= 0.0..0.3, requiredForCompletion = false),
+                ChassisTask(preCollectionPosition, accuracyInches= 0.2, power= 0.0..0.2, requiredForCompletion = false),
                 LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                 FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false)
         )
 
-        fun changeTargetAngle(newRelativeTargetAngle: Double): (AutoTask)->AutoTask {
-            return { previousTask ->
-                val previousPosition = previousTask.chassisTask.targetPosition
-                val currentAngle = movement.localizer.currentPositionAndRotation().r
-                changeTaskTargetPosition(
-                        newTarget = previousPosition.copy(r= currentAngle + newRelativeTargetAngle),
-                        previousTask = previousTask)
-            }
-        }
-
-        val finalTurnPower = 0.08
-        val awayFromTapeSign = -1
-        val relativeTarget = 45.0
-
-        val lookAwayFromTape = templateLinupTask.copy(
-                subassemblyTask = OtherTask({
-                    multipleTelemetry.addLine("Panning off the tape")
-                    funnel.getColor() == Funnel.Color.Neither
-                }, requiredForCompletion = true),
-
-                nextTaskIteration = changeTargetAngle(awayFromTapeSign * relativeTarget)
+        fun completedTask(t:AutoTask) = t.copy(
+            subassemblyTask = OtherTask(
+                    isDone = {true},
+                    requiredForCompletion = true),
         )
 
-        val lookToTape = templateLinupTask.copy(
-                subassemblyTask = OtherTask({
-                    multipleTelemetry.addLine("Panning on to tape with color $colorToLookFor")
-                    funnel.getColor() == colorToLookFor
-                }, requiredForCompletion = true),
+        fun scanUntilChanged():AutoTask {
+            val otherDirection = ScanDirection.right
+            val initialState = ScanState(
+                    initialBearing = null,
+                    color = null,
+                    direction = ScanDirection.left
+            )
+            return templateLinupTask.copy(
+                    subassemblyTask = OtherTask(
+                            isDone = {false},
+                            requiredForCompletion = true),
+                    nextTaskIteration = { previousTask ->
+                        val previousState = previousTask.extraState as ScanState
+                        val scanMagnitudeDegrees = 10.0
+                        val currentAngle = movement.localizer.currentPositionAndRotation().r
+                        val initialBearing = previousState.initialBearing ?: currentAngle
+                        val currentColor = funnel.getColor()
+                        val previousColor = previousState.color ?: currentColor
 
-                nextTaskIteration = changeTargetAngle(relativeTarget)
-        )
-
-        val panToOtherSideOfLine = when {
-            funnel.getColor() == colorToLookFor -> lookAwayFromTape
-            funnel.getColor() == Funnel.Color.Neither -> lookToTape
-            else -> lookAwayFromTape
-        }
-
-        val panToThisSideOfLine = when {
-            funnel.getColor() == colorToLookFor -> lookToTape
-            funnel.getColor() == Funnel.Color.Neither -> lookAwayFromTape
-            else -> lookToTape
-        }
-
-        return listOf(
-                panToOtherSideOfLine, //off of line
-                panToThisSideOfLine.copy( //off of line, and save rotation
-                        chassisTask= panToThisSideOfLine.chassisTask.copy(power = 0.0..finalTurnPower),
-                        nextTaskIteration= { previousTask ->
-                            correctedCollectionAngle = movement.localizer.currentPositionAndRotation().r
-                            panToThisSideOfLine.nextTaskIteration.invoke(previousTask)
+                        val bearingDelta = abs(currentAngle - initialBearing)
+                        // see if we've moved too far to either side
+                        val updatedDirection = if(bearingDelta > scanMagnitudeDegrees){
+                            // change direction
+                            when(previousState.direction){
+                                initialState.direction -> {
+                                    // ok, time to turn
+                                    otherDirection
+                                }
+                                else -> {
+                                    // give up
+                                    null
+                                }
+                            }
+                        }else if(previousColor != currentColor) {
+                            otherDirection
+                        }else{
+                            previousState.direction
                         }
-                )
-        )
+
+                        if (updatedDirection == null) {
+                            completedTask(previousTask)
+                        } else {
+                            val nextState = ScanState(
+                                    initialBearing = initialBearing,
+                                    color = currentColor,
+                                    direction = updatedDirection
+                            )
+
+                            val currentPosAndR = movement.localizer.currentPositionAndRotation()
+
+                            val newTarget = currentPosAndR.copy(
+                                r = when(updatedDirection) {
+                                    ScanDirection.right -> currentPosAndR.r - 10
+                                    ScanDirection.left -> currentPosAndR.r + 10
+                                }
+                            )
+
+                            fun isColor(v:Funnel.Color?) = v !=null && v != Funnel.Color.Neither
+
+                            previousTask.copy(
+                                    subassemblyTask = OtherTask(
+                                            isDone = {
+                                                 when(previousState.direction){
+                                                     ScanDirection.right -> isColor(previousState.color) && !isColor(currentColor)
+                                                     ScanDirection.left -> !isColor(previousState.color) && isColor(currentColor)
+                                                 }
+                                             },
+                                            requiredForCompletion = true),
+                                    chassisTask = previousTask.chassisTask.copy(targetPosition = newTarget),
+                                    extraState = nextState
+                            )
+                        }
+                    },
+                    extraState = initialState
+            )
+        }
+
+//        val lookAwayFromTape = templateLinupTask.copy(
+//                subassemblyTask = OtherTask(
+//                    isDone = {
+//                        multipleTelemetry.addLine("Panning off the tape")
+//                        funnel.getColor() == Funnel.Color.Neither
+//                    },
+//                    requiredForCompletion = true),
+//                nextTaskIteration = changeTargetAngle(awayFromTapeSign * relativeTarget)
+//        )
+//
+//        val lookToTape = templateLinupTask.copy(
+//                subassemblyTask = OtherTask({
+//                    multipleTelemetry.addLine("Panning on to tape with color $colorToLookFor")
+//                    funnel.getColor() == colorToLookFor
+//                }, requiredForCompletion = true),
+//                nextTaskIteration = changeTargetAngle(relativeTarget)
+//        )
+
+//        val initTask = AutoTask(
+//                ChassisTask(preCollectionPosition, requiredForCompletion = false),
+//                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+//                FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
+//                OtherTask({
+//                    when {
+//                        funnel.getColor() == colorToLookFor -> {
+//                            panToOtherSideOfLine = lookAwayFromTape
+//                            panToThisSideOfLine = lookToTape
+//                        }
+//                        funnel.getColor() == Funnel.Color.Neither -> {
+//                            panToOtherSideOfLine = lookToTape
+//                            panToThisSideOfLine = lookAwayFromTape
+//                        }
+//                    }
+//                    true
+//                }, requiredForCompletion = true)
+//        )
+
+        return listOf(scanUntilChanged())
 
     }
 
@@ -342,39 +413,39 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    OtherTask(isDone= compensateForAbruptEnd, requiredForCompletion = false),
                     startDeadlineSeconds = parkTimeout
             ),
             AutoTask(
                     ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(action= zeroLift, requiredForCompletion = true)))
+                    OtherTask(isDone= zeroLift, requiredForCompletion = true)))
     private val parkTwo: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    OtherTask(isDone= compensateForAbruptEnd, requiredForCompletion = false),
                     startDeadlineSeconds = parkTimeout
             ),
             AutoTask(
                     ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(action= zeroLift, requiredForCompletion = true)))
+                    OtherTask(isDone= zeroLift, requiredForCompletion = true)))
     private val parkThree: List<AutoTask> = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(action= compensateForAbruptEnd, requiredForCompletion = false),
+                    OtherTask(isDone= compensateForAbruptEnd, requiredForCompletion = false),
                     startDeadlineSeconds = parkTimeout),
             AutoTask(
                     ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(action= zeroLift, requiredForCompletion = true)))
+                    OtherTask(isDone= zeroLift, requiredForCompletion = true)))
 
     override fun init() {
         /** INIT PHASE */
@@ -508,9 +579,10 @@ class PaddieMatrickAuto: OpMode() {
             SignalOrientation.Three -> parkThree
         }
 
-        val tapeLinupSequence = generateTapeLinupSequence(alliance, fieldSide)
+        val tapeLinupSequence = generateTapeLinupSequence()
 
         val cycle = cyclePreLinup + tapeLinupSequence + cycleCollectAndDepo
+//        val cycle = cyclePreLinup + cycleCollectAndDepo
 
         val cycles = when (numberOfCycles) {
             0 -> listOf()
@@ -589,6 +661,7 @@ class PaddieMatrickAuto: OpMode() {
 
         val chassisTask = currentTask.chassisTask
         movement.precisionInches = chassisTask.accuracyInches
+        movement.precisionDegrees = chassisTask.accuracyDegrees
         val isChassisTaskCompleted = movement.moveTowardTarget(chassisTask.targetPosition, chassisTask.power)
 
         val liftTask = currentTask.liftTask
@@ -600,7 +673,7 @@ class PaddieMatrickAuto: OpMode() {
         val isFourBarTaskCompleted = depositor.moveFourBar(fourBarTask.targetDegrees)
 
         val subassemblyTask = currentTask.subassemblyTask
-        val isSubassemblyTaskCompleted = subassemblyTask?.action?.invoke()
+        val isSubassemblyTaskCompleted = subassemblyTask?.isDone?.invoke()
 
 
         val completions = listOf(chassisTask to isChassisTaskCompleted, liftTask to isLiftTaskCompleted, fourBarTask to isFourBarTaskCompleted, subassemblyTask to isSubassemblyTaskCompleted)
@@ -636,7 +709,8 @@ class PaddieMatrickAuto: OpMode() {
                         val timeoutSeconds: Double? = null /* time after which the task will be skipped if not already complete */,
                         var taskStatus: TaskStatus = TaskStatus.Todo,
                         var timeStartedSeconds: Double? = null,
-                        var timeFinishedSeconds: Double? = null) {
+                        var timeFinishedSeconds: Double? = null,
+                        val extraState:Any? = null) {
         fun isFinished() = taskStatus == TaskStatus.Completed || taskStatus == TaskStatus.Failed
 //        override fun toString(): String = ""
     }
@@ -646,6 +720,7 @@ class PaddieMatrickAuto: OpMode() {
             val targetPosition: PositionAndRotation,
             val power: ClosedRange<Double> = 0.0..1.0,
             val accuracyInches: Double = 0.5,
+            val accuracyDegrees: Double = 5.0,
             override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
     data class LiftTask(val targetCounts: Int,
                         val accuracyCounts: Int = 300,
@@ -653,7 +728,7 @@ class PaddieMatrickAuto: OpMode() {
     data class FourBarTask(val targetDegrees: Double,
                            val accuracyDegrees: Double = 5.0,
                            override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
-    data class OtherTask(val action: ()->Boolean,
+    data class OtherTask(val isDone: ()->Boolean,
                          override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
 
     enum class TaskStatus {
