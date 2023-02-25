@@ -22,6 +22,10 @@ import us.brainstormz.telemetryWizard.TelemetryWizard
 // i don't like to fix them
 // imu could fix the rotation part
 
+enum class Alliance {
+    Red,
+    Blue
+}
 
 @Autonomous(name= "PaddieMatrick Auto", group= "!")
 class PaddieMatrickAuto: OpMode() {
@@ -38,6 +42,7 @@ class PaddieMatrickAuto: OpMode() {
 
     private lateinit var movement: MecanumMovement
 
+    val funnel = Funnel()
     private lateinit var collector: Collector
     private lateinit var fourBar: FourBar
     private lateinit var depositor: Depositor
@@ -123,15 +128,16 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             )
     )
-    private fun holdCollectionPos(previousTask: AutoTask): AutoTask {
-        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = previousTask.chassisTask.targetPosition.copy(x= actualCollectionX)))
-    }
+
     private val collectionY = -52.0
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
-    private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = 90.0)
+    private var correctedCollectionAngle = 90.0
+
+    private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = correctedCollectionAngle)
     private var actualCollectionX = collectionPosition.x
-    private val cycle = listOf(
+
+    private val cyclePreLinup = listOf(
             /** Prepare to collect */
             AutoTask(
                     ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),
@@ -147,7 +153,10 @@ class PaddieMatrickAuto: OpMode() {
                         true
                     }, requiredForCompletion = false),
 //                    timeoutSeconds = 5.0
-            ),
+            )
+    )
+
+    private val cycleCollectAndDepo = listOf(
             /** Collecting */
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
@@ -162,10 +171,7 @@ class PaddieMatrickAuto: OpMode() {
                         coneCollectionTime = null
                         depositor.isConeInFunnel(10.0)
                     }, requiredForCompletion = true),
-                    nextTaskIteration = {previousTask ->
-                        actualCollectionX = movement.localizer.currentPositionAndRotation().x
-                        previousTask
-                    },
+                    nextTaskIteration = ::adjustTargetToCorrectedCollectionPositionForNextIteration,
                     timeoutSeconds = 5.0
             ),
             AutoTask(
@@ -180,7 +186,7 @@ class PaddieMatrickAuto: OpMode() {
                         val areWeDoneCollecting = System.currentTimeMillis() - coneCollectionTime!! >= timeToFinishCollectingMilis
                         isColeCurrentlyInCollector && areWeDoneCollecting
                     }, requiredForCompletion = true),
-                    nextTaskIteration = ::holdCollectionPos,
+                    nextTaskIteration = ::adjustTargetToCorrectedCollectionPositionForNextIteration,
                     timeoutSeconds = 2.0
             ),
             AutoTask(
@@ -191,7 +197,7 @@ class PaddieMatrickAuto: OpMode() {
                         hardware.collector.power = 0.05
                         true
                     }, requiredForCompletion = false),
-                    nextTaskIteration = ::holdCollectionPos
+                    nextTaskIteration = ::adjustTargetToCorrectedCollectionPositionForNextIteration
             ),
             /** Drive to pole */
             AutoTask(
@@ -219,6 +225,74 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Collecting.degrees, requiredForCompletion = false)
             )
     )
+
+    private fun generateTapeLinupSequence(alliance: Alliance, fieldSide: FieldSide): List<AutoTask> {
+
+        val colorToLookFor: Funnel.Color = when (alliance) {
+            Alliance.Red -> Funnel.Color.Red
+            Alliance.Blue -> Funnel.Color.Blue
+        }
+
+        val templateLinupTask = AutoTask(
+                ChassisTask(preCollectionPosition, accuracyInches= 0.2, power= 0.0..0.3, requiredForCompletion = false),
+                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false)
+        )
+
+        fun changeTargetAngle(newTargetAngle: Double): (AutoTask)->AutoTask {
+            return { previousTask ->
+                val previousPosition = previousTask.chassisTask.targetPosition
+                changeTaskTargetPosition(
+                        newTarget = previousPosition.copy(r= newTargetAngle),
+                        previousTask = previousTask)
+            }
+        }
+
+        val targetAwayFromTape = 80.0
+        val targetTowardTape = 100.0
+
+        val lookAwayFromTape = templateLinupTask.copy(
+                subassemblyTask = OtherTask({
+                    funnel.getColor() == Funnel.Color.Neither
+                }, requiredForCompletion = true),
+
+                nextTaskIteration = changeTargetAngle(targetTowardTape)
+        )
+        val lookToTape = templateLinupTask.copy(
+                subassemblyTask = OtherTask({
+                    funnel.getColor() == colorToLookFor
+                }, requiredForCompletion = true),
+
+                nextTaskIteration = changeTargetAngle(targetAwayFromTape)
+        )
+
+        return listOf(
+                lookAwayFromTape, //off of line
+                lookToTape, //on of line
+                lookAwayFromTape.copy( //off of line, and save rotation
+                        chassisTask= lookAwayFromTape.chassisTask.copy(power = 0.0..0.2),
+                        nextTaskIteration= { previousTask ->
+                            correctedCollectionAngle = movement.localizer.currentPositionAndRotation().r
+                            lookAwayFromTape.nextTaskIteration.invoke(previousTask)
+                        }
+                )
+        )
+
+    }
+
+    private fun changeTaskTargetPosition(newTarget: PositionAndRotation, previousTask: AutoTask): AutoTask =
+        previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = newTarget))
+
+    private fun holdCollectionPos(previousTask: AutoTask): AutoTask {
+        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = previousTask.chassisTask.targetPosition.copy(x= actualCollectionX)))
+    }
+
+    private fun adjustTargetToCorrectedCollectionPositionForNextIteration(previousTask: AutoTask): AutoTask {
+        val collectionPositionY = collectionPosition.y
+        val correctedPosition = PositionAndRotation(y= collectionPositionY, x= actualCollectionX, r= correctedCollectionAngle)
+
+        return changeTaskTargetPosition(correctedPosition, previousTask)
+    }
 
     enum class ParkPositions(val pos: PositionAndRotation) {
         One(PositionAndRotation(x = -22.0, y = -52.0, r = 0.0)),
@@ -290,6 +364,7 @@ class PaddieMatrickAuto: OpMode() {
         val localizer = RRLocalizer(hardware)
         movement = MecanumMovement(localizer, hardware, telemetry)
 
+        funnel.init(hardware.lineSensor)
         collector = Collector()
         fourBar = FourBar(telemetry)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
@@ -335,6 +410,12 @@ class PaddieMatrickAuto: OpMode() {
         val opencv = OpenCvAbstraction(this)
         junctionAimer.start(opencv, hardwareMap)
 
+        val alliance = if (wizard.wasItemChosen("startPos", "Left")) {
+            Alliance.Red
+        } else {
+            Alliance.Blue
+        }
+
         val side = if (wizard.wasItemChosen("startPos", "Left"))
             FieldSide.Left
         else
@@ -352,6 +433,7 @@ class PaddieMatrickAuto: OpMode() {
         autoTasks = makePlanForAuto(
             signalOrientation = aprilTagGXOutput,
             fieldSide = side,
+            alliance= alliance,
             numberOfCycles = numberOfCycles)
 //        autoTasks = listOf(
 //                AutoTask(
@@ -398,12 +480,17 @@ class PaddieMatrickAuto: OpMode() {
     enum class FieldSide {
         Left, Right
     }
-    private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide, numberOfCycles: Int):List<AutoTask> {
+    private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide, alliance: Alliance, numberOfCycles: Int):List<AutoTask> {
         val parkPath = when (signalOrientation) {
             SignalOrientation.One -> parkOne
             SignalOrientation.Two -> parkTwo
             SignalOrientation.Three -> parkThree
         }
+
+        val tapeLinupSequence = generateTapeLinupSequence(alliance, fieldSide)
+
+        val cycle = cyclePreLinup + tapeLinupSequence + cycleCollectAndDepo
+
         val cycles = when (numberOfCycles) {
             0 -> listOf()
             1 -> cycle
@@ -411,6 +498,7 @@ class PaddieMatrickAuto: OpMode() {
             3 -> cycle + cycle + cycle
             else -> {cycle + cycle + cycle + cycle}
         }
+
 
         return flopped(depositPreload + cycles, fieldSide) + parkPath
     }
