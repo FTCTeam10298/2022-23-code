@@ -171,7 +171,10 @@ class PaddieMatrickAuto: OpMode() {
                         coneCollectionTime = null
                         depositor.isConeInFunnel(10.0)
                     }, requiredForCompletion = true),
-                    nextTaskIteration = ::adjustTargetToCorrectedCollectionPositionForNextIteration,
+                    nextTaskIteration = { previousTask ->
+                        actualCollectionX = movement.localizer.currentPositionAndRotation().x
+                        this.adjustTargetToCorrectedCollectionRotation(previousTask)
+                    },
                     timeoutSeconds = 5.0
             ),
             AutoTask(
@@ -186,7 +189,7 @@ class PaddieMatrickAuto: OpMode() {
                         val areWeDoneCollecting = System.currentTimeMillis() - coneCollectionTime!! >= timeToFinishCollectingMilis
                         isColeCurrentlyInCollector && areWeDoneCollecting
                     }, requiredForCompletion = true),
-                    nextTaskIteration = ::adjustTargetToCorrectedCollectionPositionForNextIteration,
+                    nextTaskIteration = this::adjustTargetToRealCollectionPosition,
                     timeoutSeconds = 2.0
             ),
             AutoTask(
@@ -197,7 +200,7 @@ class PaddieMatrickAuto: OpMode() {
                         hardware.collector.power = 0.05
                         true
                     }, requiredForCompletion = false),
-                    nextTaskIteration = ::adjustTargetToCorrectedCollectionPositionForNextIteration
+                    nextTaskIteration = this::adjustTargetToRealCollectionPosition
             ),
             /** Drive to pole */
             AutoTask(
@@ -249,6 +252,7 @@ class PaddieMatrickAuto: OpMode() {
             }
         }
 
+        val finalTurnPower = 0.05
         val relativeTargetAwayFromTape = -45.0
         val relativeTargetTowardTape = 45.0
 
@@ -285,7 +289,7 @@ class PaddieMatrickAuto: OpMode() {
                 panToOtherSideOfLine, //off of line
                 panToThisSideOfLine, //on of line
                 panToOtherSideOfLine.copy( //off of line, and save rotation
-                        chassisTask= panToOtherSideOfLine.chassisTask.copy(power = 0.0..0.2),
+                        chassisTask= panToOtherSideOfLine.chassisTask.copy(power = 0.0..finalTurnPower),
                         nextTaskIteration= { previousTask ->
                             correctedCollectionAngle = movement.localizer.currentPositionAndRotation().r
                             panToOtherSideOfLine.nextTaskIteration.invoke(previousTask)
@@ -298,11 +302,13 @@ class PaddieMatrickAuto: OpMode() {
     private fun changeTaskTargetPosition(newTarget: PositionAndRotation, previousTask: AutoTask): AutoTask =
         previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = newTarget))
 
-    private fun holdCollectionPos(previousTask: AutoTask): AutoTask {
-        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = previousTask.chassisTask.targetPosition.copy(x= actualCollectionX)))
-    }
+    private fun adjustTargetToCorrectedCollectionRotation(previousTask: AutoTask): AutoTask {
+        val previousTarget = previousTask.chassisTask.targetPosition
+        val correctedPosition = previousTarget.copy(r= correctedCollectionAngle)
 
-    private fun adjustTargetToCorrectedCollectionPositionForNextIteration(previousTask: AutoTask): AutoTask {
+        return changeTaskTargetPosition(correctedPosition, previousTask)
+    }
+    private fun adjustTargetToRealCollectionPosition(previousTask: AutoTask): AutoTask {
         val collectionPositionY = collectionPosition.y
         val correctedPosition = PositionAndRotation(y= collectionPositionY, x= actualCollectionX, r= correctedCollectionAngle)
 
