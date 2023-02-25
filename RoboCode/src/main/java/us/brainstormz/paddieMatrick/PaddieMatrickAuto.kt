@@ -258,12 +258,13 @@ class PaddieMatrickAuto: OpMode() {
 
         val lookAwayFromTape = templateLinupTask.copy(
                 subassemblyTask = OtherTask({
-                    multipleTelemetry.addLine("Panning off the tap")
+                    multipleTelemetry.addLine("Panning off the tape")
                     funnel.getColor() == Funnel.Color.Neither
                 }, requiredForCompletion = true),
 
                 nextTaskIteration = changeTargetAngle(awayFromTapeSign * relativeTarget)
         )
+
         val lookToTape = templateLinupTask.copy(
                 subassemblyTask = OtherTask({
                     multipleTelemetry.addLine("Panning on to tape with color $colorToLookFor")
@@ -287,12 +288,11 @@ class PaddieMatrickAuto: OpMode() {
 
         return listOf(
                 panToOtherSideOfLine, //off of line
-                panToThisSideOfLine, //on of line
-                panToOtherSideOfLine.copy( //off of line, and save rotation
-                        chassisTask= panToOtherSideOfLine.chassisTask.copy(power = 0.0..finalTurnPower),
+                panToThisSideOfLine.copy( //off of line, and save rotation
+                        chassisTask= panToThisSideOfLine.chassisTask.copy(power = 0.0..finalTurnPower),
                         nextTaskIteration= { previousTask ->
                             correctedCollectionAngle = movement.localizer.currentPositionAndRotation().r
-                            panToOtherSideOfLine.nextTaskIteration.invoke(previousTask)
+                            panToThisSideOfLine.nextTaskIteration.invoke(previousTask)
                         }
                 )
         )
