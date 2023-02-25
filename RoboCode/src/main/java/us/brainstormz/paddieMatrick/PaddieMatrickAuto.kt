@@ -239,41 +239,56 @@ class PaddieMatrickAuto: OpMode() {
                 FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false)
         )
 
-        fun changeTargetAngle(newTargetAngle: Double): (AutoTask)->AutoTask {
+        fun changeTargetAngle(newRelativeTargetAngle: Double): (AutoTask)->AutoTask {
             return { previousTask ->
                 val previousPosition = previousTask.chassisTask.targetPosition
+                val currentAngle = movement.localizer.currentPositionAndRotation().r
                 changeTaskTargetPosition(
-                        newTarget = previousPosition.copy(r= newTargetAngle),
+                        newTarget = previousPosition.copy(r= currentAngle + newRelativeTargetAngle),
                         previousTask = previousTask)
             }
         }
 
-        val targetAwayFromTape = 80.0
-        val targetTowardTape = 100.0
+        val relativeTargetAwayFromTape = -45.0
+        val relativeTargetTowardTape = 45.0
 
         val lookAwayFromTape = templateLinupTask.copy(
                 subassemblyTask = OtherTask({
+                    multipleTelemetry.addLine("Panning off the tap")
                     funnel.getColor() == Funnel.Color.Neither
                 }, requiredForCompletion = true),
 
-                nextTaskIteration = changeTargetAngle(targetTowardTape)
+                nextTaskIteration = changeTargetAngle(relativeTargetAwayFromTape)
         )
         val lookToTape = templateLinupTask.copy(
                 subassemblyTask = OtherTask({
+                    multipleTelemetry.addLine("Panning on to tape with color $colorToLookFor")
                     funnel.getColor() == colorToLookFor
                 }, requiredForCompletion = true),
 
-                nextTaskIteration = changeTargetAngle(targetAwayFromTape)
+                nextTaskIteration = changeTargetAngle(relativeTargetTowardTape)
         )
 
+        val panToOtherSideOfLine = when {
+            funnel.getColor() == colorToLookFor -> lookAwayFromTape
+            funnel.getColor() == Funnel.Color.Neither -> lookToTape
+            else -> lookAwayFromTape
+        }
+
+        val panToThisSideOfLine = when {
+            funnel.getColor() == colorToLookFor -> lookToTape
+            funnel.getColor() == Funnel.Color.Neither -> lookAwayFromTape
+            else -> lookToTape
+        }
+
         return listOf(
-                lookAwayFromTape, //off of line
-                lookToTape, //on of line
-                lookAwayFromTape.copy( //off of line, and save rotation
-                        chassisTask= lookAwayFromTape.chassisTask.copy(power = 0.0..0.2),
+                panToOtherSideOfLine, //off of line
+                panToThisSideOfLine, //on of line
+                panToOtherSideOfLine.copy( //off of line, and save rotation
+                        chassisTask= panToOtherSideOfLine.chassisTask.copy(power = 0.0..0.2),
                         nextTaskIteration= { previousTask ->
                             correctedCollectionAngle = movement.localizer.currentPositionAndRotation().r
-                            lookAwayFromTape.nextTaskIteration.invoke(previousTask)
+                            panToOtherSideOfLine.nextTaskIteration.invoke(previousTask)
                         }
                 )
         )
