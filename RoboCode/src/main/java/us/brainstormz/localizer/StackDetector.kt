@@ -1,6 +1,7 @@
 package us.brainstormz.localizer
 
 import locationTracking.PosAndRot
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.math.abs
@@ -15,7 +16,7 @@ class StackDetectorVars(
     var displayMode:StackDetector.Mode
 )
 
-class StackDetector(private val vars:StackDetectorVars){
+class StackDetector(private val vars:StackDetectorVars, private val telemetry: Telemetry){
 
     enum class Mode {
         FRAME,
@@ -115,8 +116,15 @@ class StackDetector(private val vars:StackDetectorVars){
         val contours = mutableListOf<MatOfPoint>()
         Imgproc.findContours(maskB, contours, Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
 
-        // Dig through them
-        val shapesByArea = contours.map{ cnt: MatOfPoint ->
+        val areaTheshold = 0
+        val largeEnoughContours = contours.filter{ cnt: MatOfPoint ->
+            val area = Imgproc.contourArea(cnt)
+
+            area >= areaTheshold
+        }
+
+            // Dig through them
+        val shapesByArea = largeEnoughContours.map{ cnt: MatOfPoint ->
             val area = Imgproc.contourArea(cnt)
 
             fun convert(src: MatOfPoint): MatOfPoint2f {
@@ -128,27 +136,21 @@ class StackDetector(private val vars:StackDetectorVars){
             val cnt2f = convert(cnt)
             val points = MatOfPoint2f()
             Imgproc.approxPolyDP(cnt2f, points, 0.02 * Imgproc.arcLength(cnt2f, true), true)
-//
-//            drawLines(points, frame)
+
 
             val pointsList = points.toList()
 
-            val pointWeLike = pointsList.firstOrNull()
-            if(pointWeLike!=null){
-                mostRecentDetection = StackDetection(
-                        xPosition = pointWeLike.x,
-                        whenDetected = System.currentTimeMillis()
-                )
-            }
             area to pointsList
         }
 
         val largestShape = shapesByArea.maxByOrNull { it.first }?.second
 
-        if(largestShape!=null){
-            drawLinesFromPoints(largestShape, frame)
+        val detectedStack = largestShape
 
-            val center = centroid(largestShape)
+        if(detectedStack!=null){
+            drawLinesFromPoints(detectedStack, frame)
+
+            val center = centroid(detectedStack)
 
             val topY = -240.0
             val bottomY = 240.0
@@ -159,6 +161,10 @@ class StackDetector(private val vars:StackDetectorVars){
             Imgproc.line(frame, center, pointAtTheTop, lower, 10)
             Imgproc.line(frame, center, pointAtBottom, upper, 10)
 
+            mostRecentDetection = StackDetection(
+                    xPosition = center.x,
+                    whenDetected = System.currentTimeMillis()
+            )
         }
 
         return when (vars.displayMode) {

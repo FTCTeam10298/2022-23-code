@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.HardwareMap
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.openftc.easyopencv.OpenCvCameraRotation
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.localizer.StackDetector
@@ -14,10 +15,10 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
-class StackAimer {
+class StackAimer(private val telemetry: Telemetry) {
 
     private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.BLUE, StackDetector.Mode.FRAME)
-    private val stackDetector = StackDetector(stackDetectorVars)
+    private val stackDetector = StackDetector(stackDetectorVars, telemetry)
 
     fun start(opencv: OpenCvAbstraction, hardwareMap: HardwareMap) {
         opencv.cameraName = "backCam"
@@ -32,8 +33,12 @@ class StackAimer {
         val stackX = stackDetector.detectedPosition(staleThresholdAgeMillis = 100) ?: centeredPosition
         val errorFromCenter = stackX - centeredPosition
 
-        val turnSpeed = 0.38
-        val angleToStack = (errorFromCenter *turnSpeed).coerceIn(-180.0..180.0)
+        telemetry.addLine("centeredPosition: $centeredPosition")
+        telemetry.addLine("stackX: $stackX")
+        telemetry.addLine("errorFromCenter: $errorFromCenter")
+
+        val turnSpeed = 0.20
+        val angleToStack = (errorFromCenter * turnSpeed).coerceIn(-180.0..180.0)
 
         return angleToStack
     }
@@ -50,7 +55,7 @@ class StackAimerTest: OpMode() {
     val multiTelemetry = MultipleTelemetry(telemetry, dashTelemetry)
 
     val opencv = OpenCvAbstraction(this)
-    private val stackAimer = StackAimer()
+    private val stackAimer = StackAimer(telemetry)
 
     override fun init() {
         hardware.init(hardwareMap)
