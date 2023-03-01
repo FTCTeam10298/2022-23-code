@@ -1,5 +1,6 @@
 package us.brainstormz.localizer
 
+import locationTracking.PosAndRot
 import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import kotlin.math.abs
@@ -60,10 +61,10 @@ class StackDetector(private val vars:StackDetectorVars){
 
     //trained for yellow
     val blueColor = ColorRange(
-            L_H = NamedVar("Low Hue", 30.0),
-            L_S = NamedVar("Low Saturation", -200.0),
-            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 85.0),
-            U_H = NamedVar("Upper Hue", 255.0),
+            L_S = NamedVar("Low Saturation", 20.0),
+            L_H = NamedVar("Low Hue", 0.0),
+            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 55.0),
+            U_H = NamedVar("Upper Hue", 35.0),
             U_S = NamedVar("Upper Saturation", 255.0),
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
 
@@ -146,12 +147,35 @@ class StackDetector(private val vars:StackDetectorVars){
 
         if(largestShape!=null){
             drawLinesFromPoints(largestShape, frame)
+
+            val center = centroid(largestShape)
+
+            val topY = -240.0
+            val bottomY = 240.0
+
+            val pointAtTheTop = Point(center.x, topY)
+            val pointAtBottom = Point(center.x, bottomY)
+
+            Imgproc.line(frame, center, pointAtTheTop, lower, 10)
+            Imgproc.line(frame, center, pointAtBottom, upper, 10)
+
         }
 
         return when (vars.displayMode) {
             Mode.FRAME -> frame
             Mode.MASK -> maskB
         }
+    }
+
+
+    private fun centroid(points: List<Point>): Point {
+        val result = points.fold(Point()){ acc, it ->
+            Point(acc.x + it.x, acc.y + it.y)
+        }
+        result.x /= points.size
+        result.y /= points.size
+
+        return result
     }
 
     private fun areRoughlyInSameXPlane(a: Point, b: Point): Boolean {
