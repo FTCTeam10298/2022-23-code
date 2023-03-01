@@ -22,12 +22,19 @@ class classBots: OpMode() {
 
         hardware.otherMotor.power = gamepad2.left_stick_y.toDouble()
 
-        if (gamepad1.a) {
-            hardware.servo1.position = 1.0
-        } else if (gamepad1.b){
-            hardware.servo1.position = -1.0
-        } else {
-            hardware.servo1.position = 0.0
+        hardware.servo1.position = when(gamepad1.a || gamepad2.a) {
+            true -> 1.0
+            false -> -1.0
+        }
+
+        hardware.servo2.position = when(gamepad1.b || gamepad2.b) {
+            true -> 1.0
+            false -> -1.0
+        }
+
+        hardware.servo3.position = when(gamepad1.x || gamepad2.x) {
+            true -> 1.0
+            false -> -1.0
         }
     }
 }
@@ -41,8 +48,8 @@ class ClassHardware: HardwareClass {
     lateinit var otherMotor: DcMotor
 
     lateinit var servo1: Servo
-    val servoPos1 = 1.0
-    val servoPos2 = 0.0
+    lateinit var servo2: Servo
+    lateinit var servo3: Servo
 
     override fun init(ahwMap: HardwareMap) {
         hwMap = ahwMap
@@ -53,6 +60,7 @@ class ClassHardware: HardwareClass {
         otherMotor = hwMap["otherMotor"] as DcMotor
 
         servo1 = hwMap["servo1"] as Servo
-        servo1.position = servoPos1
+        servo2 = hwMap["servo2"] as Servo
+        servo3 = hwMap["servo3"] as Servo
     }
 }
