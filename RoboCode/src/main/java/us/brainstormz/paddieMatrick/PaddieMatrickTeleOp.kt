@@ -40,7 +40,7 @@ class PaddieMatrickTeleOp: OpMode() {
         hardware.odomRaiser2.position = 1.0
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         fourBarTarget = fourBar.current4BarDegrees()
-        funnel.init(hardware.lineSensor)
+        funnel.init(hardware.lineSensor, hardware.funnelSensor)
 //        fourBar.pid = PID(kp= 0.011, kd= 0.001)//0000001)
     }
 
@@ -222,8 +222,8 @@ class PaddieMatrickTeleOp: OpMode() {
         }
         telemetry.addLine("tooth conversion: ${Depositor.Tooth.oldToNewCountsConversion}")
         telemetry.addLine("funnel distance(MM): ${hardware.funnelSensor.getDistance(DistanceUnit.MM)}")
-
-
+        telemetry.addLine("lineSensor alpha: ${hardware.lineSensor.alpha()}")
+        telemetry.addLine("lineSensor argb: ${hardware.lineSensor.argb()}")
         telemetry.addLine("lineSensor color: ${funnel.getColor()}")
         telemetry.addLine("lineSensor red threshold: ${funnel.dataWhenRed}")
         telemetry.addLine("lineSensor blue threshold: ${funnel.dataWhenBlue}")
@@ -272,15 +272,20 @@ class PaddieMatrickTeleOp: OpMode() {
 
         val collectFourbarTarget = if (multiCone) Depositor.FourBarDegrees.StackCollecting else Depositor.FourBarDegrees.Collecting
 
+        val isConeReadyToBeCollected = if (multiCone) funnel.coneIsInFrontOfFunnel() else isConeInFunnel()
 
         if (!isConeInCollector()) {
             collectionTimeMilis = null
-            hardware.funnelLifter.position = collector.funnelDown
+
+            if (multiCone)
+                hardware.funnelLifter.position = collector.funnelUp
+            else
+                hardware.funnelLifter.position = collector.funnelDown
 
             moveDepositer(fourBarPosition = collectFourbarTarget, liftPosition = preCollectLiftTarget)
 
             println("Teleop: Just before Checking funnel")
-            if (isConeInFunnel()) {
+            if (isConeReadyToBeCollected) {
                 println("Teleop: cone in funnel")
                 telemetry.addLine("Cone is In Funnel")
                 hardware.collector.power = 1.0

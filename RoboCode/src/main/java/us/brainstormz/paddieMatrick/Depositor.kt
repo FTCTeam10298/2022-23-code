@@ -13,7 +13,7 @@ import us.brainstormz.pid.PID
 import us.brainstormz.telemetryWizard.GlobalConsole
 import us.brainstormz.utils.MathHelps
 
-class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar: FourBar, private val collector: Collector, private val telemetry: Telemetry) {
+class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar: FourBar, private val collector: Collector, private val funnel: Funnel, private val telemetry: Telemetry) {
     enum class FourBarDegrees(val degrees: Double) {
         StackCollecting(65.0),
         Collecting(68.0),
@@ -72,7 +72,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
 
             moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = preCollectLiftTarget)
 
-            if (isConeInFunnel()) {
+            if (funnel.isConeInFunnel()) {
                 hardware.collector.power = 1.0
                 moveDepositer(fourBarPosition = FourBarDegrees.Collecting, liftPosition = LiftCounts.Collection)
             } else {
@@ -142,21 +142,6 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         return collectorDistance < minCollectedDistance// && collectorRawOptical > collectedOpticalThreshold// || collectorRed > collectedRedThreshold)
     }
 
-    fun isConeInFunnel(collectableDistance: Double = 30.0): Boolean {
-//        val collectableDistance = 30
-        val opticalThreshold = 2046
-        val funnelBlueThreshold = 60
-        val funnelRedThreshold = 60
-
-        val red = hardware.funnelSensor.red()
-        val blue = hardware.funnelSensor.blue()
-        val optical = hardware.funnelSensor.rawOptical()
-        val distance = hardware.funnelSensor.getDistance(DistanceUnit.MM)
-//        telemetry.addLine("red: $red")
-//        telemetry.addLine("blue: $blue")
-//        telemetry.addLine("funnel distance: $distance")
-        return distance < collectableDistance || optical >= opticalThreshold // && (blue > funnelBlueThreshold || red > funnelRedThreshold)
-    }
 
 }
 
@@ -186,8 +171,10 @@ class LiftPIDTuning: LinearOpMode() {
         val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
         val collector = Collector()
         val fourBar = FourBar(telemetry)
+        val funnel = Funnel()
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-        val depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, telemetry = telemetry)
+        funnel.init(hardware.lineSensor, hardware.funnelSensor)
+        val depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, funnel = funnel,telemetry = telemetry)
 
         depositor.liftPID = PID(LiftPIDsAndTarget.kp, LiftPIDsAndTarget.ki, LiftPIDsAndTarget.kp)
         depositor.accuracy = LiftPIDsAndTarget.precisionCounts

@@ -103,7 +103,7 @@ class newIterativeOpMode: OpMode() {
                     OtherTask(action = {
                         hardware.funnelLifter.position = collector.funnelDown
 
-                        depositor.isConeInFunnel()
+                        Funnel().isConeInFunnel()
                     }, requiredForCompletion = true)
             )),
             AutoTask(listOf(
@@ -214,7 +214,7 @@ class newIterativeOpMode: OpMode() {
         collector = Collector()
         fourBar = FourBar(telemetry)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-        depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, telemetry = telemetry)
+        depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware,funnel= Funnel(), telemetry = telemetry)
 
 //        wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
         wizard.newMenu("program", "Which auto are we starting?", listOf("Park Auto" to null, "New Cycle Auto" to "startPos"), firstMenu = true)
