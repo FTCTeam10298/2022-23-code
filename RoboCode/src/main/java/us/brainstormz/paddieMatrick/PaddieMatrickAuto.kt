@@ -152,7 +152,7 @@ class PaddieMatrickAuto: OpMode() {
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     OtherTask(isDone= {
-                        hardware.funnelLifter.position = collector.funnelDown
+//                        hardware.funnelLifter.position = collector.funnelDown
                         true
                     }, requiredForCompletion = false),
 //                    timeoutSeconds = 5.0
@@ -197,7 +197,7 @@ class PaddieMatrickAuto: OpMode() {
 
                         hardware.collector.power = 0.7
                         coneCollectionTime = null
-                        depositor.isConeInFunnel(10.0)
+                        funnel.coneIsInFrontOfFunnel()
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::withPrelinupCorrection,
                     timeoutSeconds = 5.0
@@ -215,6 +215,7 @@ class PaddieMatrickAuto: OpMode() {
                         isConeCurrentlyInCollector && areWeDoneCollecting
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::withCollectionCorrections,
+                    timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
@@ -503,11 +504,11 @@ class PaddieMatrickAuto: OpMode() {
         val localizer = RRLocalizer(hardware)
         movement = MecanumMovement(localizer, hardware, telemetry)
 
-        funnel.init(hardware.lineSensor)
+        funnel.init(hardware.lineSensor, hardware.funnelSensor)
         collector = Collector()
         fourBar = FourBar(telemetry)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-        depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, telemetry = telemetry)
+        depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, funnel = funnel, telemetry = telemetry)
 
         wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
         wizard.newMenu("program", "Which auto are we starting?", listOf("Cycle Auto" to "cycles", "Park Auto" to null))
@@ -628,8 +629,7 @@ class PaddieMatrickAuto: OpMode() {
 
         val tapeLinupSequence = generateTapeLinupSequence()
 
-        val cycle = cyclePreLinup + tapeLinupSequence + cycleCollectAndDepo
-//        val cycle = cyclePreLinup + cycleCollectAndDepo
+        val cycle = cyclePreLinup + cycleCollectAndDepo
 
         val cycles = when (numberOfCycles) {
             0 -> listOf()
