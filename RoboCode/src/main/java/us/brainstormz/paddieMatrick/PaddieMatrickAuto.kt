@@ -76,7 +76,7 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(depositPosition, power= 0.0..0.3, accuracyInches = 0.4, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    nextTaskIteration = ::lineUp
+                    nextTaskIteration = ::alignWithPole
             ),
             /** Deposit */
             AutoTask(
@@ -88,7 +88,7 @@ class PaddieMatrickAuto: OpMode() {
                         val isFourBarPastTarget = fourBar.current4BarDegrees() > Depositor.FourBarDegrees.DepositOk.degrees
                         isFourBarPastTarget
                     }, requiredForCompletion = true),
-                    nextTaskIteration = ::stayLinedUp,
+                    nextTaskIteration = ::stayLinedUpWithPole,
 //                    timeoutSeconds = 3.0
             ),
             AutoTask(
@@ -99,11 +99,11 @@ class PaddieMatrickAuto: OpMode() {
                         hardware.collector.power = -0.9
                         !depositor.isConeInCollector()
                     }, requiredForCompletion = true),
-                    nextTaskIteration = ::stayLinedUp,
+                    nextTaskIteration = ::stayLinedUpWithPole,
 //                    timeoutSeconds = 5.0
             ),
     )
-    private fun lineUp(previousTask: AutoTask): AutoTask {
+    private fun alignWithPole(previousTask: AutoTask): AutoTask {
         val targetAngle = movement.localizer.currentPositionAndRotation().r - junctionAimer.getAngleFromPole()
         multipleTelemetry.addLine("angleFromPole: ${junctionAimer.getAngleFromPole()}")
         multipleTelemetry.addLine("targetAngle: $targetAngle")
@@ -114,7 +114,8 @@ class PaddieMatrickAuto: OpMode() {
         depositPosition = newPosition
         return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
     }
-    private fun stayLinedUp(previousTask: AutoTask): AutoTask {
+
+    private fun stayLinedUpWithPole(previousTask: AutoTask): AutoTask {
         return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= depositPosition))
     }
 
