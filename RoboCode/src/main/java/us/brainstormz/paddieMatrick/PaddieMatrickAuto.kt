@@ -169,7 +169,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true)
             ),
             AutoTask(
-                    ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
+                    ChassisTask(preCollectionPosition, accuracyInches= 0.2, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false),
                     nextTaskIteration = ::alignToStack
