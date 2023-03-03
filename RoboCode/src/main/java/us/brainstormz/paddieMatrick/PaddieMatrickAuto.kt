@@ -482,6 +482,88 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(isDone= zeroLift, requiredForCompletion = true)))
 
+    private fun flopToLeftSide(task:ChassisTask):ChassisTask {
+        val pos = task.targetPosition
+        return task.copy(
+                targetPosition = PositionAndRotation(
+                        x = flopLateralPosToLeftSide(pos.x),
+                        y = pos.y,
+                        r = flopRotationToLeftSide(pos.r)
+                )
+        )
+    }
+
+    private fun flopRotationToLeftSide(r: Double) = r * -1
+    private fun flopLateralPosToLeftSide(x: Double) = x * -1
+
+    private fun flopToLeftSide(tasks:List<AutoTask>):List<AutoTask> {
+        return tasks.map{task->
+            task.copy(
+                    chassisTask = flopToLeftSide(task.chassisTask)
+            )
+        }
+    }
+    enum class FieldSide {
+        Left, Right
+    }
+    private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide, alliance: Alliance, numberOfCycles: Int):List<AutoTask> {
+        val parkPath = when (signalOrientation) {
+            SignalOrientation.One -> parkOne
+            SignalOrientation.Two -> parkTwo
+            SignalOrientation.Three -> parkThree
+        }
+
+        val tapeLinupSequence = generateTapeLinupSequence()
+
+        val cycle = cyclePreLinup + cycleCollectAndDepo
+
+        val cycles = when (numberOfCycles) {
+            0 -> listOf()
+            1 -> cycle
+            2 -> cycle + cycle
+            3 -> cycle + cycle + cycle
+            else -> {cycle + cycle + cycle + cycle}
+        }
+
+
+        return flopped(preloadDeposit + cycles, fieldSide) + parkPath
+    }
+
+    private fun flopped(coreTasks: List<AutoTaskManager.AutoTask>, side: FieldSide): List<AutoTask> {
+        val swichedTasks = when (side) {
+            FieldSide.Left -> flopToLeftSide(coreTasks)
+            FieldSide.Right -> coreTasks
+        }
+        return swichedTasks
+    }
+
+    fun startAimerCameras(targetHue: StackDetector.TargetHue) {
+        val stackDetectorVars = StackDetectorVars(targetHue, StackDetector.Mode.FRAME)
+        stackDetector = StackDetector(stackDetectorVars, telemetry)
+        stackAimer = StackAimer(telemetry, stackDetector)
+
+        val dualCamAbstraction = DualCamAbstraction(hardwareMap)
+        val viewportContainerIds = dualCamAbstraction.setupViewport()
+
+        val liftCamName = "liftCam"
+        val liftPipeline = PipelineAbstraction()
+        liftPipeline.userFun = junctionDetector::scoopFrame
+        liftCam = dualCamAbstraction.startNewCamera(
+                cameraName = liftCamName,
+                cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
+                viewportContainerId = viewportContainerIds[0],
+                pipeline = liftPipeline)
+
+        val backCamName = "backCam"
+        val backPipeline = PipelineAbstraction()
+        backPipeline.userFun = stackDetector::processFrame
+        backCam = dualCamAbstraction.startNewCamera(
+                cameraName = backCamName,
+                cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
+                viewportContainerId = viewportContainerIds[1],
+                pipeline = backPipeline)
+    }
+
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
@@ -565,101 +647,12 @@ class PaddieMatrickAuto: OpMode() {
             numberOfCycles = numberOfCycles)
     }
 
-    fun startAimerCameras(targetHue: StackDetector.TargetHue) {
-        val stackDetectorVars = StackDetectorVars(targetHue, StackDetector.Mode.FRAME)
-        stackDetector = StackDetector(stackDetectorVars, telemetry)
-        stackAimer = StackAimer(telemetry, stackDetector)
-
-        val dualCamAbstraction = DualCamAbstraction(hardwareMap)
-        val viewportContainerIds = dualCamAbstraction.setupViewport()
-
-        val liftCamName = "liftCam"
-        val liftPipeline = PipelineAbstraction()
-        liftPipeline.userFun = junctionDetector::scoopFrame
-        liftCam = dualCamAbstraction.startNewCamera(
-                cameraName = liftCamName,
-                cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
-                viewportContainerId = viewportContainerIds[0],
-                pipeline = liftPipeline)
-
-        val backCamName = "backCam"
-        val backPipeline = PipelineAbstraction()
-        backPipeline.userFun = stackDetector::processFrame
-        backCam = dualCamAbstraction.startNewCamera(
-                cameraName = backCamName,
-                cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
-                viewportContainerId = viewportContainerIds[1],
-                pipeline = backPipeline)
-    }
-
-    override fun stop() {
-        liftCam.closeCameraDeviceAsync { liftCam.closeCameraDevice() }
-        backCam.closeCameraDeviceAsync { backCam.closeCameraDevice() }
-
-        val motorsAndCRServos = hardware.hwMap.getAll(DcMotorSimple::class.java)
-        motorsAndCRServos.forEach {
-            it.power = 0.0
-        }
-    }
-
-    private fun flopToLeftSide(task:ChassisTask):ChassisTask {
-        val pos = task.targetPosition
-        return task.copy(
-                targetPosition = PositionAndRotation(
-                        x = flopLateralPosToLeftSide(pos.x),
-                        y = pos.y,
-                        r = flopRotationToLeftSide(pos.r)
-                )
-        )
-    }
-
-    private fun flopRotationToLeftSide(r: Double) = r * -1
-    private fun flopLateralPosToLeftSide(x: Double) = x * -1
-
-    private fun flopToLeftSide(tasks:List<AutoTask>):List<AutoTask> {
-        return tasks.map{task->
-            task.copy(
-                chassisTask = flopToLeftSide(task.chassisTask)
-            )
-        }
-    }
-    enum class FieldSide {
-        Left, Right
-    }
-    private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide, alliance: Alliance, numberOfCycles: Int):List<AutoTask> {
-        val parkPath = when (signalOrientation) {
-            SignalOrientation.One -> parkOne
-            SignalOrientation.Two -> parkTwo
-            SignalOrientation.Three -> parkThree
-        }
-
-        val tapeLinupSequence = generateTapeLinupSequence()
-
-        val cycle = cyclePreLinup + cycleCollectAndDepo
-
-        val cycles = when (numberOfCycles) {
-            0 -> listOf()
-            1 -> cycle
-            2 -> cycle + cycle
-            3 -> cycle + cycle + cycle
-            else -> {cycle + cycle + cycle + cycle}
-        }
-
-
-        return flopped(preloadDeposit + cycles, fieldSide) + parkPath
-    }
-
-    private fun PaddieMatrickAuto.flopped(coreTasks: List<AutoTaskManager.AutoTask>, side: FieldSide): List<AutoTask> {
-        val swichedTasks = when (side) {
-            FieldSide.Left -> flopToLeftSide(coreTasks)
-            FieldSide.Right -> coreTasks
-        }
-        return swichedTasks
-    }
-
     private val autoTaskManager = AutoTaskManager()
     override fun loop() {
         /** AUTONOMOUS  PHASE */
+
+        val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
+        multipleTelemetry.addLine("botHeading: $botHeading")
 
         autoTaskManager.loop(
                 telemetry= multipleTelemetry,
@@ -682,8 +675,15 @@ class PaddieMatrickAuto: OpMode() {
                     otherTask.isDone()
                 }
         )
+    }
 
-        val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
-        multipleTelemetry.addLine("botHeading: $botHeading")
+    override fun stop() {
+        liftCam.closeCameraDeviceAsync { liftCam.closeCameraDevice() }
+        backCam.closeCameraDeviceAsync { backCam.closeCameraDevice() }
+
+        val motorsAndCRServos = hardware.hwMap.getAll(DcMotorSimple::class.java)
+        motorsAndCRServos.forEach {
+            it.power = 0.0
+        }
     }
 }
