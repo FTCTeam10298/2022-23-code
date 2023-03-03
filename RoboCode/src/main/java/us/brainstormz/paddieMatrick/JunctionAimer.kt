@@ -14,8 +14,7 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
-class JunctionAimer {
-    private val junctionDetector = CreamsicleGoalDetector(TelemetryConsole(PhoHardware.PhoTelemetry()))
+class JunctionAimer(private val junctionDetector: CreamsicleGoalDetector) {
 
     fun start(opencv: OpenCvAbstraction, hardwareMap: HardwareMap) {
 
@@ -60,7 +59,9 @@ class JunctionAimbotTest: OpMode() {
     val multiTelemetry = MultipleTelemetry(telemetry, dashTelemetry)
 
     val opencv = OpenCvAbstraction(this)
-    private val junctionAimer = JunctionAimer()
+
+    private val junctionDetector = CreamsicleGoalDetector(console)
+    private val junctionAimer = JunctionAimer(junctionDetector)
 
     override fun init() {
         hardware.init(hardwareMap)

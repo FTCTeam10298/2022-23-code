@@ -14,23 +14,13 @@ import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
+import java.util.Stack
 
-class StackAimer(private val telemetry: Telemetry) {
-
-    private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.RED, StackDetector.Mode.FRAME)
-    private val stackDetector = StackDetector(stackDetectorVars, telemetry)
-
-    fun start(opencv: OpenCvAbstraction, hardwareMap: HardwareMap) {
-        opencv.cameraName = "backCam"
-        opencv.cameraOrientation = OpenCvCameraRotation.UPRIGHT
-        opencv.init(hardwareMap)
-        opencv.start()
-        opencv.onNewFrame(stackDetector::processFrame)
-    }
+class StackAimer(private val telemetry: Telemetry, private val stackDetector: StackDetector) {
 
     fun getAngleFromStack(): Double {
         val centeredPosition: Double = 160.0
-        val stackX = stackDetector.detectedPosition(staleThresholdAgeMillis = 100) ?: centeredPosition
+        val stackX = stackDetector.detectedPosition(1000) ?: centeredPosition
         val errorFromCenter = stackX - centeredPosition
 
         telemetry.addLine("centeredPosition: $centeredPosition")
@@ -55,14 +45,19 @@ class StackAimerTest: OpMode() {
     val multiTelemetry = MultipleTelemetry(telemetry, dashTelemetry)
 
     val opencv = OpenCvAbstraction(this)
-    private val stackAimer = StackAimer(telemetry)
+    private val vars = StackDetectorVars(StackDetector.TargetHue.BLUE, StackDetector.Mode.MASK)
+    private val stackDetector = StackDetector(vars, telemetry)
+    private val stackAimer = StackAimer(telemetry, stackDetector)
 
     override fun init() {
         hardware.init(hardwareMap)
         val localizer= RRLocalizer(hardware)
         movement = MecanumMovement(localizer, hardware, telemetry)
 
-        stackAimer.start(opencv, hardwareMap)
+        opencv.cameraName = "backCam"
+        opencv.init(hardwareMap)
+        opencv.onNewFrame(stackDetector::processFrame)
+        opencv.start()
     }
 
     override fun loop() {

@@ -6,8 +6,6 @@ import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraRotation
 import us.brainstormz.localizer.StackDetector
 import us.brainstormz.localizer.StackDetectorVars
-import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleConfig
-import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 
@@ -24,7 +22,7 @@ class StackDetectorTuner: OpMode() {
     val console = TelemetryConsole(telemetry)
     val opencv = OpenCvAbstraction(this)
 
-    private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.RED, StackDetector.Mode.FRAME)
+    private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.BLUE, StackDetector.Mode.FRAME)
     private val detector = StackDetector(stackDetectorVars, telemetry)
 
     private val cameraNameInMap = "backCam"
