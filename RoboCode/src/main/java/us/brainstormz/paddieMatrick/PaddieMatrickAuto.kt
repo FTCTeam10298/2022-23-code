@@ -20,6 +20,11 @@ import us.brainstormz.openCvAbstraction.PipelineAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
 import kotlin.math.abs
+import us.brainstormz.paddieMatrick.AutoTaskManager.AutoTask
+import us.brainstormz.paddieMatrick.AutoTaskManager.ChassisTask
+import us.brainstormz.paddieMatrick.AutoTaskManager.LiftTask
+import us.brainstormz.paddieMatrick.AutoTaskManager.FourBarTask
+import us.brainstormz.paddieMatrick.AutoTaskManager.OtherTask
 
 // Problems as of 2/23/23 11:20
 // Gets penalties from stack
@@ -406,44 +411,6 @@ class PaddieMatrickAuto: OpMode() {
                     extraState = initialState
             )
         }
-
-//        val lookAwayFromTape = templateLinupTask.copy(
-//                subassemblyTask = OtherTask(
-//                    isDone = {
-//                        multipleTelemetry.addLine("Panning off the tape")
-//                        funnel.getColor() == Funnel.Color.Neither
-//                    },
-//                    requiredForCompletion = true),
-//                nextTaskIteration = changeTargetAngle(awayFromTapeSign * relativeTarget)
-//        )
-//
-//        val lookToTape = templateLinupTask.copy(
-//                subassemblyTask = OtherTask({
-//                    multipleTelemetry.addLine("Panning on to tape with color $colorToLookFor")
-//                    funnel.getColor() == colorToLookFor
-//                }, requiredForCompletion = true),
-//                nextTaskIteration = changeTargetAngle(relativeTarget)
-//        )
-
-//        val initTask = AutoTask(
-//                ChassisTask(preCollectionPosition, requiredForCompletion = false),
-//                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-//                FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
-//                OtherTask({
-//                    when {
-//                        funnel.getColor() == colorToLookFor -> {
-//                            panToOtherSideOfLine = lookAwayFromTape
-//                            panToThisSideOfLine = lookToTape
-//                        }
-//                        funnel.getColor() == Funnel.Color.Neither -> {
-//                            panToOtherSideOfLine = lookToTape
-//                            panToThisSideOfLine = lookAwayFromTape
-//                        }
-//                    }
-//                    true
-//                }, requiredForCompletion = true)
-//        )
-
         return listOf(scanUntilChanged())
 
     }
@@ -561,8 +528,6 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     private lateinit var autoTasks: List<AutoTask>
-    private lateinit var currentTask: AutoTask
-//    private lateinit var autoTaskIterator: ListIterator<AutoTask>
     override fun start() {
         this.resetRuntime()
         hardware.rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
@@ -608,8 +573,6 @@ class PaddieMatrickAuto: OpMode() {
             fieldSide = side,
             alliance= alliance,
             numberOfCycles = numberOfCycles)
-
-        currentTask = getTask(null)
     }
 
     fun startAimerCameras(targetHue: StackDetector.TargetHue) {
@@ -696,7 +659,7 @@ class PaddieMatrickAuto: OpMode() {
         return flopped(preloadDeposit + cycles, fieldSide) + parkPath
     }
 
-    private fun PaddieMatrickAuto.flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
+    private fun PaddieMatrickAuto.flopped(coreTasks: List<AutoTaskManager.AutoTask>, side: FieldSide): List<AutoTask> {
         val swichedTasks = when (side) {
             FieldSide.Left -> flopToLeftSide(coreTasks)
             FieldSide.Right -> coreTasks
@@ -704,166 +667,41 @@ class PaddieMatrickAuto: OpMode() {
         return swichedTasks
     }
 
-    private lateinit var taskListIterator: ListIterator<AutoTask>
-    private fun getTask(previousTask: AutoTask?): AutoTask {
-        if (previousTask != null) {
-
-            val timeSinceTaskStart = getEffectiveRuntime() - (previousTask.timeStartedSeconds
-                    ?: (getEffectiveRuntime() + 1))
-            val pastOrAtTaskTimeout: Boolean = if (previousTask.timeoutSeconds != null) previousTask.timeoutSeconds <= timeSinceTaskStart else false
-
-
-            return if ((previousTask.isFinished() || pastOrAtTaskTimeout) && taskListIterator.hasNext()) {
-                previousTask.taskStatus = TaskStatus.Completed
-                taskListIterator.next()
-            } else {
-                previousTask.nextTaskIteration(previousTask)
-            }
-
-        } else {
-            taskListIterator = autoTasks.listIterator()
-            return taskListIterator.next()
-        }
-    }
-
-    private var prevTime = System.currentTimeMillis()
+    private val autoTaskManager = AutoTaskManager()
     override fun loop() {
         /** AUTONOMOUS  PHASE */
-        val dt = System.currentTimeMillis() - prevTime
-        prevTime = System.currentTimeMillis()
-        multipleTelemetry.addLine("dt: $dt")
-        multipleTelemetry.addLine("runtime: ${getEffectiveRuntime()}")
+
+        autoTaskManager.loop(
+                telemetry= multipleTelemetry,
+                autoTasks= autoTasks,
+                effectiveRuntimeSeconds = runtime,
+                isChassisTaskCompleted = { chassisTask ->
+                    movement.precisionInches = chassisTask.accuracyInches
+                    movement.precisionDegrees = chassisTask.accuracyDegrees
+                    movement.moveTowardTarget(chassisTask.targetPosition, chassisTask.power)
+                },
+                isLiftTaskCompleted = { liftTask ->
+                    depositor.accuracy = liftTask.accuracyCounts
+                    depositor.moveLift(liftTask.targetCounts)
+                },
+                isFourBarTaskCompleted = { fourBarTask ->
+                    fourBar.accuracyDegrees = fourBarTask.accuracyDegrees
+                    depositor.moveFourBar(fourBarTask.targetDegrees)
+                },
+                isOtherTaskCompleted = { otherTask ->
+                    otherTask.isDone()
+                }
+        )
 
         val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
         multipleTelemetry.addLine("botHeading: $botHeading")
-
-        val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
-        val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
-        val atOrPastDeadline = if (nextDeadlineSeconds != null) nextDeadlineSeconds <= getEffectiveRuntime() else false
-
-        currentTask = if (atOrPastDeadline) {
-//            multipleTelemetry.addLine("skipping ahead to deadline")
-//            failSkippedTasks(nextDeadlinedTask!!, autoTasks)
-
-            nextDeadlinedTask!!
-        } else {
-            getTask(currentTask)
-        }
-
-
-        if (currentTask.taskStatus != TaskStatus.Running) {
-            currentTask.timeStartedSeconds = getEffectiveRuntime()
-        }
-        currentTask.taskStatus = TaskStatus.Running
-        multipleTelemetry.addLine("timeStartedSeconds: ${currentTask.timeStartedSeconds}")
-
-//        multipleTelemetry.addLine("\n\ncurrent task: $currentTask")
-
-        val chassisTask = currentTask.chassisTask
-        movement.precisionInches = chassisTask.accuracyInches
-        movement.precisionDegrees = chassisTask.accuracyDegrees
-        val isChassisTaskCompleted = movement.moveTowardTarget(chassisTask.targetPosition, chassisTask.power)
-
-        val liftTask = currentTask.liftTask
-        depositor.accuracy = liftTask.accuracyCounts
-        val isLiftTaskCompleted = depositor.moveLift(liftTask.targetCounts)
-
-        val fourBarTask = currentTask.fourBarTask
-        fourBar.accuracyDegrees = fourBarTask.accuracyDegrees
-        val isFourBarTaskCompleted = depositor.moveFourBar(fourBarTask.targetDegrees)
-
-        val subassemblyTask = currentTask.subassemblyTask
-        val isSubassemblyTaskCompleted = subassemblyTask?.isDone?.invoke()
-
-
-        val completions = listOf(chassisTask to isChassisTaskCompleted, liftTask to isLiftTaskCompleted, fourBarTask to isFourBarTaskCompleted, subassemblyTask to isSubassemblyTaskCompleted)
-        val isTaskCompleted: Boolean = completions.fold(true) { prevTasksCompleted, completion ->
-            if (completion.first?.requiredForCompletion == true)
-                prevTasksCompleted && completion.second!!
-            else
-                prevTasksCompleted
-        }
-
-        if (isTaskCompleted) {
-            if (chassisTask.targetPosition == depositPosition) {
-                val message = "Robot has reached target: (x= ${depositPosition.x}, y= ${depositPosition.y} r= ${depositPosition.r}). current position is: (x= ${movement.localizer.currentPositionAndRotation().x}, y= ${movement.localizer.currentPositionAndRotation().y} r= ${movement.localizer.currentPositionAndRotation().r})"
-//                telemetry.addLine(message)
-                multipleTelemetry.addData("Robot has reached target: ", depositPosition)
-                multipleTelemetry.addData("current position is: ", movement.localizer.currentPositionAndRotation())
-                print(message)
-            }
-            currentTask.taskStatus = TaskStatus.Completed
-            currentTask.timeFinishedSeconds = getEffectiveRuntime()
-        }
-    }
-
-
-    fun getEffectiveRuntime() = this.runtime
-
-    data class AutoTask(val chassisTask: ChassisTask,
-                        val liftTask: LiftTask,
-                        val fourBarTask: FourBarTask,
-                        val subassemblyTask: OtherTask? = null,
-                        val nextTaskIteration: (AutoTask) -> AutoTask = {it},
-                        val startDeadlineSeconds: Double? = null /* time after start by which this is guaranteed to start */,
-                        val timeoutSeconds: Double? = null /* time after which the task will be skipped if not already complete */,
-                        var taskStatus: TaskStatus = TaskStatus.Todo,
-                        var timeStartedSeconds: Double? = null,
-                        var timeFinishedSeconds: Double? = null,
-                        val extraState:Any? = null) {
-        fun isFinished() = taskStatus == TaskStatus.Completed || taskStatus == TaskStatus.Failed
-//        override fun toString(): String = ""
-    }
-
-    open class SubassemblyTask(open val requiredForCompletion: Boolean)
-    data class ChassisTask(
-            val targetPosition: PositionAndRotation,
-            val power: ClosedRange<Double> = 0.0..1.0,
-            val accuracyInches: Double = 0.5,
-            val accuracyDegrees: Double = 5.0,
-            override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
-    data class LiftTask(val targetCounts: Int,
-                        val accuracyCounts: Int = 300,
-                        override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
-    data class FourBarTask(val targetDegrees: Double,
-                           val accuracyDegrees: Double = 5.0,
-                           override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
-    data class OtherTask(val isDone: ()->Boolean,
-                         override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
-
-    enum class TaskStatus {
-        Todo,
-        Running,
-        Failed,
-        Completed
-    }
-
-    private var tasksWithDeadlines: List<AutoTask> = emptyList()
-    private fun findNextDeadlinedTask(tasks: List<AutoTask>): AutoTask? {
-        if (tasksWithDeadlines.isEmpty()) {
-            tasksWithDeadlines = tasks.filter{ it.startDeadlineSeconds != null && (it.taskStatus != TaskStatus.Completed || it.taskStatus != TaskStatus.Failed)}
-            tasksWithDeadlines = tasksWithDeadlines.sortedBy { task ->
-                task.startDeadlineSeconds
-            }
-        }
-        tasksWithDeadlines.filter { task -> !task.isFinished() }
-
-        return tasksWithDeadlines.firstOrNull()
-    }
-    private fun failSkippedTasks(deadlinedTask: AutoTask, tasks: List<AutoTask>) {
-        tasks.forEach { task ->
-            if (task != deadlinedTask && !task.isFinished()) {
-                task.taskStatus = TaskStatus.Failed
-                task.timeFinishedSeconds = getEffectiveRuntime()
-            }
-        }
     }
 }
 
 class AutoTaskManager {
 
     private lateinit var taskListIterator: ListIterator<AutoTask>
-    private fun getTask(previousTask: AutoTask?, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double): AutoTask {
+    private fun getTask(previousTask: AutoTask?, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, telemetry: Telemetry ): AutoTask {
         if (previousTask != null) {
 
             val timeSinceTaskStart = effectiveRuntimeSeconds - (previousTask.timeStartedSeconds
@@ -879,6 +717,8 @@ class AutoTaskManager {
             }
 
         } else {
+            telemetry.addLine("Current task is null")
+            telemetry.update()
             taskListIterator = autoTasks.listIterator()
             return taskListIterator.next()
         }
@@ -886,12 +726,12 @@ class AutoTaskManager {
 
 
     private var prevTime = System.currentTimeMillis()
-    private lateinit var currentTask: AutoTask
-    fun loop(multipleTelemetry: Telemetry, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, isChassisTaskCompleted: (ChassisTask) -> Boolean, isLiftTaskCompleted: (LiftTask) -> Boolean, isFourBarTaskCompleted: (FourBarTask) -> Boolean, isOtherTaskCompleted: (OtherTask) -> Boolean) {
+    private var currentTask: AutoTask? = null
+    fun loop(telemetry: Telemetry, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, isChassisTaskCompleted: (ChassisTask) -> Boolean, isLiftTaskCompleted: (LiftTask) -> Boolean, isFourBarTaskCompleted: (FourBarTask) -> Boolean, isOtherTaskCompleted: (OtherTask) -> Boolean) {
         /** AUTONOMOUS  PHASE */
         val dt = System.currentTimeMillis() - prevTime
         prevTime = System.currentTimeMillis()
-        multipleTelemetry.addLine("dt: $dt")
+        telemetry.addLine("dt: $dt")
 
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
         val nextDeadlineSeconds = nextDeadlinedTask?.startDeadlineSeconds
@@ -903,20 +743,22 @@ class AutoTaskManager {
 
             nextDeadlinedTask!!
         } else {
-            getTask(currentTask, autoTasks, effectiveRuntimeSeconds)
+            getTask(currentTask, autoTasks, effectiveRuntimeSeconds, telemetry)
         }
+        telemetry.addLine("Current task is : $currentTask")
+        telemetry.update()
 
 
-        if (currentTask.taskStatus != TaskStatus.Running) {
-            currentTask.timeStartedSeconds = effectiveRuntimeSeconds
+        if (currentTask!!.taskStatus != TaskStatus.Running) {
+            currentTask!!.timeStartedSeconds = effectiveRuntimeSeconds
         }
-        currentTask.taskStatus = TaskStatus.Running
-        multipleTelemetry.addLine("timeStartedSeconds: ${currentTask.timeStartedSeconds}")
+        currentTask!!.taskStatus = TaskStatus.Running
+        telemetry.addLine("timeStartedSeconds: ${currentTask!!.timeStartedSeconds}")
 
-        val chassisTask = currentTask.chassisTask
-        val liftTask = currentTask.liftTask
-        val fourBarTask = currentTask.fourBarTask
-        val subassemblyTask = currentTask.subassemblyTask
+        val chassisTask = currentTask!!.chassisTask
+        val liftTask = currentTask!!.liftTask
+        val fourBarTask = currentTask!!.fourBarTask
+        val subassemblyTask = currentTask!!.subassemblyTask
 
         val isSubassemblyTaskCompleted: (OtherTask?) -> Boolean = { nullableSubassemblyTask ->
             nullableSubassemblyTask?.let {subassemblyTask ->
@@ -938,8 +780,8 @@ class AutoTaskManager {
         }
 
         if (isTaskCompleted) {
-            currentTask.taskStatus = TaskStatus.Completed
-            currentTask.timeFinishedSeconds = effectiveRuntimeSeconds
+            currentTask!!.taskStatus = TaskStatus.Completed
+            currentTask!!.timeFinishedSeconds = effectiveRuntimeSeconds
         }
     }
 
@@ -955,7 +797,6 @@ class AutoTaskManager {
                         var timeFinishedSeconds: Double? = null,
                         val extraState:Any? = null) {
         fun isFinished() = taskStatus == TaskStatus.Completed || taskStatus == TaskStatus.Failed
-//        override fun toString(): String = ""
     }
 
     open class SubassemblyTask(open val requiredForCompletion: Boolean)
