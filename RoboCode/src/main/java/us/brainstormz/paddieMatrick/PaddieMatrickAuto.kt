@@ -54,7 +54,7 @@ class PaddieMatrickAuto: OpMode() {
 
     private lateinit var backCam: OpenCvCamera
     private lateinit var stackDetector: StackDetector
-    private val stackAimer = StackAimer(telemetry, stackDetector)
+    private lateinit var stackAimer: StackAimer
 
     private lateinit var movement: MecanumMovement
 
@@ -616,6 +616,7 @@ class PaddieMatrickAuto: OpMode() {
     fun startAimerCameras(targetHue: StackDetector.TargetHue) {
         val stackDetectorVars = StackDetectorVars(targetHue, StackDetector.Mode.FRAME)
         stackDetector = StackDetector(stackDetectorVars, telemetry)
+        stackAimer = StackAimer(telemetry, stackDetector)
 
         val dualCamAbstraction = DualCamAbstraction(hardwareMap)
         val viewportContainerIds = dualCamAbstraction.setupViewport()
