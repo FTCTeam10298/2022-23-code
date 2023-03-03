@@ -44,8 +44,8 @@ class StackDetector(private val vars:StackDetectorVars, private val telemetry: T
     )
 
     private val redAbsoluteColor = ColorRange(
-            L_H = NamedVar("Low Hue", 120.0),
             L_S = NamedVar("Low Saturation", 150.0),
+            L_H = NamedVar("Low Hue", 120.0),
             L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 0.0),
             U_H = NamedVar("Uppper Hue", 255.0),
             U_S = NamedVar("Upper Saturation", 255.0),
@@ -53,10 +53,10 @@ class StackDetector(private val vars:StackDetectorVars, private val telemetry: T
     )
 
     val redColor = ColorRange(
-            L_H = NamedVar("Low Hue", 0.0),
-            L_S = NamedVar("Low Saturation", 0.0),
-            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 0.0),
-            U_H = NamedVar("Uppper Hue", 255.0),
+            L_S = NamedVar("Low Saturation", 70.0),
+            L_H = NamedVar("Low Hue", 115.0),
+            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 90.0),
+            U_H = NamedVar("Uppper Hue", 150.0),
             U_S = NamedVar("Upper Saturation", 255.0),
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
 
@@ -104,11 +104,16 @@ class StackDetector(private val vars:StackDetectorVars, private val telemetry: T
     }
 
     fun processFrame(frame: Mat): Mat {
+        val color = when (vars.targetHue) {
+            TargetHue.RED -> redColor
+            TargetHue.BLUE -> blueColor
+            TargetHue.absRED -> redColor
+        }
 
         // Pre-process the image to make contour detection easier
         Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV)
-        val lower = Scalar(blueColor.L_H.value, blueColor.L_S.value, blueColor.L_V.value)
-        val upper = Scalar(blueColor.U_H.value, blueColor.U_S.value, blueColor.U_V.value)
+        val lower = Scalar(color.L_H.value, color.L_S.value, color.L_V.value)
+        val upper = Scalar(color.U_H.value, color.U_S.value, color.U_V.value)
         Core.inRange(hsv, lower, upper, maskA)
         Imgproc.erode(maskA, maskB, kernel)
 

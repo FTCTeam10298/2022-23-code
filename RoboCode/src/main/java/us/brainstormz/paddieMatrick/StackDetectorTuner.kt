@@ -24,7 +24,7 @@ class StackDetectorTuner: OpMode() {
     val console = TelemetryConsole(telemetry)
     val opencv = OpenCvAbstraction(this)
 
-    private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.BLUE, StackDetector.Mode.FRAME)
+    private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.RED, StackDetector.Mode.FRAME)
     private val detector = StackDetector(stackDetectorVars, telemetry)
 
     private val cameraNameInMap = "backCam"

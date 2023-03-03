@@ -17,7 +17,7 @@ import us.brainstormz.telemetryWizard.TelemetryConsole
 
 class StackAimer(private val telemetry: Telemetry) {
 
-    private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.BLUE, StackDetector.Mode.FRAME)
+    private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.RED, StackDetector.Mode.FRAME)
     private val stackDetector = StackDetector(stackDetectorVars, telemetry)
 
     fun start(opencv: OpenCvAbstraction, hardwareMap: HardwareMap) {
