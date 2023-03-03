@@ -8,18 +8,15 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraRotation
-import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.localizer.StackDetector
 import us.brainstormz.localizer.StackDetectorVars
 import us.brainstormz.localizer.polePosition.creamsicleGoalDetection.CreamsicleGoalDetector
 import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
-import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.openCvAbstraction.PipelineAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
-import java.util.Stack
 import kotlin.math.abs
 
 // Problems as of 2/23/23 11:20
@@ -122,7 +119,7 @@ class PaddieMatrickAuto: OpMode() {
     }
 
 
-    private val depositPreload = listOf(
+    private val preloadDeposit = listOf(
             AutoTask(
                     ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 500, requiredForCompletion = false),
@@ -673,7 +670,7 @@ class PaddieMatrickAuto: OpMode() {
         }
 
 
-        return flopped(depositPreload + cycles, fieldSide) + parkPath
+        return flopped(preloadDeposit + cycles, fieldSide) + parkPath
     }
 
     private fun PaddieMatrickAuto.flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
