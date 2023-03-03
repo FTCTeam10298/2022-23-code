@@ -2,9 +2,11 @@ package us.brainstormz.paddieMatrick
 
 import com.acmerobotics.dashboard.FtcDashboard
 import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
+import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraRotation
@@ -17,6 +19,7 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.PipelineAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
+import java.util.Stack
 import kotlin.math.abs
 
 // Problems as of 2/23/23 11:20
@@ -45,11 +48,12 @@ class PaddieMatrickAuto: OpMode() {
 
     var aprilTagGX = AprilTagEx()
 
+    private lateinit var liftCam: OpenCvCamera
     private val junctionDetector = CreamsicleGoalDetector(console)
     private val junctionAimer = JunctionAimer(junctionDetector)
 
-    private val stackDetectorVars = StackDetectorVars(StackDetector.TargetHue.BLUE, StackDetector.Mode.FRAME)
-    private val stackDetector = StackDetector(stackDetectorVars, telemetry)
+    private lateinit var backCam: OpenCvCamera
+    private lateinit var stackDetector: StackDetector
     private val stackAimer = StackAimer(telemetry, stackDetector)
 
     private lateinit var movement: MecanumMovement
@@ -573,34 +577,18 @@ class PaddieMatrickAuto: OpMode() {
         aprilTagGX.camera?.stopRecordingPipeline()
         aprilTagGX.camera?.closeCameraDeviceAsync{}
 
-
-        val dualCamAbstraction = DualCamAbstraction(hardwareMap)
-        val viewportContainerIds = dualCamAbstraction.setupViewport()
-
-        val liftCamName = "liftCam"
-        val liftPipeline = PipelineAbstraction()
-        liftPipeline.userFun = junctionDetector::scoopFrame
-        val liftCam: OpenCvCamera = dualCamAbstraction.startNewCamera(
-                cameraName = liftCamName,
-                cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
-                viewportContainerId = viewportContainerIds[0],
-                pipeline = liftPipeline)
-
-        val backCamName = "backCam"
-        val backPipeline = PipelineAbstraction()
-        backPipeline.userFun = stackDetector::processFrame
-        val backCam: OpenCvCamera = dualCamAbstraction.startNewCamera(
-                cameraName = backCamName,
-                cameraRotation = OpenCvCameraRotation.UPRIGHT,
-                viewportContainerId = viewportContainerIds[1],
-                pipeline = backPipeline)
-
-
         val alliance = if (wizard.wasItemChosen("alliance", "Red")) {
             Alliance.Red
         } else {
             Alliance.Blue
         }
+
+        val targetHue = when (alliance) {
+            Alliance.Red -> StackDetector.TargetHue.RED
+            Alliance.Blue -> StackDetector.TargetHue.BLUE
+        }
+
+        startAimerCameras(targetHue)
 
         val side = if (wizard.wasItemChosen("startPos", "Left"))
             FieldSide.Left
@@ -625,6 +613,31 @@ class PaddieMatrickAuto: OpMode() {
         currentTask = getTask(null)
     }
 
+    fun startAimerCameras(targetHue: StackDetector.TargetHue) {
+        val stackDetectorVars = StackDetectorVars(targetHue, StackDetector.Mode.FRAME)
+        stackDetector = StackDetector(stackDetectorVars, telemetry)
+
+        val dualCamAbstraction = DualCamAbstraction(hardwareMap)
+        val viewportContainerIds = dualCamAbstraction.setupViewport()
+
+        val liftCamName = "liftCam"
+        val liftPipeline = PipelineAbstraction()
+        liftPipeline.userFun = junctionDetector::scoopFrame
+        liftCam = dualCamAbstraction.startNewCamera(
+                cameraName = liftCamName,
+                cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
+                viewportContainerId = viewportContainerIds[0],
+                pipeline = liftPipeline)
+
+        val backCamName = "backCam"
+        val backPipeline = PipelineAbstraction()
+        backPipeline.userFun = stackDetector::processFrame
+        backCam = dualCamAbstraction.startNewCamera(
+                cameraName = backCamName,
+                cameraRotation = OpenCvCameraRotation.UPRIGHT,
+                viewportContainerId = viewportContainerIds[1],
+                pipeline = backPipeline)
+    }
     private fun flopToLeftSide(task:ChassisTask):ChassisTask {
         val pos = task.targetPosition
         return task.copy(
