@@ -37,6 +37,10 @@ class MulticamTest : LinearOpMode() {
         val backCamName = "backCam"
         val liftCam: OpenCvCamera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName::class.java, liftCamName), viewportContainerIds[0])
         val backCam: OpenCvCamera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName::class.java, backCamName), viewportContainerIds[1])
+        
+        liftCam.showFpsMeterOnViewport(false)
+        backCam.showFpsMeterOnViewport(false)
+
         liftCam.openCameraDeviceAsync(object : AsyncCameraOpenListener {
             override fun onOpened() {
 
