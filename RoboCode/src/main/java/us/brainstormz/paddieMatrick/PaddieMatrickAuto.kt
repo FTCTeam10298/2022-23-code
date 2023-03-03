@@ -162,16 +162,31 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
-                    OtherTask(isDone= {
-//                        hardware.funnelLifter.position = collector.funnelDown
-                        true
-                    }, requiredForCompletion = false),
-//                    timeoutSeconds = 5.0
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true)
+            ),
+            AutoTask(
+                    ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false),
+                    nextTaskIteration = ::alignToStack
             )
     )
 
-    fun withPrelinupCorrection(t:AutoTask):AutoTask {
+    private fun alignToStack(previousTask: AutoTask): AutoTask {
+        val targetAngle = movement.localizer.currentPositionAndRotation().r - stackAimer.getAngleFromStack()
+
+        multipleTelemetry.addLine("angleFromStack: ${stackAimer.getAngleFromStack()}")
+        multipleTelemetry.addLine("targetAngle: $targetAngle")
+
+        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)
+        multipleTelemetry.addLine("position: $newPosition")
+
+        prelinupCorrection = newPosition
+        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
+
+    }
+
+    private fun withPrelinupCorrection(t:AutoTask):AutoTask {
         return (prelinupCorrection?.let {
 //            changeTaskTargetPosition(it, previousTask)
             t.copy(
@@ -606,23 +621,6 @@ class PaddieMatrickAuto: OpMode() {
             fieldSide = side,
             alliance= alliance,
             numberOfCycles = numberOfCycles)
-//        autoTasks = listOf(
-//                AutoTask(
-//                        ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
-//                        LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 500, requiredForCompletion = false),
-//                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
-//                ),
-//                AutoTask(
-//                        ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
-//                        LiftTask(Depositor.LiftCounts.Detection.counts, accuracyCounts = 700, requiredForCompletion = true),
-//                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
-//                ),
-//                AutoTask(
-//                        ChassisTask(depositPosition, power= 0.0..0.2, accuracyInches = 0.2, requiredForCompletion = true),
-//                        LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
-//                        FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-//                        nextTaskIteration = ::lineUp
-//                ))
 
         currentTask = getTask(null)
     }
