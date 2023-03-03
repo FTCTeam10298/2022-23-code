@@ -638,6 +638,17 @@ class PaddieMatrickAuto: OpMode() {
                 viewportContainerId = viewportContainerIds[1],
                 pipeline = backPipeline)
     }
+
+    override fun stop() {
+        liftCam.closeCameraDeviceAsync { liftCam.closeCameraDevice() }
+        backCam.closeCameraDeviceAsync { backCam.closeCameraDevice() }
+
+        val motorsAndCRServos = hardware.hwMap.getAll(DcMotorSimple::class.java)
+        motorsAndCRServos.forEach {
+            it.power = 0.0
+        }
+    }
+
     private fun flopToLeftSide(task:ChassisTask):ChassisTask {
         val pos = task.targetPosition
         return task.copy(

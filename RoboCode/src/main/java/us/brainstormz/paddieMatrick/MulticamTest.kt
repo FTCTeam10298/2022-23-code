@@ -5,6 +5,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.HardwareMap
 import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.openftc.easyopencv.*
+import org.openftc.easyopencv.OpenCvCamera.AsyncCameraCloseListener
 import org.openftc.easyopencv.OpenCvCamera.AsyncCameraOpenListener
 import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.localizer.StackDetector
@@ -57,8 +58,13 @@ class MulticamTest : LinearOpMode() {
             telemetry.addLine("$backCamName FPS: ${backCam.fps}")
             telemetry.update()
             sleep(100)
+            if (isStopRequested) {
+                liftCam.closeCameraDeviceAsync { liftCam.closeCameraDevice() }
+                backCam.closeCameraDeviceAsync { backCam.closeCameraDevice() }
+            }
         }
     }
+
 }
 
 class DualCamAbstraction(private val hardwareMap: HardwareMap) {
