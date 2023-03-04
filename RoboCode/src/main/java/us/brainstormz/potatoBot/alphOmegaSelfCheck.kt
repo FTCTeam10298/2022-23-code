@@ -13,7 +13,7 @@ import us.brainstormz.hardwareClasses.MecanumDriveTrain
 @Autonomous(name="potatoBotSelfCheck", group = "!")
 class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
 
-    val hardware = Alphhardware()
+    val hardware =  AlphOmegaHardware()
     val movement = MecanumDriveTrain(hardware)
     val motorTime: Long = 250 //in ms
 
