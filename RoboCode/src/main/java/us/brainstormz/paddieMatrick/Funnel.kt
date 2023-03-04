@@ -35,7 +35,7 @@ class Funnel {
         }
 
     fun coneIsInFrontOfFunnel(): Boolean {
-        val threshold = 280 * 100000
+        val threshold = 260 * 100000
         return lineSensor.argb() >= threshold
     }
 
