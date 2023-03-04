@@ -11,7 +11,7 @@ import us.brainstormz.hardwareClasses.ThreeWheelOdometry
 private const val s = "rEncoder"
 private const val freeMove = false //for debugging. puts motors in float when stopped.
 
-class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
+class Alphhardware: MecanumHardware, ThreeWheelOdometry {
     override lateinit var lFDrive: DcMotor
     override lateinit var rFDrive: DcMotor
     override lateinit var lBDrive: DcMotor
