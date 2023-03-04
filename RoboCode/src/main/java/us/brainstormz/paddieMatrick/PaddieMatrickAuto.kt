@@ -143,7 +143,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true)
             ),
             AutoTask(
-                    ChassisTask(preCollectionPosition, accuracyInches= 0.5, accuracyDegrees = 1.0, requiredForCompletion = true),
+                    ChassisTask(preCollectionPosition, accuracyInches= 0.2, accuracyDegrees = 1.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false),
                     nextTaskIteration = ::alignToStack
@@ -153,7 +153,7 @@ class PaddieMatrickAuto: OpMode() {
     private val cycleCollectAndDepo = listOf(
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.2, accuracyDegrees = 2.0, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.2, accuracyInches= 0.2, accuracyDegrees = 1.0, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
@@ -532,4 +532,6 @@ class PaddieMatrickAuto: OpMode() {
             it.power = 0.0
         }
     }
+
+//    data class DriveEncoderChassisTask(override val requiredForCompletion: Boolean): ChassisTask(targetPosition= PositionAndRotation(), requiredForCompletion = requiredForCompletion)
 }

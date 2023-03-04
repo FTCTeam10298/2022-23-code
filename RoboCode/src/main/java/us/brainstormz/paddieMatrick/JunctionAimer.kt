@@ -34,13 +34,6 @@ class JunctionAimer(private val junctionDetector: CreamsicleGoalDetector) {
         val turnSpeed = 0.38
         val angleToPole = (junctionErrorFromCenter *turnSpeed).coerceIn(-180.0..180.0)
 
-//        if (lastPoleAngle == null)
-//            lastPoleAngle = angleToPole
-
-//        multiTelemetry.addLine("junctionX: $junctionX")
-//        multiTelemetry.addLine("centeredPosition: $centeredPosition")
-//        multiTelemetry.addLine("junctionErrorFromCenter: $junctionErrorFromCenter")
-
         return angleToPole
     }
 }
