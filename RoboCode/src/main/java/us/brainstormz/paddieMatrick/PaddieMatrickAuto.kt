@@ -422,16 +422,15 @@ class PaddieMatrickAuto: OpMode() {
                 pipeline = backPipeline)
     }
 
-    private val encoderLog by lazy {
-        EncoderLog(
-            encoders = listOf(
-                hardware.leftOdomEncoder as DcMotorEx,
-                hardware.centerOdomEncoder as DcMotorEx,
-                hardware.rightOdomEncoder as DcMotorEx,
-            ),
-            path = File("/encoders.csv")
-        )
-    }
+//    private val encoderLog by lazy {
+//        EncoderLog(
+//            encoders = listOf(
+//                hardware.leftOdomEncoder as DcMotorEx,
+//                hardware.centerOdomEncoder as DcMotorEx,
+//                hardware.rightOdomEncoder as DcMotorEx,
+//            ),
+//        )
+//    }
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
@@ -452,7 +451,7 @@ class PaddieMatrickAuto: OpMode() {
         wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
 
-        encoderLog.start()
+//        encoderLog.start()
     }
 
     override fun init_loop() {
@@ -502,7 +501,6 @@ class PaddieMatrickAuto: OpMode() {
             wizard.wasItemChosen("cycles", "1+3") -> 3
             else -> 0
         }
-
         autoTasks = makePlanForAuto(
             signalOrientation = aprilTagGXOutput,
             fieldSide = side,
@@ -549,7 +547,7 @@ class PaddieMatrickAuto: OpMode() {
         motorsAndCRServos.forEach {
             it.power = 0.0
         }
-        encoderLog.stop()
+//        encoderLog.stop()
     }
 
 //    data class DriveEncoderChassisTask(override val requiredForCompletion: Boolean): ChassisTask(targetPosition= PositionAndRotation(), requiredForCompletion = requiredForCompletion)

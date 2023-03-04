@@ -8,7 +8,7 @@ import java.io.FileWriter
 
 class EncoderLog(
         private val encoders:List<DcMotorEx>,
-        private val path:File) {
+        private val path:File = File(System.getProperty("user.dir"), "encoders.csv")) {
     init {
         path.delete()
         path.parentFile.mkdirs()
