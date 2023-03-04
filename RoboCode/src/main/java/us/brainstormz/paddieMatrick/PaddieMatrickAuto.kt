@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraRotation
+import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.localizer.StackDetector
 import us.brainstormz.localizer.StackDetectorVars
@@ -163,7 +164,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true)
             ),
             AutoTask(
-                    ChassisTask(preCollectionPosition, accuracyInches= 0.5, accuracyDegrees = 2.0, requiredForCompletion = true),
+                    ChassisTask(preCollectionPosition, accuracyInches= 0.5, accuracyDegrees = 1.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false),
                     nextTaskIteration = ::alignToStack
@@ -402,7 +403,7 @@ class PaddieMatrickAuto: OpMode() {
         return flopped(preloadDeposit + cycles, fieldSide) + parkPath
     }
 
-    private fun flopped(coreTasks: List<AutoTaskManager.AutoTask>, side: FieldSide): List<AutoTask> {
+    private fun flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
         val swichedTasks = when (side) {
             FieldSide.Left -> flopToLeftSide(coreTasks)
             FieldSide.Right -> coreTasks
@@ -456,6 +457,7 @@ class PaddieMatrickAuto: OpMode() {
         wizard.newMenu("program", "Which auto are we starting?", listOf("Cycle Auto" to "cycles", "Park Auto" to null))
         wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
+
     }
 
     override fun init_loop() {
@@ -463,13 +465,6 @@ class PaddieMatrickAuto: OpMode() {
 
         if (isWizardDone)
             aprilTagGX.runAprilTag(telemetry)
-//        else
-//            telemetry.addLine("Running The Wiz")
-
-//        val fourBarTarget = fourBar.current4BarDegrees() - 70
-//        val fourBarPower = fourBarPID.calcPID(fourBarTarget, fourBar.current4BarDegrees())
-//        hardware.left4Bar.power = fourBarPower
-//        hardware.right4Bar.power = fourBarPower
     }
 
     private lateinit var autoTasks: List<AutoTask>

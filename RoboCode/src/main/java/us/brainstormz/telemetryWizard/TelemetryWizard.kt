@@ -133,4 +133,10 @@ class TelemetryWizard(private val console: TelemetryConsole, private val opmode:
 
         return false
     }
+
+    fun getAnswersAsString(): String {
+        return menuList.fold("") { acc, menu ->
+            acc + "${menu.caption.dropLast(0)}: ${menu.answer?.first}\n"
+        }
+    }
 }
