@@ -19,7 +19,7 @@ import java.util.Stack
 class StackAimer(private val telemetry: Telemetry, private val stackDetector: StackDetector) {
 
     fun getAngleFromStack(): Double {
-        val centeredPosition: Double = 150.0
+        val centeredPosition: Double = 126.0
         val stackX = stackDetector.detectedPosition(1000) ?: centeredPosition
         val errorFromCenter = stackX - centeredPosition
 
@@ -27,7 +27,7 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         telemetry.addLine("stackX: $stackX")
         telemetry.addLine("errorFromCenter: $errorFromCenter")
 
-        val turnSpeed = 0.20
+        val turnSpeed = 0.50
         val angleToStack = (errorFromCenter * turnSpeed).coerceIn(-180.0..180.0)
 
         return angleToStack
@@ -45,7 +45,7 @@ class StackAimerTest: OpMode() {
     val multiTelemetry = MultipleTelemetry(telemetry, dashTelemetry)
 
     val opencv = OpenCvAbstraction(this)
-    private val vars = StackDetectorVars(StackDetector.TargetHue.BLUE, StackDetector.Mode.MASK)
+    private val vars = StackDetectorVars(StackDetector.TargetHue.RED, StackDetector.Mode.FRAME)
     private val stackDetector = StackDetector(vars, telemetry)
     private val stackAimer = StackAimer(telemetry, stackDetector)
 
@@ -55,6 +55,7 @@ class StackAimerTest: OpMode() {
         movement = MecanumMovement(localizer, hardware, telemetry)
 
         opencv.cameraName = "backCam"
+        opencv.cameraOrientation = OpenCvCameraRotation.UPSIDE_DOWN
         opencv.init(hardwareMap)
         opencv.onNewFrame(stackDetector::processFrame)
         opencv.start()
