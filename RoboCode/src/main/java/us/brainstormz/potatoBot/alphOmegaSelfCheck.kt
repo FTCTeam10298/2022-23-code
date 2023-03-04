@@ -3,6 +3,9 @@ package us.brainstormz.potatoBot
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
+import org.firstinspires.ftc.robotcore.external.Telemetry
+import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 
 
@@ -14,8 +17,7 @@ import us.brainstormz.hardwareClasses.MecanumDriveTrain
 class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
 
     val hardware =  AlphOmegaHardware()
-    val movement = MecanumDriveTrain(hardware)
-    val motorTime: Long = 250 //in ms
+    val motorTime: Long = 2000 //in ms
 
     /** Change Depending on robot */
 
@@ -25,13 +27,16 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
 
         waitForStart()
         /** AUTONOMOUS  PHASE */
-        fun testMotor(motor: DcMotor) {
+        //Note to Future Engineers: ALL MOTORS MUST BE DCMOTOREX TO BE SELF-TESTED  - @JAMES, THIS MEANS YOU
+        fun testMotor(motor: DcMotorEx): Double {
             motor.power = 0.01
-           sleep(motorTime.toLong())
+            sleep(motorTime.toLong())
+            var consumedPower = motor.getCurrent(CurrentUnit.MILLIAMPS)
             motor.power = 0.0
+            return (consumedPower)
         }
-        testMotor(hardware.someDrive)
-
+        telemetry.addLine("Motor Current Draw: ${testMotor(hardware.someDrive as DcMotorEx)}")
+        telemetry.update()
     }
 
 
