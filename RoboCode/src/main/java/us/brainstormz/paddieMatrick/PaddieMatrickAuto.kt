@@ -5,6 +5,7 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotor
+import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
@@ -23,6 +24,7 @@ import us.brainstormz.paddieMatrick.AutoTaskManager.ChassisTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.LiftTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.FourBarTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.OtherTask
+import java.io.File
 import kotlin.math.sin
 
 enum class Alliance {
@@ -420,6 +422,16 @@ class PaddieMatrickAuto: OpMode() {
                 pipeline = backPipeline)
     }
 
+    private val encoderLog by lazy {
+        EncoderLog(
+            encoders = listOf(
+                hardware.leftOdomEncoder as DcMotorEx,
+                hardware.centerOdomEncoder as DcMotorEx,
+                hardware.rightOdomEncoder as DcMotorEx,
+            ),
+            path = File("/encoders.csv")
+        )
+    }
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
@@ -440,6 +452,7 @@ class PaddieMatrickAuto: OpMode() {
         wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
 
+        encoderLog.start()
     }
 
     override fun init_loop() {
@@ -536,6 +549,7 @@ class PaddieMatrickAuto: OpMode() {
         motorsAndCRServos.forEach {
             it.power = 0.0
         }
+        encoderLog.stop()
     }
 
 //    data class DriveEncoderChassisTask(override val requiredForCompletion: Boolean): ChassisTask(targetPosition= PositionAndRotation(), requiredForCompletion = requiredForCompletion)
