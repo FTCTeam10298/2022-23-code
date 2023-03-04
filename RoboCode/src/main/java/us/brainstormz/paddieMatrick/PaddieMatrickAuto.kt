@@ -9,7 +9,6 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraRotation
-import us.brainstormz.localizer.PhoHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.localizer.StackDetector
 import us.brainstormz.localizer.StackDetectorVars
@@ -19,7 +18,6 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.PipelineAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import us.brainstormz.telemetryWizard.TelemetryWizard
-import kotlin.math.abs
 import us.brainstormz.paddieMatrick.AutoTaskManager.AutoTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.ChassisTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.LiftTask
@@ -47,12 +45,11 @@ class PaddieMatrickAuto: OpMode() {
     private val junctionAimer = JunctionAimer(junctionDetector)
 
     private lateinit var backCam: OpenCvCamera
-    private lateinit var stackDetector: StackDetector
     private lateinit var stackAimer: StackAimer
 
     private lateinit var movement: MecanumMovement
 
-    val funnel = Funnel()
+    private val funnel = Funnel()
     private lateinit var collector: Collector
     private lateinit var fourBar: FourBar
     private lateinit var depositor: Depositor
@@ -87,7 +84,7 @@ class PaddieMatrickAuto: OpMode() {
                         isFourBarPastTarget
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::stayLinedUpWithPole,
-//                    timeoutSeconds = 3.0
+                    timeoutSeconds = 3.0
             ),
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = false),
@@ -98,26 +95,9 @@ class PaddieMatrickAuto: OpMode() {
                         !depositor.isConeInCollector()
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::stayLinedUpWithPole,
-//                    timeoutSeconds = 5.0
+                    timeoutSeconds = 3.0
             ),
     )
-    private fun alignWithPole(previousTask: AutoTask): AutoTask {
-        val targetAngle = movement.localizer.currentPositionAndRotation().r - junctionAimer.getAngleFromPole()
-        multipleTelemetry.addLine("angleFromPole: ${junctionAimer.getAngleFromPole()}")
-        multipleTelemetry.addLine("targetAngle: $targetAngle")
-
-        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)
-        multipleTelemetry.addLine("position: $newPosition")
-
-        depositPosition = newPosition
-        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
-    }
-
-    private fun stayLinedUpWithPole(previousTask: AutoTask): AutoTask {
-        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= depositPosition))
-    }
-
-
     private val preloadDeposit = listOf(
             AutoTask(
                     ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
@@ -150,7 +130,6 @@ class PaddieMatrickAuto: OpMode() {
 
     private var prelinupCorrection:PositionAndRotation? = null
 
-    private var cycleNumber = 0
     private val cyclePreLinup = listOf(
             /** Prepare to collect */
             AutoTask(
@@ -170,44 +149,6 @@ class PaddieMatrickAuto: OpMode() {
                     nextTaskIteration = ::alignToStack
             )
     )
-
-    private fun alignToStack(previousTask: AutoTask): AutoTask {
-
-        val targetAngle = movement.localizer.currentPositionAndRotation().r - stackAimer.getAngleFromStack()
-
-        multipleTelemetry.addLine("angleFromStack: ${stackAimer.getAngleFromStack()}")
-        multipleTelemetry.addLine("targetAngle: $targetAngle")
-
-        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)
-        multipleTelemetry.addLine("position: $newPosition")
-
-        prelinupCorrection = newPosition
-        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
-
-    }
-
-    private fun withPrelinupCorrection(t:AutoTask):AutoTask {
-        return (prelinupCorrection?.let {
-//            changeTaskTargetPosition(it, previousTask)
-            t.copy(
-                chassisTask = t.chassisTask.copy(
-                    t.chassisTask.targetPosition.copy(r = it.r)
-                )
-            )
-        } ?: t)
-
-    }
-
-    fun withCollectionCorrections(t:AutoTask):AutoTask{
-        val withPrelinupCorrection = withPrelinupCorrection(t)
-
-        val withActualCollectionX = withPrelinupCorrection.copy(
-                chassisTask = withPrelinupCorrection.chassisTask.copy(
-                        withPrelinupCorrection.chassisTask.targetPosition.copy(x = actualCollectionX)
-                )
-        )
-        return withActualCollectionX
-    }
 
     private val cycleCollectAndDepo = listOf(
             /** Collecting */
@@ -281,6 +222,60 @@ class PaddieMatrickAuto: OpMode() {
             )
     )
 
+    private fun alignWithPole(previousTask: AutoTask): AutoTask {
+        val targetAngle = movement.localizer.currentPositionAndRotation().r - junctionAimer.getAngleFromPole()
+        multipleTelemetry.addLine("angleFromPole: ${junctionAimer.getAngleFromPole()}")
+        multipleTelemetry.addLine("targetAngle: $targetAngle")
+
+        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)
+        multipleTelemetry.addLine("position: $newPosition")
+
+        depositPosition = newPosition
+        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
+    }
+
+    private fun stayLinedUpWithPole(previousTask: AutoTask): AutoTask {
+        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= depositPosition))
+    }
+
+
+    private fun alignToStack(previousTask: AutoTask): AutoTask {
+        val targetAngle = movement.localizer.currentPositionAndRotation().r - stackAimer.getAngleFromStack()
+
+        multipleTelemetry.addLine("angleFromStack: ${stackAimer.getAngleFromStack()}")
+        multipleTelemetry.addLine("targetAngle: $targetAngle")
+
+        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)
+        multipleTelemetry.addLine("position: $newPosition")
+
+        prelinupCorrection = newPosition
+        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
+
+    }
+
+    private fun withPrelinupCorrection(t:AutoTask):AutoTask {
+        return (prelinupCorrection?.let {
+//            changeTaskTargetPosition(it, previousTask)
+            t.copy(
+                    chassisTask = t.chassisTask.copy(
+                            t.chassisTask.targetPosition.copy(r = it.r)
+                    )
+            )
+        } ?: t)
+
+    }
+
+    fun withCollectionCorrections(t:AutoTask):AutoTask{
+        val withPrelinupCorrection = withPrelinupCorrection(t)
+
+        val withActualCollectionX = withPrelinupCorrection.copy(
+                chassisTask = withPrelinupCorrection.chassisTask.copy(
+                        withPrelinupCorrection.chassisTask.targetPosition.copy(x = actualCollectionX)
+                )
+        )
+        return withActualCollectionX
+    }
+
     private fun changeTaskTargetPosition(newTarget: PositionAndRotation, previousTask: AutoTask): AutoTask =
         previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = newTarget))
 
@@ -319,7 +314,7 @@ class PaddieMatrickAuto: OpMode() {
         isLimitPressed
     }
     private val parkTimeout = 28.0
-    private val parkOne: List<AutoTask> = listOf(
+    private val park = listOf(
             AutoTask(
                     ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
@@ -332,31 +327,18 @@ class PaddieMatrickAuto: OpMode() {
                     LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(isDone= zeroLift, requiredForCompletion = true)))
-    private val parkTwo: List<AutoTask> = listOf(
-            AutoTask(
-                    ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(isDone= compensateForAbruptEnd, requiredForCompletion = false),
-                    startDeadlineSeconds = parkTimeout
-            ),
-            AutoTask(
-                    ChassisTask(ParkPositions.Two.pos, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(isDone= zeroLift, requiredForCompletion = true)))
-    private val parkThree: List<AutoTask> = listOf(
-            AutoTask(
-                    ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(isDone= compensateForAbruptEnd, requiredForCompletion = false),
-                    startDeadlineSeconds = parkTimeout),
-            AutoTask(
-                    ChassisTask(ParkPositions.Three.pos, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(isDone= zeroLift, requiredForCompletion = true)))
+
+    private fun generatePark(signalOrientation: SignalOrientation): List<AutoTask> {
+        val parkPosition = when (signalOrientation) {
+            SignalOrientation.One -> ParkPositions.One
+            SignalOrientation.Two -> ParkPositions.Two
+            SignalOrientation.Three -> ParkPositions.Three
+        }
+
+        return park.map { task ->
+            task.copy(chassisTask= task.chassisTask.copy(targetPosition= parkPosition.pos))
+        }
+    }
 
     private fun flopToLeftSide(task:ChassisTask):ChassisTask {
         val pos = task.targetPosition
@@ -383,11 +365,7 @@ class PaddieMatrickAuto: OpMode() {
         Left, Right
     }
     private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide, alliance: Alliance, numberOfCycles: Int):List<AutoTask> {
-        val parkPath = when (signalOrientation) {
-            SignalOrientation.One -> parkOne
-            SignalOrientation.Two -> parkTwo
-            SignalOrientation.Three -> parkThree
-        }
+        val parkPath = generatePark(signalOrientation)
 
         val cycle = cyclePreLinup + cycleCollectAndDepo
 
@@ -398,7 +376,6 @@ class PaddieMatrickAuto: OpMode() {
             3 -> cycle + cycle + cycle
             else -> {cycle + cycle + cycle + cycle}
         }
-
 
         return flopped(preloadDeposit + cycles, fieldSide) + parkPath
     }
@@ -413,7 +390,7 @@ class PaddieMatrickAuto: OpMode() {
 
     fun startAimerCameras(targetHue: StackDetector.TargetHue) {
         val stackDetectorVars = StackDetectorVars(targetHue, StackDetector.Mode.FRAME)
-        stackDetector = StackDetector(stackDetectorVars, telemetry)
+        val stackDetector = StackDetector(stackDetectorVars, telemetry)
         stackAimer = StackAimer(telemetry, stackDetector)
 
         val dualCamAbstraction = DualCamAbstraction(hardwareMap)
