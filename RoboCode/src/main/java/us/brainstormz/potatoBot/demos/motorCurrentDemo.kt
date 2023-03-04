@@ -1,4 +1,4 @@
-package us.brainstormz.potatoBot
+package us.brainstormz.potatoBot.demos
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotorEx
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
+import us.brainstormz.potatoBot.AlphOmegaHardware
 
 
 //2 divisions of testing: fine tests (individual component) and gross tests
