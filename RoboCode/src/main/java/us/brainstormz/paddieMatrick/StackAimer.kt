@@ -19,7 +19,7 @@ import java.util.Stack
 class StackAimer(private val telemetry: Telemetry, private val stackDetector: StackDetector) {
 
     fun getAngleFromStack(): Double {
-        val centeredPosition: Double = 160.0
+        val centeredPosition: Double = 150.0
         val stackX = stackDetector.detectedPosition(1000) ?: centeredPosition
         val errorFromCenter = stackX - centeredPosition
 

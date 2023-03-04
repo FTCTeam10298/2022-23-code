@@ -39,7 +39,6 @@ class PaddieMatrickAuto: OpMode() {
     val dashboard = FtcDashboard.getInstance()
     val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
 
-
     var aprilTagGX = AprilTagEx()
 
     private lateinit var liftCam: OpenCvCamera
@@ -71,7 +70,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             ),
             AutoTask(
-                    ChassisTask(depositPosition, power= 0.0..0.3, accuracyInches = 0.4, requiredForCompletion = true),
+                    ChassisTask(depositPosition, power= 0.0..0.3, accuracyInches = 0.4, accuracyDegrees = 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     nextTaskIteration = ::alignWithPole
@@ -150,6 +149,7 @@ class PaddieMatrickAuto: OpMode() {
 
     private var prelinupCorrection:PositionAndRotation? = null
 
+    private var cycleNumber = 0
     private val cyclePreLinup = listOf(
             /** Prepare to collect */
             AutoTask(
@@ -163,7 +163,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true)
             ),
             AutoTask(
-                    ChassisTask(preCollectionPosition, accuracyInches= 0.2, requiredForCompletion = true),
+                    ChassisTask(preCollectionPosition, accuracyInches= 0.5, accuracyDegrees = 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false),
                     nextTaskIteration = ::alignToStack
@@ -171,6 +171,7 @@ class PaddieMatrickAuto: OpMode() {
     )
 
     private fun alignToStack(previousTask: AutoTask): AutoTask {
+
         val targetAngle = movement.localizer.currentPositionAndRotation().r - stackAimer.getAngleFromStack()
 
         multipleTelemetry.addLine("angleFromStack: ${stackAimer.getAngleFromStack()}")
