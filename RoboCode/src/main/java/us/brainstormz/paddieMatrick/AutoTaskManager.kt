@@ -2,6 +2,9 @@ package us.brainstormz.paddieMatrick
 
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import us.brainstormz.localizer.PositionAndRotation
+import us.brainstormz.motion.MecanumMovement
+import us.brainstormz.motion.Movement
+import us.brainstormz.pid.PID
 
 class AutoTaskManager {
 
@@ -107,10 +110,27 @@ class AutoTaskManager {
     open class SubassemblyTask(open val requiredForCompletion: Boolean)
     data class ChassisTask(
             val targetPosition: PositionAndRotation,
+            val rotationalPID: PID = MecanumMovement.defaultRotationPID,
             val power: ClosedRange<Double> = 0.0..1.0,
             val accuracyInches: Double = 0.5,
             val accuracyDegrees: Double = 5.0,
-            override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)
+            override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion) {
+//                fun copy(
+//                        targetPosition: PositionAndRotation = this.targetPosition,
+//                        power: ClosedRange<Double> = this.power,
+//                        accuracyInches: Double = this.accuracyInches,
+//                        accuracyDegrees: Double = this.accuracyDegrees,
+//                        requiredForCompletion: Boolean = this.requiredForCompletion
+//                        ): ChassisTask {
+//                    return ChassisTask(
+//                            targetPosition= targetPosition,
+//                            power= power,
+//                            accuracyInches= accuracyInches,
+//                            accuracyDegrees= accuracyDegrees,
+//                            requiredForCompletion= requiredForCompletion
+//                    )
+//                }
+            }
     data class LiftTask(val targetCounts: Int,
                         val accuracyCounts: Int = 300,
                         override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion)

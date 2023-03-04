@@ -18,13 +18,15 @@ import kotlin.math.*
 
 class MecanumMovement(override val localizer: Localizer, override val hardware: MecanumHardware, private val telemetry: Telemetry): Movement, MecanumDriveTrain(hardware) {
 
-    val defaultYTranslationPID = PID(0.06, 0.0, 0.0)
-    val defaultXTranslationPID = PID(0.1, 0.0, 0.0)
-    val defaultRotationPID = PID(0.82, 0.0000008, 0.0)
-    val multiDirectionYTranslationPID = PID(0.0455, 0.000001, 0.0)
-    val multiDirectionXTranslationPID = PID(0.0995, 0.000001, 0.0)
-    val multiDirectionRotationPID = PID(0.82, 0.0000008, 0.0)
-    val defaultPrecisionInches = 0.5
+    companion object {
+        val defaultYTranslationPID = PID(0.06, 0.0, 0.0)
+        val defaultXTranslationPID = PID(0.1, 0.0, 0.0)
+        val defaultRotationPID = PID(0.82, 0.0000008, 0.0)
+        val multiDirectionYTranslationPID = PID(0.0455, 0.000001, 0.0)
+        val multiDirectionXTranslationPID = PID(0.0995, 0.000001, 0.0)
+        val multiDirectionRotationPID = PID(0.82, 0.0000008, 0.0)
+        val defaultPrecisionInches = 0.5
+    }
 
     var yTranslationPID = defaultYTranslationPID
     var xTranslationPID = defaultXTranslationPID

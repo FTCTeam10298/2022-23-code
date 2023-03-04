@@ -68,7 +68,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             ),
             AutoTask(
-                    ChassisTask(depositPosition, power= 0.0..0.3, accuracyInches = 0.4, accuracyDegrees = 2.0, requiredForCompletion = true),
+                    ChassisTask(depositPosition, power= 0.0..0.3, rotationalPID = MecanumMovement.defaultRotationPID.copy(kp= 0.85) , accuracyInches = 0.4, accuracyDegrees = 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     nextTaskIteration = ::alignWithPole
@@ -506,6 +506,7 @@ class PaddieMatrickAuto: OpMode() {
                 isChassisTaskCompleted = { chassisTask ->
                     movement.precisionInches = chassisTask.accuracyInches
                     movement.precisionDegrees = chassisTask.accuracyDegrees
+                    movement.rotationPID = chassisTask.rotationalPID
                     movement.moveTowardTarget(chassisTask.targetPosition, chassisTask.power)
                 },
                 isLiftTaskCompleted = { liftTask ->
