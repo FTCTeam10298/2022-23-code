@@ -30,7 +30,7 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
            sleep(motorTime.toLong())
             motor.power = 0.0
         }
-        testMotor(hardware)
+        testMotor(hardware.someDrive)
 
     }
 

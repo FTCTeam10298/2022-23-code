@@ -12,10 +12,7 @@ private const val s = "rEncoder"
 private const val freeMove = false //for debugging. puts motors in float when stopped.
 
 class AlphOmegaHardware : MecanumHardware {
-    override lateinit var lFDrive: DcMotor
-    override lateinit var rFDrive: DcMotor
-    override lateinit var lBDrive: DcMotor
-    override lateinit var rBDrive: DcMotor
+    lateinit var someDrive: DcMotor
     override lateinit var hwMap: HardwareMap
 
     override fun init(ahwMap: HardwareMap) {
@@ -23,10 +20,7 @@ class AlphOmegaHardware : MecanumHardware {
         hwMap = ahwMap
 
         // Drivetrain
-        lFDrive = hwMap["lFDrive"] as DcMotor
-        rFDrive = hwMap["rFDrive"] as DcMotor
-        lBDrive = hwMap["lBDrive"] as DcMotor
-        rBDrive = hwMap["rBDrive"] as DcMotor
+        someDrive = hwMap["someDrive"] as DcMotor
     }
 
 }
