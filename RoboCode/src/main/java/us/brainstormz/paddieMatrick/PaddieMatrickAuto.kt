@@ -23,6 +23,7 @@ import us.brainstormz.paddieMatrick.AutoTaskManager.ChassisTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.LiftTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.FourBarTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.OtherTask
+import kotlin.math.sin
 
 enum class Alliance {
     Red,
@@ -240,12 +241,16 @@ class PaddieMatrickAuto: OpMode() {
 
 
     private fun alignToStack(previousTask: AutoTask): AutoTask {
-        val targetAngle = movement.localizer.currentPositionAndRotation().r - stackAimer.getAngleFromStack()
+        val angleFromStack = stackAimer.getAngleFromStack()
+        val targetAngle = movement.localizer.currentPositionAndRotation().r - angleFromStack
+        val deltaTarget = previousTask.chassisTask.targetPosition.r - targetAngle
 
-        multipleTelemetry.addLine("angleFromStack: ${stackAimer.getAngleFromStack()}")
+        val targetY = previousTask.chassisTask.targetPosition.y + (sin(Math.toRadians(deltaTarget)) )// * sin(Math.toRadians(deltaTarget))
+
+        multipleTelemetry.addLine("angleFromStack: $angleFromStack")
         multipleTelemetry.addLine("targetAngle: $targetAngle")
 
-        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle)
+        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle, y= targetY)
         multipleTelemetry.addLine("position: $newPosition")
 
         prelinupCorrection = newPosition
