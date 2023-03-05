@@ -2,12 +2,8 @@ package us.brainstormz.potatoBot
 
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
-import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
-import kotlinx.coroutines.channels.Channel
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
-import us.brainstormz.hardwareClasses.MecanumDriveTrain
 
 
 //2 divisions of testing: fine tests (individual component) and gross tests
