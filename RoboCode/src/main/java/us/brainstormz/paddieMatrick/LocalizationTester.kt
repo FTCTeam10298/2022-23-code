@@ -1,25 +1,15 @@
 package us.brainstormz.paddieMatrick
 
-//lOdom neg
-
-
-//2 ft = 1 Square
-
-//import com.acmerobotics.roadrunner.geometry.Pose2d
-//import com.acmerobotics.roadrunner.trajectory.Trajectory
-import com.acmerobotics.roadrunner.localization.ThreeTrackingWheelLocalizer
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import us.brainstormz.hardwareClasses.EncoderDriveMovement
 import us.brainstormz.localizer.OdometryFacts
-import us.brainstormz.localizer.OdometryLocalizer
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import java.math.BigDecimal
 
 @Autonomous(name= "LocalizationTester", group= "!")
 class LocalizationTester: OpMode() {
     val hardware = PaddieMatrickHardware()/** Change Depending on robot */
-//    Drivetrain drive = new Drivetrain(hwMap);
     val movement = EncoderDriveMovement(hardware, TelemetryConsole(telemetry))
 
     val console = TelemetryConsole(telemetry)

@@ -12,7 +12,13 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
 
+object OdometryFacts {
+    val ticksPerRotation = 8192
+    val rotationsPerInch = 1.37795 * PI
+}
+
 class OdometryLocalizer(private val odomHardware: MecOdometry) : Localizer {
+
 
     private val console = GlobalConsole.console
     private val odomWorld = OdomWorld()
@@ -20,8 +26,6 @@ class OdometryLocalizer(private val odomHardware: MecOdometry) : Localizer {
     var forwardOffset = 0.0
     var trackwidth = 15.0
 
-    var ticksPerRotation = 8192
-    var rotationsPerInch = 1.37795 * PI
 
     private var deltaL = 0.0
     private var deltaC = 0.0
@@ -68,9 +72,9 @@ class OdometryLocalizer(private val odomHardware: MecOdometry) : Localizer {
     }
 
     private fun calcEncoderDeltas() {
-        val currentL = -odomHardware.lOdom.currentPosition.toDouble() / (ticksPerRotation / rotationsPerInch)
-        val currentR = -odomHardware.rOdom.currentPosition.toDouble() / (ticksPerRotation / rotationsPerInch)
-        val currentC = odomHardware.cOdom.currentPosition.toDouble() / (ticksPerRotation / rotationsPerInch)
+        val currentL = -odomHardware.lOdom.currentPosition.toDouble() / (OdometryFacts.ticksPerRotation / OdometryFacts.rotationsPerInch)
+        val currentR = -odomHardware.rOdom.currentPosition.toDouble() / (OdometryFacts.ticksPerRotation / OdometryFacts.rotationsPerInch)
+        val currentC = odomHardware.cOdom.currentPosition.toDouble() / (OdometryFacts.ticksPerRotation / OdometryFacts.rotationsPerInch)
 
         deltaL = currentL - previousL
         deltaR = currentR - previousR
