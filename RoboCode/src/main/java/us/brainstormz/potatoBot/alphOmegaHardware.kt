@@ -1,6 +1,7 @@
 package us.brainstormz.potatoBot
 
 import com.qualcomm.hardware.lynx.LynxModule
+import com.qualcomm.hardware.rev.RevBlinkinLedDriver
 import com.qualcomm.hardware.rev.RevColorSensorV3
 import com.qualcomm.robotcore.hardware.*
 import org.firstinspires.ftc.robotcore.external.navigation.VoltageUnit
@@ -14,6 +15,8 @@ private const val freeMove = false //for debugging. puts motors in float when st
 
 class AlphOmegaHardware: HardwareClass {
     lateinit var someDrive: DcMotor
+    lateinit var anotherDrive: DcMotor
+    lateinit var improbabilityDrive: DcMotorEx
     override lateinit var hwMap: HardwareMap
 
     override fun init(ahwMap: HardwareMap) {
@@ -21,7 +24,9 @@ class AlphOmegaHardware: HardwareClass {
         hwMap = ahwMap
 
         // Drivetrain
-        someDrive = hwMap["someDrive"] as DcMotor
+        someDrive = hwMap["someDrive"] as DcMotorEx
+        anotherDrive = hwMap["anotherDrive"]  as DcMotorEx
+        improbabilityDrive = hwMap["impDrive"] as DcMotorEx
     }
 
 }
