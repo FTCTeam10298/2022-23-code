@@ -1,0 +1,240 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 7.3.1" type="baseline" client="gradle" dependencies="false" name="AGP (7.3.1)" variant="all" version="7.3.1">
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        tasks.forEach { task ->"
+        errorLine2="              ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/paddieMatrick/AutoTaskManager.kt"
+            line="163"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.util.concurrent.CompletableFuture()`"
+        errorLine1="        val result = CompletableFuture&lt;Boolean>()"
+        errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/pathexecution/DifferentialDrivePathExecutor.kt"
+            line="15"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        currentTask.subassemblyTasks?.forEach { subassemblyTask ->"
+        errorLine2="                                      ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/IterativeOpMode.kt"
+            line="49"
+            column="39"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        tasks.forEach { task ->"
+        errorLine2="              ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/IterativeOpMode.kt"
+            line="104"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.util.concurrent.CompletableFuture()`"
+        errorLine1="        return CompletableFuture()"
+        errorLine2="               ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/pathexecution/MecanumPathExecutor.kt"
+            line="26"
+            column="16"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        edges.forEach {"
+        errorLine2="              ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/pathfinder/posePlanner/PosePlanner.kt"
+            line="96"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        items.forEach{ item += it to nextMenu }"
+        errorLine2="              ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/telemetryWizard/TelemetryWizard.kt"
+            line="18"
+            column="15"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        menu.items.forEach{ formattedMenu += placeCursor(menu.items.indexOf(it)) + it.first }"
+        errorLine2="                   ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/telemetryWizard/TelemetryWizard.kt"
+            line="34"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="                submats.forEach {"
+        errorLine2="                        ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/lankyKong/TseDetectorLK.kt"
+            line="70"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="                submats.forEach {"
+        errorLine2="                        ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/lankyKong/TseDetectorLK.kt"
+            line="79"
+            column="25"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        bounds!!.getLines().forEach {"
+        errorLine2="                            ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/pathfinder/posePlanner/dataTypes.kt"
+            line="27"
+            column="29"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        obstructions.forEach {"
+        errorLine2="                     ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/pathfinder/posePlanner/dataTypes.kt"
+            line="41"
+            column="22"/>
+    </issue>
+
+    <issue
+        id="NewApi"
+        message="Call requires API level 24 (current min is 23): `java.lang.Iterable#forEach`"
+        errorLine1="        getLines().forEach {"
+        errorLine2="                   ~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/pathfinder/posePlanner/dataTypes.kt"
+            line="93"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="SuspiciousIndentation"
+        message="Suspicious indentation: This is conditionally executed; expected it to be indented"
+        errorLine1="            collisionEdge = it"
+        errorLine2="            ~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/java/us/brainstormz/pathfinder/posePlanner/PosePlanner.kt"
+            line="99"
+            column="13"/>
+        <location
+            file="src/main/java/us/brainstormz/pathfinder/posePlanner/PosePlanner.kt"
+            line="98"
+            column="13"
+            message="Previous statement here"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.core:core-ktx than 1.6.0 is available: 1.9.0"
+        errorLine1="    implementation &apos;androidx.core:core-ktx:1.6.0&apos;"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="54"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.appcompat:appcompat than 1.3.1 is available: 1.6.1"
+        errorLine1="    implementation &apos;androidx.appcompat:appcompat:1.3.1&apos;"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="55"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of com.google.android.material:material than 1.4.0 is available: 1.8.0"
+        errorLine1="    implementation &apos;com.google.android.material:material:1.4.0&apos;"
+        errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="56"
+            column="20"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.test.ext:junit than 1.1.3 is available: 1.1.5"
+        errorLine1="    androidTestImplementation &apos;androidx.test.ext:junit:1.1.3&apos;"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="58"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="GradleDependency"
+        message="A newer version of androidx.test.espresso:espresso-core than 3.4.0 is available: 3.5.1"
+        errorLine1="    androidTestImplementation &apos;androidx.test.espresso:espresso-core:3.4.0&apos;"
+        errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="59"
+            column="31"/>
+    </issue>
+
+    <issue
+        id="GradleDynamicVersion"
+        message="Avoid using + in version numbers; can lead to unpredictable and unrepeatable builds (junit:junit:4.+)"
+        errorLine1="    testImplementation &apos;junit:junit:4.+&apos;"
+        errorLine2="                       ~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="57"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="ExpiredTargetSdkVersion"
+        message="Google Play requires that apps target API level 31 or higher.&#xA;"
+        errorLine1="        targetSdkVersion 24"
+        errorLine2="        ~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="build.gradle"
+            line="15"
+            column="9"/>
+    </issue>
+
+</issues>
