@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorEx
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
+import us.brainstormz.potatoBot.AlphOmegaHardware
 
 
 //2 divisions of testing: fine tests (individual component) and gross tests
@@ -14,33 +15,73 @@ import us.brainstormz.hardwareClasses.MecanumDriveTrain
 
 @Autonomous(name="PaddieMatrickSelfCheck", group = "!")
 class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
+    enum class Status {
+        OK,
+        FAIL
+    }
+    class MotorAndStatus(val motor: DcMotorEx, val powerStatus: Status, val encoderStatus: Status)
+
 
     val hardware = PaddieMatrickHardware()
-    val movement = MecanumDriveTrain(hardware)
-    val fourBar = FourBar(telemetry)
-    val motorTime: Long = 250 //in ms
+    val motorTime: Long = 125 //in ms
 
-    val funnel = Funnel()
-    val collector = Collector()
+    lateinit var motors: List<DcMotorEx>
 
     /** Change Depending on robot */
 
     override fun runOpMode() {
-        fun testMotor(motor: DcMotorEx): Double {
+        /** INIT PHASE */
+        hardware.init(hardwareMap)
+        motors = hardware.hwMap.getAll(DcMotorEx::class.java)
+
+
+        waitForStart()
+        telemetry.addLine("TESTING..........")
+        /** AUTONOMOUS  PHASE */
+
+
+        //Note to Future Engineers: ALL MOTORS MUST BE DcMotorEx TO BE SELF-TESTED  - @JAMES, THIS MEANS YOU
+        fun motorPowerTest (motor: DcMotorEx): Status {
             motor.power = 0.01
             sleep(motorTime.toLong())
             var consumedPower = motor.getCurrent(CurrentUnit.MILLIAMPS)
             motor.power = 0.0
-            return(consumedPower)
-
-        /** INIT PHASE */
-        hardware.init(hardwareMap)
-
-        waitForStart()
-        /** AUTONOMOUS  PHASE */
-        //Motor Evolution: DCMotorSimple --> DCMotor --> DCMotorEx
+            //this is the  power draw without a motor, ambient voltage definition
+            if (consumedPower > 30) {
+                return Status.OK//("M-PWR-OK")
+            }  else {
+                return Status.FAIL//("M-PWR-FAIL")
+            }
+        }
+        fun motorEncoderUpdateTest (motor: DcMotorEx): Status {
+            var initialPos: Int = motor.currentPosition
+            motor.power = 0.1
+            sleep(motorTime.toLong() * 2)
+            motor.power = 0.0
+            var finalPos = motor.currentPosition
+            //this is the  power draw without a motor, ambient voltage definition
+            if (finalPos - initialPos > 30) {
+                return Status.OK//("M-PWR-OK")
+            }  else {
+                return Status.FAIL//("M-PWR-FAIL")
+            }
         }
 
+        val listOfStatus = motors.map { motor ->
+            val powerStatus = motorPowerTest(motor)
+            val encoderStatus = motorEncoderUpdateTest(motor)
+            MotorAndStatus(motor, powerStatus, encoderStatus)
+        }
+        listOfStatus.forEach{motorAndStatus ->
+            val index = listOfStatus.indexOf(motorAndStatus)
+
+            val motorName = hardwareMap.getNamesOf(motorAndStatus.motor)
+
+            telemetry.addLine("${motorName}: PWR ${motorAndStatus.powerStatus} TX ${motorAndStatus.encoderStatus}")
+
+        }
+        telemetry.update()
+        sleep(5000)
     }
 
 

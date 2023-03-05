@@ -37,6 +37,7 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
 
 
         waitForStart()
+        telemetry.addLine("TESTING..........")
         /** AUTONOMOUS  PHASE */
 
 
