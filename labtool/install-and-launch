@@ -1,5 +1,5 @@
 #!/bin/bash
 set -ex
-adb install  --fastdeploy ./TeamCode/build/intermediates/apk/debug/TeamCode-debug.apk
+adb install  --fastdeploy ./TeamCode/build/outputs/apk/debug/TeamCode-debug.apk
 adb shell am force-stop com.qualcomm.ftcrobotcontroller
 adb shell am start -n com.qualcomm.ftcrobotcontroller/org.firstinspires.ftc.robotcontroller.internal.FtcRobotControllerActivity
