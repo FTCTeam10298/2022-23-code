@@ -14,8 +14,8 @@ import us.brainstormz.potatoBot.AlphOmegaHardware
 // Simplest test: check power pulled
 
 
-@Autonomous(name="potatoBotMotorMeter", group = "!")
-class motorCurrentDemo/** Change Depending on robot */: LinearOpMode() {
+@Autonomous(name="potatoBotEncoderMeter", group = "!")
+class encoderPosDemo/** Change Depending on robot */: LinearOpMode() {
 
     val hardware =  AlphOmegaHardware()
     val motorTime: Long = 125 //in ms
@@ -28,16 +28,18 @@ class motorCurrentDemo/** Change Depending on robot */: LinearOpMode() {
 
         waitForStart()
         /** AUTONOMOUS  PHASE */
-        //Note to Future Engineers: ALL MOTORS MUST BE DCMOTOREX TO BE SELF-TESTED  - @JAMES, THIS MEANS YOU
-        fun testMotor(motor: DcMotorEx): Double {
-            motor.power = 0.01
-            sleep(motorTime.toLong())
-            var consumedPower = motor.getCurrent(CurrentUnit.MILLIAMPS)
+        //This thing
+        fun encoderUpdateTest (motor: DcMotorEx): Int {
+            var initialPos: Int = motor.currentPosition
+            motor.power = 0.1
+            sleep(motorTime.toLong() * 2)
             motor.power = 0.0
-            return (consumedPower)
+            var finalPos: Int = motor.currentPosition
+            //this is the change in encoder position
+            return(finalPos - initialPos)
         }
 
-        telemetry.addLine("Motor Current Draw: ${testMotor(hardware.someDrive as DcMotorEx)} mA")
+        telemetry.addLine("Change in Encoder Position: ${encoderUpdateTest(hardware.someDrive as DcMotorEx)}")
         telemetry.update()
         sleep(5000)
     }

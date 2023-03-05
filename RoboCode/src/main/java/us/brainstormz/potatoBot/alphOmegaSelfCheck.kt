@@ -53,12 +53,23 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
                 return Status.FAIL//("M-PWR-FAIL")
             }
         }
+        fun motorEncoderUpdateTest (motor: DcMotorEx): Status {
+            var initialPos: Int = motor.currentPosition
+            motor.power = 0.1
+            sleep(motorTime.toLong() * 2)
+            motor.power = 0.0
+            var finalPos = motor.currentPosition
+            //this is the  power draw without a motor, ambient voltage definition
+            if (finalPos - initialPos > 30) {
+                return Status.OK//("M-PWR-OK")
+            }  else {
+                return Status.FAIL//("M-PWR-FAIL")
+            }
+        }
 
         val listOfStatus = motors.map { motor ->
             val powerStatus = motorPowerTest(motor)
-
-            val encoderStatus = Status.FAIL
-
+            val encoderStatus = motorEncoderUpdateTest(motor)
             MotorAndStatus(motor, powerStatus, encoderStatus)
         }
         listOfStatus.forEach{motorAndStatus ->
