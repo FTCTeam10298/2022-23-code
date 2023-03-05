@@ -14,11 +14,11 @@ import us.brainstormz.potatoBot.AlphOmegaHardware
 // Simplest test: check power pulled
 
 
-@Autonomous(name="potatoBotSelfCheck", group = "!")
+@Autonomous(name="potatoBotMotorMeter", group = "!")
 class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
 
     val hardware =  AlphOmegaHardware()
-    val motorTime: Long = 2000 //in ms
+    val motorTime: Long = 125 //in ms
 
     /** Change Depending on robot */
 
@@ -30,7 +30,7 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
         /** AUTONOMOUS  PHASE */
         //Note to Future Engineers: ALL MOTORS MUST BE DCMOTOREX TO BE SELF-TESTED  - @JAMES, THIS MEANS YOU
         fun testMotor(motor: DcMotorEx): Double {
-            motor.power = 1.0
+            motor.power = 0.01
             sleep(motorTime.toLong())
             var consumedPower = motor.getCurrent(CurrentUnit.MILLIAMPS)
             motor.power = 0.0

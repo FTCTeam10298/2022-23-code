@@ -17,7 +17,7 @@ import us.brainstormz.hardwareClasses.MecanumDriveTrain
 class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
 
     val hardware =  AlphOmegaHardware()
-    val motorTime: Long = 2000 //in ms
+    val motorTime: Long = 125 //in ms
 
     /** Change Depending on robot */
 
@@ -28,15 +28,20 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
         waitForStart()
         /** AUTONOMOUS  PHASE */
         //Note to Future Engineers: ALL MOTORS MUST BE DCMOTOREX TO BE SELF-TESTED  - @JAMES, THIS MEANS YOU
-        fun testMotor(motor: DcMotorEx): Double {
-            motor.power = 1.0
+        fun testMotor(motor: DcMotorEx): String {
+            motor.power = 0.01
             sleep(motorTime.toLong())
             var consumedPower = motor.getCurrent(CurrentUnit.MILLIAMPS)
             motor.power = 0.0
-            return (consumedPower)
+            //this is the  power draw without a motor, ambient voltage definition
+            if (consumedPower > 30) {
+                return ("M-PWR-OK")
+            }  else {
+                return ("M-PWR-FAIL")
+            }
         }
 
-        telemetry.addLine("Motor Current Draw: ${testMotor(hardware.someDrive as DcMotorEx)} mA")
+        telemetry.addLine("Motor Current Draw: ${testMotor(hardware.someDrive as DcMotorEx)}")
         telemetry.update()
         sleep(5000)
     }
