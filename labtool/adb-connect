@@ -6,6 +6,8 @@ adb kill-server
 
 set -ex
 
+
 adb connect 192.168.0.160
+adb root
 
 adb logcat
