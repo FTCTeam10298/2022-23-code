@@ -1,0 +1,3 @@
+#!/bin/bash
+adb connect localhost:5558
+adb root
