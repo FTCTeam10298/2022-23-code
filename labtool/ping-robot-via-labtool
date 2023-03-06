@@ -1,0 +1,2 @@
+#!/bin/bash
+ssh brainstormz@192.168.0.160 -C ping 192.168.43.1
