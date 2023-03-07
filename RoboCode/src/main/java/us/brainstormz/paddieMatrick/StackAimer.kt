@@ -14,6 +14,7 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.tan
 
 class StackAimer(private val telemetry: Telemetry, private val stackDetector: StackDetector) {
@@ -40,66 +41,115 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         val angleRad:Double = atan2(y= sideOffsetFromCameraInches, x= distanceFromWallToCameraInches)
     }
     private val angleByOffset = listOf(
-//        Observation(
-//            detectionPixelValue= 174.1,
-//            angleRad= 0.0,
-//            distanceFromWallToCameraInches= 25.0,
-//            sideOffsetFromCameraInches= 0.0
-//        ),
         Observation(
-            detectionPixelValue= 152.6,
-            angleRad= 0.0435,
-            distanceFromWallToCameraInches= 23.0,
-            sideOffsetFromCameraInches= 1.0
+            detectionPixelValue= 140.0,
+            distanceFromWallToCameraInches= 25.0,
+            sideOffsetFromCameraInches= 3.0
         ),
         Observation(
-            detectionPixelValue= ,
-            angleRad= ,
-            distanceFromWallToCameraInches= 23.0,
+            detectionPixelValue= 152.0,
+            distanceFromWallToCameraInches= 25.0,
             sideOffsetFromCameraInches= 2.0
         ),
         Observation(
-            detectionPixelValue= ,
-            angleRad= ,
+            detectionPixelValue= 161.6,
+            distanceFromWallToCameraInches= 25.0,
+            sideOffsetFromCameraInches= 1.0
+        ),
+        Observation(
+            detectionPixelValue= 171.4,
+            distanceFromWallToCameraInches= 25.0,
+            sideOffsetFromCameraInches= 0.0
+        ),
+        Observation(
+            detectionPixelValue= 180.5,
+            distanceFromWallToCameraInches= 25.0,
+            sideOffsetFromCameraInches= -1.0
+        ),
+        Observation(
+            detectionPixelValue= 189.2,
+            distanceFromWallToCameraInches= 25.0,
+            sideOffsetFromCameraInches= -2.0
+        ),
+        Observation(
+            detectionPixelValue= 201.2,
+            distanceFromWallToCameraInches= 25.0,
+            sideOffsetFromCameraInches= -3.0
+        ),
+
+
+        Observation(
+            detectionPixelValue= 137.1,
             distanceFromWallToCameraInches= 23.0,
             sideOffsetFromCameraInches= 3.0
         ),
         Observation(
+            detectionPixelValue= 144.8,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= 2.0
+        ),
+        Observation(
+            detectionPixelValue= 152.6,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= 1.0
+        ),
+        Observation(
             detectionPixelValue= 171.5,
-            angleRad= 0.0,
             distanceFromWallToCameraInches= 23.0,
             sideOffsetFromCameraInches= 0.0
         ),
         Observation(
-            detectionPixelValue= 203.0,
-            angleRad= -0.1297,
+            detectionPixelValue= 180.2,
             distanceFromWallToCameraInches= 23.0,
-            sideOffsetFromCameraInches= -3.0
+            sideOffsetFromCameraInches= -1.0
         ),
         Observation(
             detectionPixelValue= 187.3,
-            angleRad= -0.0867,
             distanceFromWallToCameraInches= 23.0,
             sideOffsetFromCameraInches= -2.0
         ),
         Observation(
-            detectionPixelValue= 180.2,
-            angleRad= -0.0435,
+            detectionPixelValue= 203.0,
             distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= -3.0
+        ),
+
+
+        Observation(
+            detectionPixelValue= 133.5,
+            distanceFromWallToCameraInches= 21.0,
+            sideOffsetFromCameraInches= 3.0
+        ),
+        Observation(
+            detectionPixelValue= 147.5,
+            distanceFromWallToCameraInches= 21.0,
+            sideOffsetFromCameraInches= 2.0
+        ),
+        Observation(
+            detectionPixelValue= 158.0,
+            distanceFromWallToCameraInches= 21.0,
+            sideOffsetFromCameraInches= 1.0
+        ),
+        Observation(
+            detectionPixelValue= 168.5,
+            distanceFromWallToCameraInches= 21.0,
+            sideOffsetFromCameraInches= 0.0
+        ),
+        Observation(
+            detectionPixelValue= 184.1,
+            distanceFromWallToCameraInches= 21.0,
             sideOffsetFromCameraInches= -1.0
         ),
-//        Observation(
-//            detectionPixelValue= 175.3,
-//            angleRad= 0.0,
-//            distanceFromWallToCameraInches= 21.0,
-//            sideOffsetFromCameraInches= 0.0
-//        ),
-//        Observation(
-//            detectionPixelValue= 170.0,
-//            angleRad= 0.0,
-//            distanceFromWallToCameraInches= 20.0,
-//            sideOffsetFromCameraInches= 0.0
-//        ),
+        Observation(
+            detectionPixelValue= 192.5,
+            distanceFromWallToCameraInches= 21.0,
+            sideOffsetFromCameraInches= -2.0
+        ),
+        Observation(
+            detectionPixelValue= 205.3,
+            distanceFromWallToCameraInches= 21.0,
+            sideOffsetFromCameraInches= -3.0
+        ),
     )
 
     private fun getAngleToStackRad(distanceFromStack: Double): Double? {
