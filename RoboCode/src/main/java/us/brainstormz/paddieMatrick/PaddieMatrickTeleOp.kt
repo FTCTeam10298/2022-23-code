@@ -40,7 +40,7 @@ class PaddieMatrickTeleOp: OpMode() {
         hardware.odomRaiser2.position = 1.0
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
         fourBarTarget = fourBar.current4BarDegrees()
-        funnel.init(hardware.lineSensor, hardware.funnelSensor)
+        funnel.init(hardware.lineSensor, hardware.funnelSensor, hardware.funnelLifter)
 //        fourBar.pid = PID(kp= 0.011, kd= 0.001)//0000001)
     }
 
@@ -272,7 +272,7 @@ class PaddieMatrickTeleOp: OpMode() {
 
         val collectFourbarTarget = if (multiCone) Depositor.FourBarDegrees.StackCollecting else Depositor.FourBarDegrees.Collecting
 
-        val isConeReadyToBeCollected = if (multiCone) funnel.coneIsInFrontOfFunnel() else isConeInFunnel()
+        val isConeReadyToBeCollected = if (multiCone) funnel.coneIsInFrontOfBottomSensor() else isConeInFunnel()
 
         if (!isConeInCollector()) {
             collectionTimeMilis = null

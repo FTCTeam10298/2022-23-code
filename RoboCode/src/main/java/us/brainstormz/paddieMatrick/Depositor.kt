@@ -173,7 +173,7 @@ class LiftPIDTuning: LinearOpMode() {
         val fourBar = FourBar(telemetry)
         val funnel = Funnel()
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
-        funnel.init(hardware.lineSensor, hardware.funnelSensor)
+        funnel.init(hardware.lineSensor, hardware.funnelSensor, hardware.funnelLifter)
         val depositor = Depositor(collector = collector, fourBar = fourBar, hardware = hardware, funnel = funnel,telemetry = telemetry)
 
         depositor.liftPID = PID(LiftPIDsAndTarget.kp, LiftPIDsAndTarget.ki, LiftPIDsAndTarget.kp)

@@ -150,6 +150,10 @@ class PaddieMatrickAuto: OpMode() {
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false),
                     nextTaskIteration = ::alignToStack
+                    OtherTask(isDone= {
+//                        hardware.funnelLifter.position = collector.funnelDown
+                        true
+                    }, requiredForCompletion = false),
             )
     )
 
@@ -168,7 +172,7 @@ class PaddieMatrickAuto: OpMode() {
 
                         hardware.collector.power = 0.7
                         coneCollectionTime = null
-                        funnel.coneIsInFrontOfFunnel()
+                        funnel.isConeInFunnel()
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::withPrelinupCorrection,
                     timeoutSeconds = 5.0
@@ -433,7 +437,7 @@ class PaddieMatrickAuto: OpMode() {
         val localizer = RRLocalizer(hardware)
         movement = MecanumMovement(localizer, hardware, telemetry)
 
-        funnel.init(hardware.lineSensor, hardware.funnelSensor)
+        funnel.init(hardware.lineSensor, hardware.funnelSensor, hardware.funnelLifter)
         collector = Collector()
         fourBar = FourBar(telemetry)
         fourBar.init(leftServo = hardware.left4Bar, rightServo = hardware.right4Bar, encoder = hardware.encoder4Bar)
