@@ -24,12 +24,9 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         val angleToStack = getAngleToStackRad(distanceFromStack) ?: 0.0
         telemetry.addLine("angleToStack: $angleToStack")
 
-        // tan(theta) = sin(theta)/cos(theta)
-        // sin(theta) = y
-        // cos(theta) = x
-        // tan(theta) = y/x
-        // tan(theta) * x = y/x * x = y
-        val stackInchesFromCenter = tan(angleToStack) * distanceFromStack
+        val stackInchesFromCenterOfCam = tan(angleToStack) * distanceFromStack
+        val cameraOffsetFromCenterInches = 0.75
+        val stackInchesFromCenter = stackInchesFromCenterOfCam + cameraOffsetFromCenterInches
 
         telemetry.addLine("stackInchesFromCenter: $stackInchesFromCenter")
 
@@ -43,13 +40,14 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
     )
     private val angleByOffset = listOf(
         Observation(97, 0.0665, 30),// 2" @ 30" distance
+        Observation(137, 0.05011, 23),// 2" @ 23" distance
         Observation(83 , 0.0996, 20),// 2" @ 20" distance
         Observation(78 , 0.13255, 15),// 2" @ 15" distance
         Observation(74 , 0.197, 10)// 2" @ 10" distance
     )
 
     private fun getAngleToStackRad(distanceFromStack: Double): Double? {
-        val centeredPixels = 100.0
+        val centeredPixels = 120.0
         val pixels = stackDetector.detectedPosition(1000)
 
         telemetry.addLine("pixels: $pixels")
@@ -106,7 +104,7 @@ class StackAimerTest: OpMode() {
         val targetAngle = stackAimer.getStackInchesFromCenter(distanceFromStack)
         val position = PositionAndRotation(x= -targetAngle) + movement.localizer.currentPositionAndRotation()
 
-        val robotIsAtTarget = movement.moveTowardTarget(position, 0.0..1.0)
+//        val robotIsAtTarget = movement.moveTowardTarget(position, 0.0..1.0)
 
         multiTelemetry.addLine("\ntargetAngle: $targetAngle")
         multiTelemetry.addLine("position: $position")
