@@ -159,12 +159,13 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         val pixels = stackDetector.detectedPosition(1000)
 
         telemetry.addLine("pixels: $pixels")
+//
+//        val observationsSortedByPixels = angleByOffset.sortedByDescending { abs(abs(it.detectionPixelValue) - abs(pixels ?: centeredPixels)) }
+//        val topThirtyPercentOfMatchingObservations = observationsSortedByPixels.take(angleByOffset.size / 3)
+        val closestObservation = angleByOffset.minByOrNull { abs(abs(it.distanceFromWallToCameraInches) - abs(distanceFromStack)) + abs(abs(it.detectionPixelValue) - abs(pixels ?: centeredPixels))}
 
-        val closestObservation = angleByOffset.minByOrNull {
-            abs(abs(it.distanceFromWallToCameraInches) - abs(distanceFromStack)) +
-                    abs(abs(it.detectionPixelValue) - abs(pixels ?: centeredPixels))}
-
-        telemetry.addLine("closestObservation: ${closestObservation}")
+        telemetry.addLine("distanceFromStack: $distanceFromStack")
+        telemetry.addLine("closestObservation: $closestObservation")
 
         return if(pixels!=null && closestObservation!=null){
             val observationOffset: Double = centeredPixels - closestObservation.detectionPixelValue
@@ -212,8 +213,8 @@ class StackAimerTest: OpMode() {
     }
 
     override fun loop() {
-
-        val distanceFromStack = 30.0 - movement.localizer.currentPositionAndRotation().y
+        movement.localizer.recalculatePositionAndRotation()
+        val distanceFromStack = 22.0 - movement.localizer.currentPositionAndRotation().y
         val targetAngle = stackAimer.getStackInchesFromCenter(distanceFromStack)
         val position = PositionAndRotation(x= -targetAngle) + movement.localizer.currentPositionAndRotation()
 
