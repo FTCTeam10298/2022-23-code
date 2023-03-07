@@ -122,7 +122,7 @@ class PaddieMatrickAuto: OpMode() {
     )
 
     private val collectionY = -51.0
-    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY - 2, r = 90.0)
+    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
 
     private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r =  90.0)
@@ -152,7 +152,7 @@ class PaddieMatrickAuto: OpMode() {
                     }
 
                     val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
-                    telemetry.addLine("timeSinceStart: $timeSinceStart\na;sldkfg;leargh;erng;lakfjg;oiarw;ohjadl;kfj;airhgja;oeihrg;akdfn;aihg;oaihwfd")
+                    telemetry.addLine("timeSinceStart: $timeSinceStart")
                     timeSinceStart > 2000
                 }, requiredForCompletion = true),
                 nextTaskIteration= ::alignToStack,
@@ -270,12 +270,13 @@ class PaddieMatrickAuto: OpMode() {
         val stackInchesY = movement.localizer.currentPositionAndRotation().y - stackInchesFromCentered
 
         println("inchesFromStack: $inchesFromStack")
-        multipleTelemetry.addLine("inchesFromStack: $inchesFromStack")
-        multipleTelemetry.addLine("angleFromStack: $stackInchesFromCentered")
-        multipleTelemetry.addLine("targetAngle: $stackInchesY")
+        telemetry.addLine("inchesFromStack: $inchesFromStack")
+        telemetry.addLine("angleFromStack: $stackInchesFromCentered")
+        telemetry.addLine("targetAngle: $stackInchesY")
 
         val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY)//, y= targetY)
-        multipleTelemetry.addLine("position: $newPosition")
+        telemetry.addLine("position: $newPosition")
+        telemetry.update()
 
         prelinupCorrection = newPosition
         return previousTask
