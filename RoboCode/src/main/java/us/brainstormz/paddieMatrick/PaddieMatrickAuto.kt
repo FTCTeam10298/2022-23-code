@@ -188,13 +188,12 @@ class PaddieMatrickAuto: OpMode() {
     private val cycleCollectAndDepo = listOf(
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.2, accuracyInches= 0.2, accuracyDegrees = 1.0, requiredForCompletion = true),
+                    ChassisTask(collectionPosition, power = 0.0..0.5, accuracyInches= 0.15, accuracyDegrees = 3.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
                         val message = "Collecting, position is ${movement.localizer.currentPositionAndRotation()}"
                         multipleTelemetry.addLine(message)
-                        multipleTelemetry.update()
 
                         actualCollectionX = movement.localizer.currentPositionAndRotation().x
 
@@ -203,7 +202,7 @@ class PaddieMatrickAuto: OpMode() {
                         true
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::withPrelinupCorrection,
-                    timeoutSeconds = 3.0
+                    timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
@@ -217,7 +216,7 @@ class PaddieMatrickAuto: OpMode() {
                         val areWeDoneCollecting = System.currentTimeMillis() - coneCollectionTime!! >= timeToFinishCollectingMilis
                         isConeCurrentlyInCollector && areWeDoneCollecting
                     }, requiredForCompletion = true),
-                    nextTaskIteration = ::withCollectionCorrections,
+                    nextTaskIteration = ::withPrelinupCorrection,
                     timeoutSeconds = 2.0
             ),
             AutoTask(
@@ -228,7 +227,7 @@ class PaddieMatrickAuto: OpMode() {
                         hardware.collector.power = 0.05
                         true
                     }, requiredForCompletion = false),
-                    nextTaskIteration = ::withCollectionCorrections,
+                    nextTaskIteration = ::withPrelinupCorrection,
             ),
             /** Drive to pole */
             AutoTask(
