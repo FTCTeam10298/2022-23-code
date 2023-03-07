@@ -153,7 +153,7 @@ class PaddieMatrickAuto: OpMode() {
 
                     val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
 
-                    timeSinceStart > 1000
+                    timeSinceStart > 2000
                 }, requiredForCompletion = true),
                 nextTaskIteration= ::alignToStack,
     //                timeoutSeconds = 2.0
@@ -404,11 +404,11 @@ class PaddieMatrickAuto: OpMode() {
             0 -> listOf()
             1 -> cycle
             2 -> cycle + cycle
-            3 -> cycle + cycle + cycle
-            else -> {cycle + cycle + cycle + cycle}
+            3 -> {cycle + cycle + cycle + cycle + cycle + cycle}//cycle + cycle + cycle
+            else -> listOf()
         }
 
-        return flopped(preloadDeposit + cycles, fieldSide) + parkPath
+        return flopped(preloadDeposit + cycles, fieldSide)// + parkPath
     }
 
     private fun flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
