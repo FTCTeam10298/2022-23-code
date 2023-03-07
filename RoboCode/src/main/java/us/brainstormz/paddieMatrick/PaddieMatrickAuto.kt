@@ -522,13 +522,19 @@ class PaddieMatrickAuto: OpMode() {
     private val autoTaskManager = AutoTaskManager()
     override fun loop() {
         /** AUTONOMOUS  PHASE */
+        if (gamepad1.a) {
+            val motorsAndCRServos = hardware.hwMap.getAll(DcMotorSimple::class.java)
+            motorsAndCRServos.forEach {
+                it.power = 0.0
+            }
+        } else {
 
-        val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
-        multipleTelemetry.addLine("botHeading: $botHeading")
+            val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
+            multipleTelemetry.addLine("botHeading: $botHeading")
 
-        autoTaskManager.loop(
-                telemetry= multipleTelemetry,
-                autoTasks= autoTasks,
+            autoTaskManager.loop(
+                telemetry = multipleTelemetry,
+                autoTasks = autoTasks,
                 effectiveRuntimeSeconds = runtime,
                 isChassisTaskCompleted = { chassisTask ->
                     movement.precisionInches = chassisTask.accuracyInches
@@ -546,14 +552,10 @@ class PaddieMatrickAuto: OpMode() {
                 },
                 isOtherTaskCompleted = { otherTask ->
                     otherTask.isDone()
-                },
-                getNextTask = if (gamepad1.a) {
-                    pauseAuto
-                } else
-                    autoTaskManager::getTask
-        )
-
-        telemetry.update()
+                }
+            )
+            telemetry.update()
+        }
     }
 
     override fun stop() {
