@@ -1,5 +1,6 @@
 package us.brainstormz.paddieMatrick
 
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.HardwareMap
@@ -15,7 +16,7 @@ import us.brainstormz.openCvAbstraction.PipelineAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import java.util.Stack
 
-@TeleOp
+@Autonomous
 class MulticamTest : LinearOpMode() {
 
     override fun runOpMode() {
