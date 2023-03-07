@@ -14,7 +14,6 @@ import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
 import kotlin.math.abs
-import kotlin.math.sin
 import kotlin.math.tan
 
 class StackAimer(private val telemetry: Telemetry, private val stackDetector: StackDetector) {
@@ -34,16 +33,72 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
     }
 
     data class Observation(
-        val pixels:Int,
-        val angle:Double,
-        val distance:Int
+        val detectionPixelValue:Double,
+        val angleRad:Double,
+        val distanceFromWallToCameraInches:Double,
+        val sideOffsetFromCameraInches:Double//- is left
     )
     private val angleByOffset = listOf(
-        Observation(97, 0.0665, 30),// 2" @ 30" distance
-        Observation(137, 0.05011, 23),// 2" @ 23" distance
-        Observation(83 , 0.0996, 20),// 2" @ 20" distance
-        Observation(78 , 0.13255, 15),// 2" @ 15" distance
-        Observation(74 , 0.197, 10)// 2" @ 10" distance
+//        Observation(
+//            detectionPixelValue= 174.1,
+//            angleRad= 0.0,
+//            distanceFromWallToCameraInches= 25.0,
+//            sideOffsetFromCameraInches= 0.0
+//        ),
+        Observation(
+            detectionPixelValue= 152.6,
+            angleRad= 0.0435,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= 1.0
+        ),
+        Observation(
+            detectionPixelValue= ,
+            angleRad= ,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= 2.0
+        ),
+        Observation(
+            detectionPixelValue= ,
+            angleRad= ,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= 3.0
+        ),
+        Observation(
+            detectionPixelValue= 171.5,
+            angleRad= 0.0,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= 0.0
+        ),
+        Observation(
+            detectionPixelValue= 203.0,
+            angleRad= -0.1297,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= -3.0
+        ),
+        Observation(
+            detectionPixelValue= 187.3,
+            angleRad= -0.0867,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= -2.0
+        ),
+        Observation(
+            detectionPixelValue= 180.2,
+            angleRad= -0.0435,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= -1.0
+        ),
+//        Observation(
+//            detectionPixelValue= 175.3,
+//            angleRad= 0.0,
+//            distanceFromWallToCameraInches= 21.0,
+//            sideOffsetFromCameraInches= 0.0
+//        ),
+//        Observation(
+//            detectionPixelValue= 170.0,
+//            angleRad= 0.0,
+//            distanceFromWallToCameraInches= 20.0,
+//            sideOffsetFromCameraInches= 0.0
+//        ),
     )
 
     private fun getAngleToStackRad(distanceFromStack: Double): Double? {
@@ -52,13 +107,13 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
 
         telemetry.addLine("pixels: $pixels")
 
-        val closestObservation = angleByOffset.minByOrNull { abs(abs(it.distance) - abs(distanceFromStack)) }
+        val closestObservation = angleByOffset.minByOrNull { abs(abs(it.distanceFromWallToCameraInches) - abs(distanceFromStack)) }
 
         return if(pixels!=null && closestObservation!=null){
-            val observationOffset: Double = centeredPixels - closestObservation.pixels
+            val observationOffset: Double = centeredPixels - closestObservation.detectionPixelValue
             val offset: Double = centeredPixels - pixels
 
-            val angle = (offset/observationOffset) * closestObservation.angle
+            val angle = (offset/observationOffset) * closestObservation.angleRad
 
             return if(offset > centeredPixels){
                 angle
