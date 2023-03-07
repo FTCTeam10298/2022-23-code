@@ -165,6 +165,7 @@ class StackDetector(private val vars:StackDetectorVars, private val telemetry: T
 
             Imgproc.line(frame, center, pointAtTheTop, lower, 10)
             Imgproc.line(frame, center, pointAtBottom, upper, 10)
+            Imgproc.putText(frame, "x: ${String.format("%.2f", center.x)}", center, Imgproc.FONT_HERSHEY_PLAIN, 0.8, Scalar(0.0, 0.0, 0.0))
 
             mostRecentDetection = StackDetection(
                     xPosition = center.x,
