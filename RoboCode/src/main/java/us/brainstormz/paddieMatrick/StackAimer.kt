@@ -34,10 +34,11 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
 
     data class Observation(
         val detectionPixelValue:Double,
-        val angleRad:Double,
         val distanceFromWallToCameraInches:Double,
-        val sideOffsetFromCameraInches:Double//- is left
-    )
+        val sideOffsetFromCameraInches:Double // - is left
+    ) {
+        val angleRad:Double = atan2(y= sideOffsetFromCameraInches, x= distanceFromWallToCameraInches)
+    }
     private val angleByOffset = listOf(
 //        Observation(
 //            detectionPixelValue= 174.1,
