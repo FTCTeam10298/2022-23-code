@@ -394,11 +394,12 @@ class PaddieMatrickAuto: OpMode() {
             0 -> listOf()
             1 -> cycle
             2 -> cycle + cycle
-            3 -> {cycle + cycle + cycle + cycle + cycle + cycle}//cycle + cycle + cycle
+            3 -> cycle + cycle + cycle
+            69 -> {cycle + cycle + cycle + cycle + cycle + cycle}
             else -> listOf()
         }
 
-        return flopped(preloadDeposit + cycles, fieldSide)// + parkPath
+        return flopped(preloadDeposit + cycles, fieldSide) + (if(numberOfCycles == 69) listOf() else parkPath)
     }
 
     private fun flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
@@ -455,7 +456,7 @@ class PaddieMatrickAuto: OpMode() {
 
         wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
         wizard.newMenu("program", "Which auto are we starting?", listOf("Cycle Auto" to "cycles", "Park Auto" to null))
-        wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
+        wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3", "debug"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
 
 //        encoderLog = EncoderLog(hardware)
@@ -507,6 +508,7 @@ class PaddieMatrickAuto: OpMode() {
             wizard.wasItemChosen("cycles", "1+1") -> 1
             wizard.wasItemChosen("cycles", "1+2") -> 2
             wizard.wasItemChosen("cycles", "1+3") -> 3
+            wizard.wasItemChosen("cycles", "debug") -> 69
             else -> 0
         }
         autoTasks = makePlanForAuto(
@@ -516,13 +518,10 @@ class PaddieMatrickAuto: OpMode() {
             numberOfCycles = numberOfCycles)
     }
 
-    private val pauseAuto: (previousTask: AutoTask?, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, telemetry: Telemetry)->AutoTask =
-        { previousTask, _, _, telemetry -> telemetry.addLine("Pausing"); previousTask!!}
-
     private val autoTaskManager = AutoTaskManager()
     override fun loop() {
         /** AUTONOMOUS  PHASE */
-        if (gamepad1.a) {
+        if (gamepad1.a && wizard.wasItemChosen("cycles", "debug")) {
             val motorsAndCRServos = hardware.hwMap.getAll(DcMotorSimple::class.java)
             motorsAndCRServos.forEach {
                 it.power = 0.0
