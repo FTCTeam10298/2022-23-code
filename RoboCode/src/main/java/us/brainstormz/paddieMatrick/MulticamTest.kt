@@ -88,13 +88,15 @@ class DualCamAbstraction(private val hardwareMap: HardwareMap) {
         newCamera.showFpsMeterOnViewport(false)
 
         newCamera.openCameraDeviceAsync(object : AsyncCameraOpenListener {
+
             override fun onOpened() {
+                println("[camera/$cameraName] opened ")
                 newCamera.setPipeline(pipeline)
                 newCamera.startStreaming(320, 240, cameraRotation)
             }
 
             override fun onError(errorCode: Int) {
-                println("$cameraName not opened.")
+                println("[camera/$cameraName] not opened - error code $errorCode")
             }
         })
 
