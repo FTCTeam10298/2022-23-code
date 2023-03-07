@@ -154,7 +154,7 @@ class PaddieMatrickAuto: OpMode() {
 
                     val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
 
-                    timeSinceStart > 2000
+                    timeSinceStart > 3000
                 }, requiredForCompletion = true),
                 nextTaskIteration= ::alignToStack,
     //                timeoutSeconds = 2.0
@@ -266,7 +266,7 @@ class PaddieMatrickAuto: OpMode() {
     private fun alignToStack(previousTask: AutoTask): AutoTask {
         val inchesFromStack = 29 + movement.localizer.currentPositionAndRotation().x
         val stackInchesFromCentered = stackAimer.getStackInchesFromCenter(distanceFromStack= inchesFromStack)
-        val stackInchesY = movement.localizer.currentPositionAndRotation().y - stackInchesFromCentered
+        val stackInchesY = movement.localizer.currentPositionAndRotation().y + stackInchesFromCentered
 
         println("inchesFromStack: $inchesFromStack")
         telemetry.addLine("\ninchesFromStack: $inchesFromStack\n")
