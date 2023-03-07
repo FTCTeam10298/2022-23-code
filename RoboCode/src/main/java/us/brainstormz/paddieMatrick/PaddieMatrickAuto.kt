@@ -421,7 +421,7 @@ class PaddieMatrickAuto: OpMode() {
         backPipeline.userFun = stackDetector::processFrame
         backCam = dualCamAbstraction.startNewCamera(
                 cameraName = backCamName,
-                cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
+                cameraRotation = OpenCvCameraRotation.SIDEWAYS_LEFT,
                 viewportContainerId = viewportContainerIds[1],
                 pipeline = backPipeline)
     }
