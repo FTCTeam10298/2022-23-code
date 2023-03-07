@@ -59,9 +59,14 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
             sideOffsetFromCameraInches= 1.0
         ),
         Observation(
-            detectionPixelValue= 171.4,
+            detectionPixelValue= 166.2,
             distanceFromWallToCameraInches= 25.0,
-            sideOffsetFromCameraInches= 0.0
+            sideOffsetFromCameraInches= 0.5
+        ),
+        Observation(
+            detectionPixelValue= 179.2,
+            distanceFromWallToCameraInches= 25.0,
+            sideOffsetFromCameraInches= -0.5
         ),
         Observation(
             detectionPixelValue= 180.5,
@@ -96,9 +101,14 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
             sideOffsetFromCameraInches= 1.0
         ),
         Observation(
-            detectionPixelValue= 171.5,
+            detectionPixelValue= 161.7,
             distanceFromWallToCameraInches= 23.0,
-            sideOffsetFromCameraInches= 0.0
+            sideOffsetFromCameraInches= 0.5
+        ),
+        Observation(
+            detectionPixelValue= 176.0,
+            distanceFromWallToCameraInches= 23.0,
+            sideOffsetFromCameraInches= -0.5
         ),
         Observation(
             detectionPixelValue= 180.2,
@@ -133,9 +143,14 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
             sideOffsetFromCameraInches= 1.0
         ),
         Observation(
-            detectionPixelValue= 168.5,
+            detectionPixelValue= 161.2,
             distanceFromWallToCameraInches= 21.0,
-            sideOffsetFromCameraInches= 0.0
+            sideOffsetFromCameraInches= 0.5
+        ),
+        Observation(
+            detectionPixelValue= 177.3,
+            distanceFromWallToCameraInches= 21.0,
+            sideOffsetFromCameraInches= -0.5
         ),
         Observation(
             detectionPixelValue= 184.1,
