@@ -5,7 +5,6 @@ import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotor
-import com.qualcomm.robotcore.hardware.DcMotorEx
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
@@ -24,8 +23,6 @@ import us.brainstormz.paddieMatrick.AutoTaskManager.ChassisTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.LiftTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.FourBarTask
 import us.brainstormz.paddieMatrick.AutoTaskManager.OtherTask
-import java.io.File
-import kotlin.math.sin
 
 enum class Alliance {
     Red,
@@ -39,7 +36,7 @@ class PaddieMatrickAuto: OpMode() {
     private val console = TelemetryConsole(telemetry)
     private val wizard = TelemetryWizard(console, null)
     val dashboard = FtcDashboard.getInstance()
-    val multipleTelemetry = MultipleTelemetry(telemetry, dashboard.telemetry)
+    val multipleTelemetry = telemetry//MultipleTelemetry(telemetry, dashboard.telemetry)
 
     var aprilTagGX = AprilTagEx()
 
@@ -71,10 +68,11 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             ),
             AutoTask(
-                    ChassisTask(depositPosition, power= 0.0..0.3, rotationalPID = MecanumMovement.defaultRotationPID.copy(kp= 0.85) , accuracyInches = 0.4, accuracyDegrees = 2.0, requiredForCompletion = true),
+                    ChassisTask(depositPosition, power= 0.0..0.2, rotationalPID = MecanumMovement.defaultRotationPID.copy(kp= 0.85) , accuracyInches = 0.4, accuracyDegrees = 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    nextTaskIteration = ::alignWithPole
+                    nextTaskIteration = ::alignWithPole,
+                    timeoutSeconds = 5.0
             ),
             /** Deposit */
             AutoTask(
@@ -87,7 +85,7 @@ class PaddieMatrickAuto: OpMode() {
                         isFourBarPastTarget
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::stayLinedUpWithPole,
-                    timeoutSeconds = 3.0
+                    timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(depositPosition, requiredForCompletion = false),
@@ -98,7 +96,7 @@ class PaddieMatrickAuto: OpMode() {
                         !depositor.isConeInCollector()
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::stayLinedUpWithPole,
-                    timeoutSeconds = 3.0
+                    timeoutSeconds = 2.0
             ),
     )
     private val preloadDeposit = listOf(
@@ -123,37 +121,58 @@ class PaddieMatrickAuto: OpMode() {
             )
     )
 
-    private val collectionY = -52.0
-    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
+    private val collectionY = -51.0
+    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY - 2, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
-    private var correctedCollectionAngle = 90.0
 
-    private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r = correctedCollectionAngle)
+    private val collectionPosition = PositionAndRotation(x = 30.5, y = collectionY, r =  90.0)
     private var actualCollectionX = collectionPosition.x
 
+    private var alignToStackStartTimeMilis: Long? = null
     private var prelinupCorrection:PositionAndRotation? = null
 
     private val cyclePreLinup = listOf(
             /** Prepare to collect */
             AutoTask(
-                    ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false)
+                ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),
+                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
+                OtherTask(isDone= {
+                    alignToStackStartTimeMilis = null
+                    true
+                }, requiredForCompletion = false)
+            ),
+            AutoTask(
+                ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = false),
+                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
+                FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
+                OtherTask(isDone = {
+                    if (alignToStackStartTimeMilis == null) {
+                        alignToStackStartTimeMilis = System.currentTimeMillis()
+                    }
+
+                    val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
+                    telemetry.addLine("timeSinceStart: $timeSinceStart\na;sldkfg;leargh;erng;lakfjg;oiarw;ohjadl;kfj;airhgja;oeihrg;akdfn;aihg;oaihwfd")
+                    timeSinceStart > 2000
+                }, requiredForCompletion = true),
+                nextTaskIteration= ::alignToStack,
+//                timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true)
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
+                    nextTaskIteration = ::withPrelinupCorrection
             ),
             AutoTask(
                     ChassisTask(preCollectionPosition, accuracyInches= 0.2, accuracyDegrees = 1.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false),
-                    nextTaskIteration = ::alignToStack
                     OtherTask(isDone= {
 //                        hardware.funnelLifter.position = collector.funnelDown
                         true
                     }, requiredForCompletion = false),
+                    nextTaskIteration = ::withPrelinupCorrection
             )
     )
 
@@ -175,7 +194,7 @@ class PaddieMatrickAuto: OpMode() {
                         funnel.isConeInFunnel()
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::withPrelinupCorrection,
-                    timeoutSeconds = 5.0
+                    timeoutSeconds = 3.0
             ),
             AutoTask(
                     ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
@@ -245,23 +264,21 @@ class PaddieMatrickAuto: OpMode() {
         return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= depositPosition))
     }
 
-
     private fun alignToStack(previousTask: AutoTask): AutoTask {
-        val angleFromStack = stackAimer.getAngleFromStack()
-        val targetAngle = movement.localizer.currentPositionAndRotation().r - angleFromStack
-        val deltaTarget = previousTask.chassisTask.targetPosition.r - targetAngle
+        val inchesFromStack = 29 + movement.localizer.currentPositionAndRotation().x
+        val stackInchesFromCentered = stackAimer.getStackInchesFromCenter(distanceFromStack= inchesFromStack)
+        val stackInchesY = movement.localizer.currentPositionAndRotation().y - stackInchesFromCentered
 
-        val targetY = previousTask.chassisTask.targetPosition.y + (sin(Math.toRadians(deltaTarget)) )// * sin(Math.toRadians(deltaTarget))
+        println("inchesFromStack: $inchesFromStack")
+        multipleTelemetry.addLine("inchesFromStack: $inchesFromStack")
+        multipleTelemetry.addLine("angleFromStack: $stackInchesFromCentered")
+        multipleTelemetry.addLine("targetAngle: $stackInchesY")
 
-        multipleTelemetry.addLine("angleFromStack: $angleFromStack")
-        multipleTelemetry.addLine("targetAngle: $targetAngle")
-
-        val newPosition = previousTask.chassisTask.targetPosition.copy(r=targetAngle, y= targetY)
+        val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY)//, y= targetY)
         multipleTelemetry.addLine("position: $newPosition")
 
         prelinupCorrection = newPosition
-        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition= newPosition))
-
+        return previousTask
     }
 
     private fun withPrelinupCorrection(t:AutoTask):AutoTask {
@@ -269,7 +286,7 @@ class PaddieMatrickAuto: OpMode() {
 //            changeTaskTargetPosition(it, previousTask)
             t.copy(
                     chassisTask = t.chassisTask.copy(
-                            t.chassisTask.targetPosition.copy(r = it.r)
+                            targetPosition = t.chassisTask.targetPosition.copy(y = it.y)
                     )
             )
         } ?: t)
@@ -293,12 +310,6 @@ class PaddieMatrickAuto: OpMode() {
     private fun adjustTargetToCorrectedCollectionRotation(previousTask: AutoTask, correctedCollectionAngle:Double): AutoTask {
         val previousTarget = previousTask.chassisTask.targetPosition
         val correctedPosition = previousTarget.copy(r= correctedCollectionAngle)
-
-        return changeTaskTargetPosition(correctedPosition, previousTask)
-    }
-    private fun adjustTargetToRealCollectionPosition(previousTask: AutoTask): AutoTask {
-        val collectionPositionY = collectionPosition.y
-        val correctedPosition = PositionAndRotation(y= collectionPositionY, x= actualCollectionX, r= correctedCollectionAngle)
 
         return changeTaskTargetPosition(correctedPosition, previousTask)
     }
