@@ -92,7 +92,7 @@ class StackAimerTest: OpMode() {
         movement = MecanumMovement(localizer, hardware, telemetry)
 
         opencv.cameraName = "backCam"
-        opencv.cameraOrientation = OpenCvCameraRotation.SIDEWAYS_LEFT
+        opencv.cameraOrientation = OpenCvCameraRotation.UPSIDE_DOWN
         opencv.init(hardwareMap)
         opencv.onNewFrame(stackDetector::processFrame)
         opencv.start()
