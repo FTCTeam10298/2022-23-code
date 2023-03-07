@@ -206,23 +206,36 @@ class StackAimerTest: OpMode() {
         opencv.init(hardwareMap)
         opencv.onNewFrame(stackDetector::processFrame)
         opencv.start()
+
+        targetPosition = movement.localizer.currentPositionAndRotation()
     }
 
+    var targetPosition: PositionAndRotation = PositionAndRotation()
+    var newPosition = PositionAndRotation()
     override fun loop() {
         movement.localizer.recalculatePositionAndRotation()
         val distanceFromStack = 22.0 - movement.localizer.currentPositionAndRotation().y
-        val targetAngle = stackAimer.getStackInchesFromCenter(distanceFromStack)
-        val position = PositionAndRotation(x= -targetAngle) + movement.localizer.currentPositionAndRotation()
+        val stackInchesFromCentered = stackAimer.getStackInchesFromCenter(distanceFromStack)
 
-//        val robotIsAtTarget = movement.moveTowardTarget(position, 0.0..1.0)
+        val stackInchesX = movement.localizer.currentPositionAndRotation().x - stackInchesFromCentered
 
-        multiTelemetry.addLine("\ntargetAngle: $targetAngle")
-        multiTelemetry.addLine("position: $position")
-//        multiTelemetry.addLine("\nrobotIsAtTarget: $robotIsAtTarget")
+        newPosition = if (gamepad1.x) targetPosition.copy(x=stackInchesX) else newPosition
+
+        targetPosition = if (gamepad1.a) {
+            newPosition
+        } else movement.localizer.currentPositionAndRotation()
+
+        multiTelemetry.addLine("\ntargetAngle: $stackInchesFromCentered")
         multiTelemetry.addLine("current time: ${System.currentTimeMillis()}")
-        multiTelemetry.update()
 
-        println("OpMode is running 69420")
+        telemetry.addLine("newPosition: $newPosition")
+
+        multiTelemetry.addLine("targetPosition: $targetPosition")
+        multiTelemetry.addLine("actualPosition: ${movement.localizer.currentPositionAndRotation()}")
+        val robotIsAtTarget = movement.moveTowardTarget(targetPosition, 0.0..1.0)
+        multiTelemetry.addLine("\nrobotIsAtTarget: $robotIsAtTarget")
+
+        multiTelemetry.update()
     }
 
 }
