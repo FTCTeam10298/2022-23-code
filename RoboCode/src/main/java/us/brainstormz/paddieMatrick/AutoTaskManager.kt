@@ -26,7 +26,6 @@ class AutoTaskManager {
 
         } else {
             telemetry.addLine("Current task is null")
-            telemetry.update()
             taskListIterator = autoTasks.listIterator()
             return taskListIterator.next()
         }
@@ -53,8 +52,6 @@ class AutoTaskManager {
         } else {
             getTask(currentTask, autoTasks, effectiveRuntimeSeconds, telemetry)
         }
-        telemetry.addLine("Current task is : $currentTask")
-        telemetry.update()
 
 
         if (currentTask!!.taskStatus != TaskStatus.Running) {
@@ -91,6 +88,8 @@ class AutoTaskManager {
             currentTask!!.taskStatus = TaskStatus.Completed
             currentTask!!.timeFinishedSeconds = effectiveRuntimeSeconds
         }
+
+        telemetry.addLine("Current task is : $currentTask")
     }
 
     data class AutoTask(val chassisTask: ChassisTask,

@@ -555,6 +555,8 @@ class PaddieMatrickAuto: OpMode() {
                     otherTask.isDone()
                 }
         )
+
+        telemetry.update()
     }
 
     override fun stop() {
