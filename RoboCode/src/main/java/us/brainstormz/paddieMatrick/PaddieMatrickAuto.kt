@@ -6,6 +6,7 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
+import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraRotation
@@ -173,16 +174,6 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     nextTaskIteration = ::withPrelinupCorrection
             ),
-//            AutoTask(
-//                    ChassisTask(preCollectionPosition, accuracyInches= 0.2, accuracyDegrees = 1.0, requiredForCompletion = true),
-//                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-//                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = false),
-//                    OtherTask(isDone= {
-////                        hardware.funnelLifter.position = collector.funnelDown
-//                        true
-//                    }, requiredForCompletion = false),
-//                    nextTaskIteration = ::withPrelinupCorrection
-//            )
     )
 
     private val cycleCollectAndDepo = listOf(
@@ -525,6 +516,9 @@ class PaddieMatrickAuto: OpMode() {
             numberOfCycles = numberOfCycles)
     }
 
+    private val pauseAuto: (previousTask: AutoTask?, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, telemetry: Telemetry)->AutoTask =
+        { previousTask, _, _, telemetry -> telemetry.addLine("Pausing"); previousTask!!}
+
     private val autoTaskManager = AutoTaskManager()
     override fun loop() {
         /** AUTONOMOUS  PHASE */
@@ -552,7 +546,11 @@ class PaddieMatrickAuto: OpMode() {
                 },
                 isOtherTaskCompleted = { otherTask ->
                     otherTask.isDone()
-                }
+                },
+                getNextTask = if (gamepad1.a) {
+                    pauseAuto
+                } else
+                    autoTaskManager::getTask
         )
 
         telemetry.update()

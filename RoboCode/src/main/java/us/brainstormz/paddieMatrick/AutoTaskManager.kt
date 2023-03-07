@@ -3,13 +3,12 @@ package us.brainstormz.paddieMatrick
 import org.firstinspires.ftc.robotcore.external.Telemetry
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.motion.MecanumMovement
-import us.brainstormz.motion.Movement
 import us.brainstormz.pid.PID
 
 class AutoTaskManager {
 
     private lateinit var taskListIterator: ListIterator<AutoTask>
-    private fun getTask(previousTask: AutoTask?, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, telemetry: Telemetry): AutoTask {
+    fun getTask(previousTask: AutoTask?, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, telemetry: Telemetry): AutoTask {
         if (previousTask != null) {
 
             val timeSinceTaskStart = effectiveRuntimeSeconds - (previousTask.timeStartedSeconds
@@ -34,8 +33,16 @@ class AutoTaskManager {
 
     private var prevTime = System.currentTimeMillis()
     private var currentTask: AutoTask? = null
-    fun loop(telemetry: Telemetry, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, isChassisTaskCompleted: (ChassisTask) -> Boolean, isLiftTaskCompleted: (LiftTask) -> Boolean, isFourBarTaskCompleted: (FourBarTask) -> Boolean, isOtherTaskCompleted: (OtherTask) -> Boolean) {
-        /** AUTONOMOUS  PHASE */
+    fun loop(
+        telemetry: Telemetry,
+        autoTasks: List<AutoTask>,
+        getNextTask: (previousTask: AutoTask?, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, telemetry: Telemetry)->AutoTask = this::getTask,
+        effectiveRuntimeSeconds: Double,
+        isChassisTaskCompleted: (ChassisTask) -> Boolean,
+        isLiftTaskCompleted: (LiftTask) -> Boolean,
+        isFourBarTaskCompleted: (FourBarTask) -> Boolean,
+        isOtherTaskCompleted: (OtherTask) -> Boolean
+    ) {
         val dt = System.currentTimeMillis() - prevTime
         prevTime = System.currentTimeMillis()
         telemetry.addLine("dt: $dt")
@@ -50,7 +57,7 @@ class AutoTaskManager {
 
             nextDeadlinedTask!!
         } else {
-            getTask(currentTask, autoTasks, effectiveRuntimeSeconds, telemetry)
+            getNextTask(currentTask, autoTasks, effectiveRuntimeSeconds, telemetry)
         }
 
 
