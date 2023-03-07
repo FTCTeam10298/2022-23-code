@@ -1,3 +1,5 @@
 #!/bin/bash
+set -ex
+adb disconnect
 adb connect localhost:5558
 adb root
