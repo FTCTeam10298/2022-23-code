@@ -459,7 +459,7 @@ class PaddieMatrickAuto: OpMode() {
         wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
 
-        encoderLog = EncoderLog(hardware)
+//        encoderLog = EncoderLog(hardware)
         encoderLog?.start()
     }
 
