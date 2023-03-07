@@ -13,20 +13,27 @@ import us.brainstormz.motion.MecanumMovement
 import us.brainstormz.motion.RRLocalizer
 import us.brainstormz.openCvAbstraction.OpenCvAbstraction
 import us.brainstormz.telemetryWizard.TelemetryConsole
+import kotlin.math.abs
+import kotlin.math.sin
+import kotlin.math.tan
 
 class StackAimer(private val telemetry: Telemetry, private val stackDetector: StackDetector) {
 
     fun getStackInchesFromCenter(distanceFromStack: Double): Double {
 
-//        val stackInchesFromCenter =
-//
-//        return stackInchesFromCenter
-
-        val angleToStack = getAngleToStackRad(distanceFromStack)
+        val angleToStack = getAngleToStackRad(distanceFromStack) ?: 0.0
         telemetry.addLine("angleToStack: $angleToStack")
 
+        // tan(theta) = sin(theta)/cos(theta)
+        // sin(theta) = y
+        // cos(theta) = x
+        // tan(theta) = y/x
+        // tan(theta) * x = y/x * x = y
+        val stackInchesFromCenter = tan(angleToStack) * distanceFromStack
 
-        return getPixelsFromCenter()
+        telemetry.addLine("stackInchesFromCenter: $stackInchesFromCenter")
+
+        return stackInchesFromCenter
     }
 
     data class Observation(
@@ -42,35 +49,27 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
     )
 
     private fun getAngleToStackRad(distanceFromStack: Double): Double? {
+        val centeredPixels = 100.0
         val pixels = stackDetector.detectedPosition(1000)
 
-        val closestObservation = angleByOffset.minByOrNull {Math.abs(Math.abs(it.distance) - Math.abs(distanceFromStack))}
+        telemetry.addLine("pixels: $pixels")
 
-       return if(pixels!=null && closestObservation!=null){
-           val observationOffset = 120 - closestObservation.pixels
-           val offset = 120 - pixels
-           val angle = (offset.toDouble()/observationOffset.toDouble()) * closestObservation.angle
+        val closestObservation = angleByOffset.minByOrNull { abs(abs(it.distance) - abs(distanceFromStack)) }
 
-           return if(pixels > 120){
-               angle
-           }else{
-               angle * -1
-           }
+        return if(pixels!=null && closestObservation!=null){
+            val observationOffset: Double = centeredPixels - closestObservation.pixels
+            val offset: Double = centeredPixels - pixels
+
+            val angle = (offset/observationOffset) * closestObservation.angle
+
+            return if(offset > centeredPixels){
+                angle
+            } else {
+                angle * -1
+            }
         }else{
-        null
-       }
-    }
-
-    private fun getPixelsFromCenter(): Double {
-        val centeredOnScreen: Double = 126.0
-        val stackPixels = stackDetector.detectedPosition(1000) ?: centeredOnScreen
-        val pixelsFromCenter = stackPixels - centeredOnScreen
-
-        telemetry.addLine("centeredOnScreen: $centeredOnScreen")
-        telemetry.addLine("stackPixels: $stackPixels")
-        telemetry.addLine("errorFromCenterPixels: $pixelsFromCenter")
-
-        return pixelsFromCenter
+            null
+        }
     }
 }
 
@@ -103,10 +102,11 @@ class StackAimerTest: OpMode() {
 
     override fun loop() {
 
-        val targetAngle = stackAimer.getStackInchesFromCenter(movement.localizer.currentPositionAndRotation().x)
+        val distanceFromStack = 30.0 - movement.localizer.currentPositionAndRotation().y
+        val targetAngle = stackAimer.getStackInchesFromCenter(distanceFromStack)
         val position = PositionAndRotation(x= -targetAngle) + movement.localizer.currentPositionAndRotation()
 
-//        val robotIsAtTarget = movement.moveTowardTarget(position, 0.0..1.0)
+        val robotIsAtTarget = movement.moveTowardTarget(position, 0.0..1.0)
 
         multiTelemetry.addLine("\ntargetAngle: $targetAngle")
         multiTelemetry.addLine("position: $position")
