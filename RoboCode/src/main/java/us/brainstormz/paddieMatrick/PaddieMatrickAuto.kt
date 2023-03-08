@@ -173,7 +173,11 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
-                    nextTaskIteration = ::withPrelinupCorrection
+                    OtherTask(isDone = {false}, requiredForCompletion = true),
+                    nextTaskIteration = {
+                        val withCorrection = withPrelinupCorrection(it)
+                        withCorrection.copy(subassemblyTask = OtherTask(isDone = {true}, requiredForCompletion = false))
+                    }
             ),
     )
 
@@ -191,7 +195,7 @@ class PaddieMatrickAuto: OpMode() {
 
                         hardware.collector.power = 0.7
                         coneCollectionTime = null
-                        true
+                        false
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::withPrelinupCorrection,
                     timeoutSeconds = 2.0
