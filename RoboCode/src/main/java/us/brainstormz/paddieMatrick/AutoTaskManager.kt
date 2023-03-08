@@ -111,6 +111,19 @@ class AutoTaskManager {
                         var timeFinishedSeconds: Double? = null,
                         val extraState:Any? = null) {
         fun isFinished() = taskStatus == TaskStatus.Completed || taskStatus == TaskStatus.Failed
+        override fun toString(): String =
+                "Auto task: \n" +
+                "   Chassis task: $chassisTask\n" +
+                "   Lift task: $liftTask\n" +
+                "   Four-bar task: $fourBarTask\n" +
+                "   Other task: $subassemblyTask\n" +
+//                "   Has next task iteration: \n" +
+                "   Start deadline (seconds): $startDeadlineSeconds\n" +
+                "   Timeout (seconds): $timeoutSeconds\n" +
+                "   Time started (seconds): $timeStartedSeconds\n" +
+                "   Time finished (seconds): $timeFinishedSeconds\n" +
+                "   Extra state: $extraState\n" +
+                "   Task status: $taskStatus\n"
     }
 
     open class SubassemblyTask(open val requiredForCompletion: Boolean)
