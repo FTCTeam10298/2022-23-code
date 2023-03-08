@@ -10,6 +10,7 @@ import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraRotation
+import us.brainstormz.hardwareClasses.MecanumHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.localizer.StackDetector
 import us.brainstormz.localizer.StackDetectorVars
@@ -264,13 +265,10 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     private fun alignToStack(previousTask: AutoTask): AutoTask {
-        val inchesFromStack = 29 + movement.localizer.currentPositionAndRotation().x
+        val inchesFromStack = 29.5 + movement.localizer.currentPositionAndRotation().x
         val stackInchesFromCentered = stackAimer.getStackInchesFromCenter(distanceFromStack= inchesFromStack)
-        val stackInchesY = movement.localizer.currentPositionAndRotation().y + stackInchesFromCentered
+        val stackInchesY = movement.localizer.currentPositionAndRotation().y - stackInchesFromCentered
 
-        println("inchesFromStack: $inchesFromStack")
-        telemetry.addLine("\ninchesFromStack: $inchesFromStack\n")
-        telemetry.addLine("stackInchesFromCentered: $stackInchesFromCentered")
         telemetry.addLine("stackInchesY: $stackInchesY")
 
         val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY)//, y= targetY)
@@ -530,6 +528,7 @@ class PaddieMatrickAuto: OpMode() {
 
             val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
             multipleTelemetry.addLine("botHeading: $botHeading")
+            multipleTelemetry.addLine("prelinupCorrection: ${prelinupCorrection?.y}")
 
             autoTaskManager.loop(
                 telemetry = multipleTelemetry,
