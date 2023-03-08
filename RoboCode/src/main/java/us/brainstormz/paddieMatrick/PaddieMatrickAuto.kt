@@ -271,9 +271,7 @@ class PaddieMatrickAuto: OpMode() {
 
         telemetry.addLine("stackInchesY: $stackInchesY")
 
-        val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY)//, y= targetY)
-        telemetry.addLine("position: $newPosition")
-
+        val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY)
         prelinupCorrection = newPosition
         return previousTask
     }
