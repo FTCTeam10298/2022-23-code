@@ -181,10 +181,10 @@ class StackDetector(private val vars:StackDetectorVars, private val telemetry: T
 
     private fun specialXAlgorithm(points: List<Point>): Point {
         val topThird = points.sortedBy { it.y }.take(points.size / 3)
-        telemetry.addLine("topThird top 2: ${topThird.take(2)}")
+//        telemetry.addLine("topThird top 2: ${topThird.take(2)}")
         val centerY = topThird.fold(0.0) {acc, point -> acc + point.y } / topThird.size
         val centerX = topThird.fold(0.0) {acc, point -> acc + point.x } / topThird.size
-        telemetry.addLine("centerX: $centerX")
+//        telemetry.addLine("centerX: $centerX")
         return Point(centerX, centerY)
     }
 

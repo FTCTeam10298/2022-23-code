@@ -111,6 +111,19 @@ class AutoTaskManager {
                         var timeFinishedSeconds: Double? = null,
                         val extraState:Any? = null) {
         fun isFinished() = taskStatus == TaskStatus.Completed || taskStatus == TaskStatus.Failed
+        override fun toString(): String =
+                "Auto task: \n" +
+                "   Chassis task: $chassisTask\n" +
+                "   Lift task: $liftTask\n" +
+                "   Four-bar task: $fourBarTask\n" +
+                "   Other task: $subassemblyTask\n" +
+//                "   Has next task iteration: \n" +
+                "   Start deadline (seconds): $startDeadlineSeconds\n" +
+                "   Timeout (seconds): $timeoutSeconds\n" +
+                "   Time started (seconds): $timeStartedSeconds\n" +
+                "   Time finished (seconds): $timeFinishedSeconds\n" +
+                "   Extra state: $extraState\n" +
+                "   Task status: $taskStatus\n"
     }
 
     open class SubassemblyTask(open val requiredForCompletion: Boolean)
@@ -120,7 +133,7 @@ class AutoTaskManager {
             val xTranslationPID: PID = MecanumMovement.defaultXTranslationPID,
             val power: ClosedRange<Double> = 0.0..1.0,
             val accuracyInches: Double = 0.5,
-            val accuracyDegrees: Double = 5.0,
+            val accuracyDegrees: Double = 1.0,
             override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion) {
 //                fun copy(
 //                        targetPosition: PositionAndRotation = this.targetPosition,

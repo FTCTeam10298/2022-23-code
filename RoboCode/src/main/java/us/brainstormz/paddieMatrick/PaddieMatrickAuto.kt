@@ -154,7 +154,7 @@ class PaddieMatrickAuto: OpMode() {
                     }
 
                     val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
-
+                    hardware.funnelLifter.position = Funnel.funnelDown
                     timeSinceStart > 3000
                 }, requiredForCompletion = true),
                 nextTaskIteration= ::alignToStack,
@@ -173,14 +173,18 @@ class PaddieMatrickAuto: OpMode() {
                     ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
-                    nextTaskIteration = ::withPrelinupCorrection
+                    OtherTask(isDone = {false}, requiredForCompletion = true),
+                    nextTaskIteration = {
+                        val withCorrection = withPrelinupCorrection(it)
+                        withCorrection.copy(subassemblyTask = OtherTask(isDone = {true}, requiredForCompletion = false))
+                    }
             ),
     )
 
     private val cycleCollectAndDepo = listOf(
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.5, accuracyInches= 0.1, xTranslationPID = MecanumMovement.fineMoveXTranslation, accuracyDegrees = 3.0, requiredForCompletion = true),
+                    ChassisTask(collectionPosition, power = 0.0..0.5, accuracyInches= 0.1, accuracyDegrees = 1.0, xTranslationPID = MecanumMovement.fineMoveXTranslation, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
@@ -191,7 +195,7 @@ class PaddieMatrickAuto: OpMode() {
 
                         hardware.collector.power = 0.7
                         coneCollectionTime = null
-                        true
+                        false
                     }, requiredForCompletion = true),
                     nextTaskIteration = ::withPrelinupCorrection,
                     timeoutSeconds = 2.0
@@ -271,9 +275,7 @@ class PaddieMatrickAuto: OpMode() {
 
         telemetry.addLine("stackInchesY: $stackInchesY")
 
-        val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY)//, y= targetY)
-        telemetry.addLine("position: $newPosition")
-
+        val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY)
         prelinupCorrection = newPosition
         return previousTask
     }
@@ -526,8 +528,9 @@ class PaddieMatrickAuto: OpMode() {
             }
         } else {
 
-            val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
+            val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.DEGREES)
             multipleTelemetry.addLine("botHeading: $botHeading")
+            multipleTelemetry.addLine("currentPosition: ${movement.localizer.currentPositionAndRotation()}")
             multipleTelemetry.addLine("prelinupCorrection: ${prelinupCorrection?.y}")
 
             autoTaskManager.loop(

@@ -17,15 +17,26 @@ import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.tan
 
-class StackAimer(private val telemetry: Telemetry, private val stackDetector: StackDetector) {
+class StackAimer(private val telemetry: Telemetry, private val stackDetector: StackDetector?) {
 
-    fun getStackInchesFromCenter(distanceFromStack: Double): Double {
 
-        val angleToStack = getAngleToStackRad(distanceFromStack)!!// ?: 0.0
+//    fun calculateLateralOffsetInches(detectionPixelValue: Double, distanceFromWallToCameraInches: Double):Double {
+//
+//    }
+
+    fun getStackInchesFromCenter(distanceFromStack: Double) = getStackInchesFromCenter(
+        distanceFromStack = distanceFromStack,
+        detectionPixelValue = stackDetector?.detectedPosition(1000)
+    )
+
+
+    fun getStackInchesFromCenter(distanceFromStack: Double, detectionPixelValue:Double?): Double {
+
+        val angleToStack = getAngleToStackRad(distanceFromStack, detectionPixelValue)!!// ?: 0.0
         telemetry.addLine("angleToStack: $angleToStack")
 
         val stackInchesFromCenterOfCam = tan(angleToStack) * distanceFromStack
-        val cameraOffsetFromCenterInches = 0.8
+        val cameraOffsetFromCenterInches = 1.0
         val stackInchesFromCenter = stackInchesFromCenterOfCam + cameraOffsetFromCenterInches
 
         telemetry.addLine("stackInchesFromCenter: $stackInchesFromCenter")
@@ -42,6 +53,7 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
 
         override fun toString(): String = "Observation: \n   pixel $detectionPixelValue\n   distance $distanceFromWallToCameraInches\n   offset $sideOffsetFromCameraInches\n   angle $angleRad\n"
     }
+
     private val angleByOffset = listOf(
         Observation(
             detectionPixelValue= 140.0,
@@ -169,9 +181,9 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         ),
     )
 
-    private fun getAngleToStackRad(distanceFromStack: Double): Double? {
+    private fun getAngleToStackRad(distanceFromStack: Double, detectionPixelValue:Double?): Double? {
         val centeredPixels = 120.0
-        val pixels = stackDetector.detectedPosition(1000)
+        val pixels = detectionPixelValue
 
         telemetry.addLine("pixels: $pixels")
 //
