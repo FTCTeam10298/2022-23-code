@@ -224,6 +224,7 @@ class StackAimerTest: OpMode() {
         opencv.onNewFrame(stackDetector::processFrame)
         opencv.start()
 
+        movement.precisionInches = 0.1
         targetPosition = movement.localizer.currentPositionAndRotation()
     }
 
@@ -231,9 +232,11 @@ class StackAimerTest: OpMode() {
     var newPosition = PositionAndRotation()
     override fun loop() {
         movement.localizer.recalculatePositionAndRotation()
+        movement.xTranslationPID = MecanumMovement.fineMoveXTranslation
+
+
         val distanceFromStack = 22.0 - movement.localizer.currentPositionAndRotation().y
         val stackInchesFromCentered = stackAimer.getStackInchesFromCenter(distanceFromStack)
-
         val stackInchesX = movement.localizer.currentPositionAndRotation().x - stackInchesFromCentered
 
         newPosition = if (gamepad1.x) targetPosition.copy(x=stackInchesX) else newPosition

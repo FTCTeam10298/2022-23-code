@@ -179,7 +179,7 @@ class PaddieMatrickAuto: OpMode() {
     private val cycleCollectAndDepo = listOf(
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.5, accuracyInches= 0.15, accuracyDegrees = 3.0, requiredForCompletion = true),
+                    ChassisTask(collectionPosition, power = 0.0..0.5, accuracyInches= 0.1, xTranslationPID = MecanumMovement.fineMoveXTranslation, accuracyDegrees = 3.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {

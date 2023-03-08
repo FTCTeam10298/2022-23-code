@@ -117,6 +117,7 @@ class AutoTaskManager {
     data class ChassisTask(
             val targetPosition: PositionAndRotation,
             val rotationalPID: PID = MecanumMovement.defaultRotationPID,
+            val xTranslationPID: PID = MecanumMovement.defaultXTranslationPID,
             val power: ClosedRange<Double> = 0.0..1.0,
             val accuracyInches: Double = 0.5,
             val accuracyDegrees: Double = 5.0,
