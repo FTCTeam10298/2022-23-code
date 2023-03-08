@@ -154,7 +154,7 @@ class PaddieMatrickAuto: OpMode() {
                     }
 
                     val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
-
+                    hardware.funnelLifter.position = Funnel.funnelDown
                     timeSinceStart > 3000
                 }, requiredForCompletion = true),
                 nextTaskIteration= ::alignToStack,
