@@ -25,7 +25,7 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         telemetry.addLine("angleToStack: $angleToStack")
 
         val stackInchesFromCenterOfCam = tan(angleToStack) * distanceFromStack
-        val cameraOffsetFromCenterInches = 0.75
+        val cameraOffsetFromCenterInches = 0.8
         val stackInchesFromCenter = stackInchesFromCenterOfCam + cameraOffsetFromCenterInches
 
         telemetry.addLine("stackInchesFromCenter: $stackInchesFromCenter")
@@ -185,10 +185,10 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         return if(pixels!=null && closestObservation!=null){
             val observationOffset: Double = centeredPixels - closestObservation.detectionPixelValue
             val offset: Double = centeredPixels - pixels
-            telemetry.addLine("observationOffset: $observationOffset")
-            telemetry.addLine("offset: $offset")
+            val pixelDifferenceMultiplier = offset/observationOffset
+            telemetry.addLine("pixelDifferenceMultiplier: $pixelDifferenceMultiplier")
 
-            val angle = abs(offset/observationOffset) * -closestObservation.angleRad
+            val angle = abs(pixelDifferenceMultiplier) * -closestObservation.angleRad
             telemetry.addLine("angle: $angle")
 
             return angle
