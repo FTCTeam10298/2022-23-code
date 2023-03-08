@@ -133,7 +133,7 @@ class AutoTaskManager {
             val xTranslationPID: PID = MecanumMovement.defaultXTranslationPID,
             val power: ClosedRange<Double> = 0.0..1.0,
             val accuracyInches: Double = 0.5,
-            val accuracyDegrees: Double = 5.0,
+            val accuracyDegrees: Double = 1.0,
             override val requiredForCompletion: Boolean): SubassemblyTask(requiredForCompletion) {
 //                fun copy(
 //                        targetPosition: PositionAndRotation = this.targetPosition,
