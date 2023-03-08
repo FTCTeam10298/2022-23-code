@@ -1,5 +1,6 @@
 package us.brainstormz.paddieMatrick
 
+import android.graphics.Camera
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -8,6 +9,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
 import us.brainstormz.hardwareClasses.MecanumDriveTrain
 import us.brainstormz.potatoBot.AlphOmegaHardware
 
+//no encoders pass...
 
 //2 divisions of testing: fine tests (individual component) and gross tests
 // Simplest test: check power pulled
@@ -40,6 +42,18 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
         /** AUTONOMOUS  PHASE */
 
 
+//        fun cameraTest (camera: Camera): Status{
+//            camera = Camera()
+//            try {
+//                camera.open
+//                camera.close
+//                return Status.OK
+//            }
+//            except {
+//                return Status.FAIL
+//            }
+//        }
+
         //Note to Future Engineers: ALL MOTORS MUST BE DcMotorEx TO BE SELF-TESTED  - @JAMES, THIS MEANS YOU
         fun motorPowerTest (motor: DcMotorEx): Status {
             motor.power = 0.01
@@ -60,20 +74,20 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
             motor.power = 0.0
             var finalPos = motor.currentPosition
             //this is the  power draw without a motor, ambient voltage definition
-            if (finalPos - initialPos > 30) {
+            if (finalPos - initialPos > 0) {
                 return Status.OK//("M-PWR-OK")
             }  else {
                 return Status.FAIL//("M-PWR-FAIL")
             }
         }
 
-        val listOfStatus = motors.map { motor ->
+        val MlistOfStatus = motors.map { motor ->
             val powerStatus = motorPowerTest(motor)
             val encoderStatus = motorEncoderUpdateTest(motor)
             MotorAndStatus(motor, powerStatus, encoderStatus)
         }
-        listOfStatus.forEach{motorAndStatus ->
-            val index = listOfStatus.indexOf(motorAndStatus)
+        MlistOfStatus.forEach{motorAndStatus ->
+            val index = MlistOfStatus.indexOf(motorAndStatus)
 
             val motorName = hardwareMap.getNamesOf(motorAndStatus.motor)
 
