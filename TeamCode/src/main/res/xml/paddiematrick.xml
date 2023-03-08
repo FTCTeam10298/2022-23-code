@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes' ?>
+<Robot type="FirstInspires-FTC">
+    <Webcam name="Webcam 1" serialNumber="FCA513AF" />
+    <LynxUsbDevice name="Control Hub Portal" serialNumber="(embedded)" parentModuleAddress="173">
+        <LynxModule name="Control Hub" port="173">
+            <goBILDA5202SeriesMotor name="lFDrive" port="0" />
+            <goBILDA5202SeriesMotor name="rFDrive" port="1" />
+            <goBILDA5202SeriesMotor name="lBDrive" port="2" />
+            <goBILDA5202SeriesMotor name="rBDrive" port="3" />
+            <ContinuousRotationServo name="left4Bar" port="0" />
+            <ContinuousRotationServo name="right4Bar" port="1" />
+            <ContinuousRotationServo name="collector" port="2" />
+            <Servo name="funnelLifter" port="3" />
+            <Servo name="leftOdomLifter" port="4" />
+            <AnalogInput name="encoder" port="1" />
+            <DigitalDevice name="limitSwitch" port="0" />
+            <LynxEmbeddedIMU name="imu" port="0" bus="0" />
+            <RevColorSensorV3 name="collectorSensor" port="0" bus="1" />
+            <RevColorSensorV3 name="funnelSensor" port="0" bus="3" />
+            <LynxColorSensor name="lineSensor" port="0" bus="2" />
+        </LynxModule>
+        <LynxModule name="Expansion Hub 3" port="3">
+            <goBILDA5202SeriesMotor name="leftLift" port="0" />
+            <goBILDA5202SeriesMotor name="rightLift" port="1" />
+            <goBILDA5202SeriesMotor name="cEncoder" port="2" />
+            <goBILDA5202SeriesMotor name="rEncoder" port="3" />
+            <Servo name="rightOdomLifter" port="0" />
+        </LynxModule>
+    </LynxUsbDevice>
+    <Webcam name="liftCam" serialNumber="VendorProduct:vendor=0x0bda|product=0x3036|connection=" />
+</Robot>
