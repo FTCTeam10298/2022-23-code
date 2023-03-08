@@ -528,8 +528,9 @@ class PaddieMatrickAuto: OpMode() {
             }
         } else {
 
-            val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
+            val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.DEGREES)
             multipleTelemetry.addLine("botHeading: $botHeading")
+            multipleTelemetry.addLine("currentPosition: ${movement.localizer.currentPositionAndRotation()}")
             multipleTelemetry.addLine("prelinupCorrection: ${prelinupCorrection?.y}")
 
             autoTaskManager.loop(
