@@ -269,9 +269,11 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     private fun alignToStack(previousTask: AutoTask): AutoTask {
-        val inchesFromStack = 29.5 + movement.localizer.currentPositionAndRotation().x
+        val inchesFromStack = 29.5 + (movement.localizer.currentPositionAndRotation().x * alliancePolarity)
+
         val stackInchesFromCentered = stackAimer.getStackInchesFromCenter(distanceFromStack= inchesFromStack)
-        val stackInchesY = movement.localizer.currentPositionAndRotation().y - stackInchesFromCentered
+
+        val stackInchesY = movement.localizer.currentPositionAndRotation().y - (stackInchesFromCentered * alliancePolarity)
 
         telemetry.addLine("stackInchesY: $stackInchesY")
 
@@ -438,7 +440,7 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     private var encoderLog:EncoderLog? = null
-
+    private var alliancePolarity: Int = 1
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
@@ -485,8 +487,10 @@ class PaddieMatrickAuto: OpMode() {
         aprilTagGX.camera?.closeCameraDeviceAsync{}
 
         val alliance = if (wizard.wasItemChosen("alliance", "Red")) {
+            alliancePolarity = 1
             Alliance.Red
         } else {
+            alliancePolarity = -1
             Alliance.Blue
         }
 
