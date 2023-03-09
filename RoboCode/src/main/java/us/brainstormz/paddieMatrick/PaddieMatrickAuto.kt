@@ -523,6 +523,10 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     private val autoTaskManager = AutoTaskManager()
+
+    private var extractedChassisTask: ChassisTask? = null
+    private var extractedLiftTask: LiftTask? = null
+    private var extractedFourBarTask: FourBarTask? = null
     override fun loop() {
         /** AUTONOMOUS  PHASE */
         movement.localizer.recalculatePositionAndRotation()
@@ -534,8 +538,44 @@ class PaddieMatrickAuto: OpMode() {
             }
         } else {
 
+            multipleTelemetry.addLine("alliance polarity: $alliancePolarity")
+
             val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.DEGREES)
             multipleTelemetry.addLine("botHeading: $botHeading")
+
+            autoTaskManager.loop(
+                telemetry = multipleTelemetry,
+                autoTasks = autoTasks,
+                effectiveRuntimeSeconds = runtime,
+                isChassisTaskCompleted = { chassisTask ->
+                    extractedChassisTask = chassisTask
+                    movement.atTarget(chassisTask.targetPosition)
+                },
+                isLiftTaskCompleted = { liftTask ->
+                    extractedLiftTask = liftTask
+                    depositor.isLiftAtPosition(liftTask.targetCounts)
+                },
+                isFourBarTaskCompleted = { fourBarTask ->
+                    extractedFourBarTask = fourBarTask
+                    fourBar.is4BarAtPosition(fourBarTask.targetDegrees)
+                },
+                isOtherTaskCompleted = { otherTask ->
+                    otherTask.isDone()
+                }
+            )
+
+            movement.precisionInches = extractedChassisTask!!.accuracyInches
+            movement.precisionDegrees = extractedChassisTask!!.accuracyDegrees
+            movement.rotationPID = extractedChassisTask!!.rotationalPID
+            movement.moveTowardTarget(extractedChassisTask!!.targetPosition, extractedChassisTask!!.power)
+
+            depositor.accuracy = extractedLiftTask!!.accuracyCounts
+            depositor.moveLift(extractedLiftTask!!.targetCounts)
+
+            fourBar.accuracyDegrees = extractedFourBarTask!!.accuracyDegrees
+            depositor.moveFourBar(extractedFourBarTask!!.targetDegrees)
+
+
             multipleTelemetry.addLine("odom wheels: \n" +
                     "   Left: ${hardware.lOdom.currentPosition},\n" +
                     "   Right: ${hardware.rOdom.currentPosition},\n" +
@@ -548,31 +588,9 @@ class PaddieMatrickAuto: OpMode() {
             multipleTelemetry.addLine("currentPosition: ${movement.localizer.currentPositionAndRotation()}")
             multipleTelemetry.addLine("prelinupCorrection: ${prelinupCorrection?.y}")
 
-            autoTaskManager.loop(
-                telemetry = multipleTelemetry,
-                autoTasks = autoTasks,
-                effectiveRuntimeSeconds = runtime,
-                isChassisTaskCompleted = { chassisTask ->
-                    movement.precisionInches = chassisTask.accuracyInches
-                    movement.precisionDegrees = chassisTask.accuracyDegrees
-                    movement.rotationPID = chassisTask.rotationalPID
-                    movement.moveTowardTarget(chassisTask.targetPosition, chassisTask.power)
-                },
-                isLiftTaskCompleted = { liftTask ->
-                    depositor.accuracy = liftTask.accuracyCounts
-                    depositor.moveLift(liftTask.targetCounts)
-                },
-                isFourBarTaskCompleted = { fourBarTask ->
-                    fourBar.accuracyDegrees = fourBarTask.accuracyDegrees
-                    depositor.moveFourBar(fourBarTask.targetDegrees)
-                },
-                isOtherTaskCompleted = { otherTask ->
-                    otherTask.isDone()
-                }
-            )
             telemetry.update()
-
         }
+
     }
 
     override fun stop() {
