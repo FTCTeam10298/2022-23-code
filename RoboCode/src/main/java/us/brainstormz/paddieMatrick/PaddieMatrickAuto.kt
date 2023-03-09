@@ -1,16 +1,13 @@
 package us.brainstormz.paddieMatrick
 
 import com.acmerobotics.dashboard.FtcDashboard
-import com.acmerobotics.dashboard.telemetry.MultipleTelemetry
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
-import org.firstinspires.ftc.robotcore.external.Telemetry
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
 import org.openftc.easyopencv.OpenCvCameraRotation
-import us.brainstormz.hardwareClasses.MecanumHardware
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.localizer.StackDetector
 import us.brainstormz.localizer.StackDetectorVars
@@ -269,11 +266,11 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     private fun alignToStack(previousTask: AutoTask): AutoTask {
-        val inchesFromStack = 29.5 + (movement.localizer.currentPositionAndRotation().x * alliancePolarity)
+        val inchesFromStack = 29.5 + (movement.localizer.currentPositionAndRotation().x * sidePolarity)
 
         val stackInchesFromCentered = stackAimer.getStackInchesFromCenter(distanceFromStack= inchesFromStack)
 
-        val stackInchesY = movement.localizer.currentPositionAndRotation().y - (stackInchesFromCentered * alliancePolarity)
+        val stackInchesY = movement.localizer.currentPositionAndRotation().y - (stackInchesFromCentered * sidePolarity)
 
         telemetry.addLine("stackInchesY: $stackInchesY")
 
@@ -440,7 +437,7 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     private var encoderLog:EncoderLog? = null
-    private var alliancePolarity: Int = 1
+    private var sidePolarity: Int = 1
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
@@ -487,10 +484,8 @@ class PaddieMatrickAuto: OpMode() {
         aprilTagGX.camera?.closeCameraDeviceAsync{}
 
         val alliance = if (wizard.wasItemChosen("alliance", "Red")) {
-            alliancePolarity = 1
             Alliance.Red
         } else {
-            alliancePolarity = -1
             Alliance.Blue
         }
 
@@ -501,10 +496,13 @@ class PaddieMatrickAuto: OpMode() {
 
         startAimerCameras(targetHue)
 
-        val side = if (wizard.wasItemChosen("startPos", "Left"))
+        val side = if (wizard.wasItemChosen("startPos", "Left")) {
+            sidePolarity = 1
             FieldSide.Left
-        else
+        } else {
+            sidePolarity = -1
             FieldSide.Right
+        }
 
 //        autoTasks = depositPreload + cycles + cycles + parkTwo
         val numberOfCycles = when {
