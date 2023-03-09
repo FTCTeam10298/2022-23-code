@@ -14,9 +14,10 @@ private const val s = "rEncoder"
 private const val freeMove = false //for debugging. puts motors in float when stopped.
 
 class AlphOmegaHardware: HardwareClass {
-    lateinit var someDrive: DcMotor
-    lateinit var anotherDrive: DcMotor
+    lateinit var someDrive: DcMotorEx
+    lateinit var anotherDrive: DcMotorEx
     lateinit var improbabilityDrive: DcMotorEx
+    lateinit var infinityDrive: DcMotorEx
     override lateinit var hwMap: HardwareMap
 
     override fun init(ahwMap: HardwareMap) {
@@ -27,6 +28,7 @@ class AlphOmegaHardware: HardwareClass {
         someDrive = hwMap["someDrive"] as DcMotorEx
         anotherDrive = hwMap["anotherDrive"]  as DcMotorEx
         improbabilityDrive = hwMap["impDrive"] as DcMotorEx
+        infinityDrive = hwMap["infDrive"] as DcMotorEx
     }
 
 }

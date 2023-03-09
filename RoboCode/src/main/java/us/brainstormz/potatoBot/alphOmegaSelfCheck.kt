@@ -1,9 +1,17 @@
 package us.brainstormz.potatoBot
 
+import android.graphics.Camera
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode
 import com.qualcomm.robotcore.hardware.DcMotorEx
+import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit
+import org.opencv.core.Mat
+import org.openftc.easyopencv.OpenCvCamera
+import org.openftc.easyopencv.OpenCvCameraFactory
+import org.openftc.easyopencv.OpenCvPipeline
+import us.brainstormz.motion.aprilTag.AprilTagDetectionPipeline
+import java.util.logging.Logger.global
 
 
 //2 divisions of testing: fine tests (individual component) and gross tests
@@ -21,6 +29,7 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
 
     val hardware = AlphOmegaHardware()
     val motorTime: Long = 125 //in ms
+    var ret: Boolean? = null
 
     lateinit var motors: List<DcMotorEx>
 
@@ -36,6 +45,36 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
         telemetry.addLine("TESTING..........")
         /** AUTONOMOUS  PHASE */
 
+        fun camPowerTest(): Boolean? {
+            var aprilTagDetectionPipeline: AprilTagDetectionPipeline? = null
+
+            val newCamera: OpenCvCamera = OpenCvCameraFactory.getInstance().createWebcam(hardwareMap.get(WebcamName::class.java, "Webcam 1"))
+
+            newCamera.showFpsMeterOnViewport(false)
+
+            newCamera.openCameraDeviceAsync(object : OpenCvCamera.AsyncCameraOpenListener {
+            inner class leadPipe: OpenCvPipeline() {
+               override fun processFrame(i: Mat): Mat{
+                   sleep(10)
+                   return(Mat())
+               }
+
+            }
+
+                override fun onOpened() {
+                    println("[camera] opened ")
+                    newCamera.setPipeline(leadPipe())
+                    newCamera.startStreaming(320, 240)
+                    var ret = true
+                }
+
+                override fun onError(errorCode: Int) {
+                    println("[camera] not opened - error code $errorCode")
+                    var ret = false
+                }
+            })
+            return ret
+        }
 
         //Note to Future Engineers: ALL MOTORS MUST BE DcMotorEx TO BE SELF-TESTED  - @JAMES, THIS MEANS YOU
         fun motorPowerTest (motor: DcMotorEx): Status {
@@ -77,6 +116,11 @@ class paddieMatrickSelfCheck/** Change Depending on robot */: LinearOpMode() {
             telemetry.addLine("${motorName}: PWR ${motorAndStatus.powerStatus} TX ${motorAndStatus.encoderStatus}")
 
         }
+        camPowerTest()
+        while(ret == null){
+            sleep(100)
+        }
+        telemetry.addLine("ONE Camera Status: $ret")
         telemetry.update()
         sleep(5000)
     }
