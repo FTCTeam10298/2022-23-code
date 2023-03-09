@@ -101,22 +101,22 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
 
     //trained for yellow
-    val yellowColor = ColorRange(
-        L_H = NamedVar("Low Hue", 155.0),
-        L_S = NamedVar("Low Saturation", 115.0),
-        L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 0.0),
-        U_H = NamedVar("Upper Hue", 255.0),
-        U_S = NamedVar("Upper Saturation", 245.0),
-        U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 15.0))
+//    val yellowColor = ColorRange(
+//        L_H = NamedVar("Low Hue", 155.0),
+//        L_S = NamedVar("Low Saturation", 115.0),
+//        L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 0.0),
+//        U_H = NamedVar("Upper Hue", 255.0),
+//        U_S = NamedVar("Upper Saturation", 245.0),
+//        U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 15.0))
 //    0,120,70
 //    10,255,255
-//    val blueColor = ColorRange(
-//        L_H = NamedVar("Low Hue", 90.0),
-//        L_S = NamedVar("Low Saturation", 15.0),
-//        L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 85.0),
-//        U_H = NamedVar("Upper Hue", 255.0),
-//        U_S = NamedVar("Upper Saturation", 255.0),
-//        U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
+    val yellowColor = ColorRange(
+        L_H = NamedVar("Low Hue", 80.0),
+        L_S = NamedVar("Low Saturation", 25.0),
+        L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 90.0),
+        U_H = NamedVar("Upper Hue", 125.0),
+        U_S = NamedVar("Upper Saturation", 255.0),
+        U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
 
     val goalColor: ColorRange = when(CreamsicleConfig.targetHue){
         TargetHue.RED -> redColor
@@ -168,17 +168,14 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
         val contours = mutableListOf<MatOfPoint>()
         Imgproc.findContours(maskB, contours, Mat(), Imgproc.RETR_TREE, Imgproc.CHAIN_APPROX_SIMPLE)
+        println("contours.size: ${contours.size}")
 
-        //find max
-        //filter edges
 
-        //  for cnt in contours:
         val poles = contours.mapNotNull{ cnt ->
 
             val area = Imgproc.contourArea(cnt)
 
             val points = MatOfPoint2f()
-
 
             fun convert(src: MatOfPoint): MatOfPoint2f {
                 val dst = MatOfPoint2f()
@@ -189,13 +186,6 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
             val cnt2f = convert(cnt)
             Imgproc.approxPolyDP(cnt2f, points, 0.02 * Imgproc.arcLength(cnt2f, true), true)
 
-
-            //        x = approx.ravel() [0]
-            //        y = approx.ravel() [1]
-            val point = points.toList()[0]
-            /*
-                if area > 400:
-                */
             if (area > 400) {
                 val pointsArray = points.toArray()
 
@@ -217,7 +207,7 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                 }
 
                 val tallestLine = contoursWithinBounds.maxByOrNull(::heightOfLineOnScreen)
-
+                println("tallest line: $tallestLine")
 
                 tallestLine
 //                if(tallestLine!=null){
@@ -235,8 +225,10 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 //                    true
 //                } else
 //                    false
-            } else
+            } else {
+                println("No poles were large enough")
                 null
+            }
         }
 
         val highestPole = poles.maxByOrNull(::heightOfLineOnScreen)
@@ -257,6 +249,8 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
                     0,
                     Scalar(0.0, 255.0, 0.0),
                     2)
+        } else {
+            println("No pole found")
         }
 
 //        println("numberOfPolesFound: ${listOfPoles}")
