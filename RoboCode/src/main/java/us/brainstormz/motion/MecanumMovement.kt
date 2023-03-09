@@ -92,15 +92,7 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 
         val angleError: Double = tempAngleError
 
-        // Find the error in distance
-        val distanceError = hypot(distanceErrorX, distanceErrorY)
-
-        // Check to see if we've reached the desired position already
-        if (abs(distanceError) <= precisionInches &&
-                abs(angleError) <= Math.toRadians(precisionDegrees)) {
-            drivePowerZero()
-            return true
-        }
+        atTarget(distanceErrorX, distanceErrorY, angleError)
 
         // Calculate the error in x and y and use the PID to find the error in angle
         val speedX: Double = xTranslationPID.calcPID(sin(angleRad) * distanceErrorY + cos(angleRad) * -distanceErrorX)
@@ -116,11 +108,44 @@ class MecanumMovement(override val localizer: Localizer, override val hardware: 
 //        telemetry.addData("speedA: ", speedA)
 //        telemetry.addLine("speedX: $speedX, speedY: $speedY, speedA: $speedA")
 
-//        telemetry.update()
-
         setSpeedAll(vX= speedX, vY= speedY, vA= speedA, powerRange.start, powerRange.endInclusive)
 
         return false
+    }
+
+    fun atTarget(distanceErrorX: Double, distanceErrorY: Double, angleError: Double): Boolean {
+        // Find the error in distance
+        val distanceError = hypot(distanceErrorX, distanceErrorY)
+
+        if (abs(distanceError) <= precisionInches &&
+            abs(angleError) <= Math.toRadians(precisionDegrees)) {
+            return true
+        }
+
+        return false
+    }
+
+    fun atTarget(target: PositionAndRotation): Boolean {
+        val currentPos = localizer.currentPositionAndRotation()
+        val angleRad = Math.toRadians(currentPos.r)
+
+        // Find the error in distance for X
+        val distanceErrorX = target.x - currentPos.x
+        // Find there error in distance for Y
+        val distanceErrorY = target.y - currentPos.y
+
+        // Find the error in angle
+        var tempAngleError = Math.toRadians(target.r) - angleRad
+
+        while (tempAngleError > Math.PI)
+            tempAngleError -= Math.PI * 2
+
+        while (tempAngleError < -Math.PI)
+            tempAngleError += Math.PI * 2
+
+        val angleError: Double = tempAngleError
+
+        return atTarget(distanceErrorX, distanceErrorY, angleError)
     }
 
     /** works */
