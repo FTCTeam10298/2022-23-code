@@ -64,6 +64,12 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         imu.initialize(imuParameters)
         imu.resetYaw()
 
+        // Odom lifters
+        odomRaiser1 = hwMap["rightOdomLifter"] as Servo
+        odomRaiser2 = hwMap["leftOdomLifter"] as Servo
+        odomRaiser1.position = 0.0
+        odomRaiser2.position = 0.0
+
         // Collector
         collector = hwMap["collector"] as CRServo
         collector.direction = DcMotorSimple.Direction.REVERSE
@@ -83,44 +89,6 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         left4Bar.direction = DcMotorSimple.Direction.REVERSE
         right4Bar.direction = DcMotorSimple.Direction.FORWARD
 
-
-        // Lift
-        leftLift = hwMap["leftLift"] as DcMotorEx
-        rightLift = hwMap["rightLift"] as DcMotorEx
-        extraLift = hwMap["cEncoder"] as DcMotorEx
-        liftLimitSwitch = hwMap["limitSwitch"] as DigitalChannelImpl
-
-        rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        extraLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        leftLift.direction = DcMotorSimple.Direction.FORWARD
-        rightLift.direction = DcMotorSimple.Direction.REVERSE
-        extraLift.direction = DcMotorSimple.Direction.FORWARD
-
-        //Encoders/Deadwheels
-        //3 = R; 2 = C; 1 = L
-        //on D4-5 (Digital 4-5)
-        leftOdomEncoder = leftLift// plugged in to the encoder port for the motor input that we are also using for the lift
-        centerOdomEncoder = hwMap["cEncoder"] as DcMotor // empty motor port used for encoder/deadwheel
-        rightOdomEncoder = hwMap["rEncoder"] as DcMotor
-
-        rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        rightOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        leftOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-        centerOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
-
-        lOdom = EnhancedDCMotor(leftOdomEncoder)
-        rOdom = EnhancedDCMotor(rightOdomEncoder)
-        cOdom = EnhancedDCMotor(centerOdomEncoder)
-
-        odomRaiser1 = hwMap["rightOdomLifter"] as Servo
-        odomRaiser2 = hwMap["leftOdomLifter"] as Servo
-        odomRaiser1.position = 0.0
-        odomRaiser2.position = 0.0
-
         // Drivetrain
         lFDrive = hwMap["lFDrive"] as DcMotor
         rFDrive = hwMap["rFDrive"] as DcMotor
@@ -136,6 +104,38 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
         rBDrive.zeroPowerBehavior = DcMotor.ZeroPowerBehavior.BRAKE
         rFDrive.direction = DcMotorSimple.Direction.REVERSE
         rBDrive.direction = DcMotorSimple.Direction.REVERSE
+
+        //Encoders / Deadwheels
+        //on D4-5 (Digital 4-5)
+        leftOdomEncoder = hwMap["leftLift"] as DcMotor// plugged in to the encoder port for the motor input that we are also using for the lift
+        centerOdomEncoder = hwMap["cEncoder"] as DcMotor // empty motor port used for encoder/deadwheel
+        rightOdomEncoder = hwMap["rEncoder"] as DcMotor
+
+        rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        rightOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        leftOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        centerOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+
+        lOdom = EnhancedDCMotor(leftOdomEncoder)
+        rOdom = EnhancedDCMotor(rightOdomEncoder)
+        cOdom = EnhancedDCMotor(centerOdomEncoder)
+
+        // Lift
+        leftLift = hwMap["leftLift"] as DcMotorEx
+        rightLift = hwMap["rightLift"] as DcMotorEx
+        extraLift = hwMap["cEncoder"] as DcMotorEx
+        liftLimitSwitch = hwMap["limitSwitch"] as DigitalChannelImpl
+
+        rightLift.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+        leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        rightLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        extraLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+        leftLift.direction = DcMotorSimple.Direction.FORWARD
+        rightLift.direction = DcMotorSimple.Direction.REVERSE
+        extraLift.direction = DcMotorSimple.Direction.FORWARD
+
     }
     fun getVoltage(): Double = allHubs[0].getInputVoltage(VoltageUnit.VOLTS)
     data class ImuOrientation(val x: Float, val y: Float, val z: Float)
