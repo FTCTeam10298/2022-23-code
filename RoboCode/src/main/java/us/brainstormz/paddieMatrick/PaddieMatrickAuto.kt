@@ -521,6 +521,8 @@ class PaddieMatrickAuto: OpMode() {
     private val autoTaskManager = AutoTaskManager()
     override fun loop() {
         /** AUTONOMOUS  PHASE */
+        movement.localizer.recalculatePositionAndRotation()
+
         if (gamepad1.a && wizard.wasItemChosen("cycles", "debug")) {
             val motorsAndCRServos = hardware.hwMap.getAll(DcMotorSimple::class.java)
             motorsAndCRServos.forEach {
