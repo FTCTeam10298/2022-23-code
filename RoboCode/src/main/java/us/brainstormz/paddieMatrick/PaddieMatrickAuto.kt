@@ -64,7 +64,8 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(depositPosition, accuracyInches = 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Detection.counts, accuracyCounts = 700, requiredForCompletion = true),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
+                    OtherTask(isDone= { println("Lift is moving up"); true}, requiredForCompletion = false)
             ),
             AutoTask(
                     ChassisTask(depositPosition, power= 0.0..0.2, rotationalPID = MecanumMovement.defaultRotationPID.copy(kp= 0.85) , accuracyInches = 0.4, accuracyDegrees = 2.0, requiredForCompletion = true),
