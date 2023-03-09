@@ -285,7 +285,7 @@ class PaddieMatrickTeleOp: OpMode() {
             moveDepositer(fourBarPosition = collectFourbarTarget, liftPosition = preCollectLiftTarget)
 
             println("Teleop: Just before Checking funnel")
-            if (isConeReadyToBeCollected) {
+            if ((isConeReadyToBeCollected && !multiCone) || gamepad1.x) {
                 println("Teleop: cone in funnel")
                 telemetry.addLine("Cone is In Funnel")
                 hardware.collector.power = 1.0
