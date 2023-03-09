@@ -127,7 +127,7 @@ class PaddieMatrickAuto: OpMode() {
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
 
-    private val collectionPosition = PositionAndRotation(x = 24.0, y = collectionY, r =  90.0)
+    private val collectionPosition = PositionAndRotation(x = 24.3, y = collectionY, r =  90.0)
     private var actualCollectionX = collectionPosition.x
 
     private var alignToStackStartTimeMilis: Long? = null
