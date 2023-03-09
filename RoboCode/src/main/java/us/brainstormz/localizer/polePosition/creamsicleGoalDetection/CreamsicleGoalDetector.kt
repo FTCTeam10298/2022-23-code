@@ -259,11 +259,16 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
 //        println("numberOfPolesFound: ${listOfPoles}")
 
-        return when (CreamsicleConfig.displayMode) {
+        val returnFrame = when (CreamsicleConfig.displayMode) {
             Mode.FRAME -> frame
             Mode.KERNEL -> kernel
             Mode.MASK -> maskB
         }
+        Imgproc.rectangle(returnFrame, Rect(Point(320.0, 240.0), Point(310.0, 230.0)), upper, 10)
+        Imgproc.rectangle(returnFrame, Rect(Point(310.0, 230.0), Point(300.0, 220.0)), lower, 10)
+
+
+        return returnFrame
     }
 
     private fun areRoughlyInSameXPlane(a: Point, b: Point): Boolean {
