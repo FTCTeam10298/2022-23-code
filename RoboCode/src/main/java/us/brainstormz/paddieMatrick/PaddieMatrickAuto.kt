@@ -530,6 +530,15 @@ class PaddieMatrickAuto: OpMode() {
 
             val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.DEGREES)
             multipleTelemetry.addLine("botHeading: $botHeading")
+            multipleTelemetry.addLine("odom wheels: \n" +
+                    "   Left: ${hardware.lOdom.currentPosition},\n" +
+                    "   Right: ${hardware.rOdom.currentPosition},\n" +
+                    "   Center: ${hardware.cOdom.currentPosition}")
+            multipleTelemetry.addLine("motor powers: \n" +
+                    "   lF: ${hardware.lFDrive.power},\n" +
+                    "   rF: ${hardware.rFDrive.power},\n" +
+                    "   lB: ${hardware.lBDrive.power},\n" +
+                    "   rB: ${hardware.rBDrive.power}")
             multipleTelemetry.addLine("currentPosition: ${movement.localizer.currentPositionAndRotation()}")
             multipleTelemetry.addLine("prelinupCorrection: ${prelinupCorrection?.y}")
 
