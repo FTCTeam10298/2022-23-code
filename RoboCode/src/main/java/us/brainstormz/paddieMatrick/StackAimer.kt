@@ -187,7 +187,8 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         val pixels = detectionPixelValue
 
         telemetry.addLine("pixels: $pixels")
-//
+// regex filter: "Next task" | "[camera/" | "backCam" | "AllocSpace" | "Pixel in:"
+        println("Pixel in: $detectionPixelValue")
 //        val observationsSortedByPixels = angleByOffset.sortedByDescending { abs(abs(it.detectionPixelValue) - abs(pixels ?: centeredPixels)) }
 //        val topThirtyPercentOfMatchingObservations = observationsSortedByPixels.take(angleByOffset.size / 3)
         val closestObservation = angleByOffset.minByOrNull { abs(abs(it.distanceFromWallToCameraInches) - abs(distanceFromStack)) + abs(abs(it.detectionPixelValue) - abs(pixels!!))}// ?: centeredPixels))}
