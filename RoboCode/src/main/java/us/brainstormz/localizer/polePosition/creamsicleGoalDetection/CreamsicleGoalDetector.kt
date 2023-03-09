@@ -102,12 +102,14 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
     //trained for yellow
     val yellowColor = ColorRange(
-        L_H = NamedVar("Low Hue", 80.0),
-        L_S = NamedVar("Low Saturation", 105.0),
-        L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 105.0),
-        U_H = NamedVar("Upper Hue", 110.0),
-        U_S = NamedVar("Upper Saturation", 220.0),
-        U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 240.0))
+        L_H = NamedVar("Low Hue", 155.0),
+        L_S = NamedVar("Low Saturation", 115.0),
+        L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 0.0),
+        U_H = NamedVar("Upper Hue", 255.0),
+        U_S = NamedVar("Upper Saturation", 245.0),
+        U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 15.0))
+//    0,120,70
+//    10,255,255
 //    val blueColor = ColorRange(
 //        L_H = NamedVar("Low Hue", 90.0),
 //        L_S = NamedVar("Low Saturation", 15.0),
