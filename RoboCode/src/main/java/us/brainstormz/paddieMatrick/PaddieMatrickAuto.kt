@@ -473,10 +473,10 @@ class PaddieMatrickAuto: OpMode() {
     private lateinit var autoTasks: List<AutoTask>
     override fun start() {
         this.resetRuntime()
-        hardware.rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        hardware.leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        hardware.centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
-        hardware.leftOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
+//        hardware.rightOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+//        hardware.leftOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+//        hardware.centerOdomEncoder.mode = DcMotor.RunMode.STOP_AND_RESET_ENCODER
+//        hardware.leftOdomEncoder.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
         hardware.leftLift.mode = DcMotor.RunMode.RUN_WITHOUT_ENCODER
 
         val aprilTagGXOutput =  aprilTagGX.signalOrientation ?: SignalOrientation.Three
@@ -565,6 +565,7 @@ class PaddieMatrickAuto: OpMode() {
                 }
             )
             telemetry.update()
+
         }
     }
 
