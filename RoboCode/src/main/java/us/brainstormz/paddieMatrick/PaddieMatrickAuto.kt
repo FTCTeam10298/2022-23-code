@@ -7,6 +7,7 @@ import com.qualcomm.robotcore.hardware.DcMotor
 import com.qualcomm.robotcore.hardware.DcMotorSimple
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit
 import org.openftc.easyopencv.OpenCvCamera
+import org.openftc.easyopencv.OpenCvCamera.AsyncCameraCloseListener
 import org.openftc.easyopencv.OpenCvCameraRotation
 import us.brainstormz.localizer.PositionAndRotation
 import us.brainstormz.localizer.StackDetector
@@ -416,7 +417,8 @@ class PaddieMatrickAuto: OpMode() {
         stackAimer = StackAimer(telemetry, stackDetector)
 
         val dualCamAbstraction = DualCamAbstraction(hardwareMap)
-        val viewportContainerIds = dualCamAbstraction.setupViewport()
+        val (cameraSlotA, cameraSlotB) = dualCamAbstraction.setupViewport()
+
 
         val liftCamName = "liftCam"
         val liftPipeline = PipelineAbstraction()
@@ -424,7 +426,7 @@ class PaddieMatrickAuto: OpMode() {
         liftCam = dualCamAbstraction.startNewCamera(
                 cameraName = liftCamName,
                 cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
-                viewportContainerId = viewportContainerIds[0],
+                viewportContainerId = cameraSlotB,
                 pipeline = liftPipeline)
 
         val backCamName = "backCam"
@@ -433,7 +435,7 @@ class PaddieMatrickAuto: OpMode() {
         backCam = dualCamAbstraction.startNewCamera(
                 cameraName = backCamName,
                 cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
-                viewportContainerId = viewportContainerIds[1],
+                viewportContainerId = cameraSlotA,
                 pipeline = backPipeline)
     }
 
