@@ -18,6 +18,7 @@ class AutoTaskManager {
 
             return if ((previousTask.isFinished() || pastOrAtTaskTimeout) && taskListIterator.hasNext()) {
                 previousTask.taskStatus = TaskStatus.Completed
+                println("Next task") // regex to filter is: 'AllocSpace | "Next task" | level:error '
                 taskListIterator.next()
             } else {
                 previousTask.nextTaskIteration(previousTask)
@@ -96,7 +97,9 @@ class AutoTaskManager {
             currentTask!!.timeFinishedSeconds = effectiveRuntimeSeconds
         }
 
-        telemetry.addLine("Current task is : $currentTask")
+        val taskPrintout = "Current task is : $currentTask"
+//        println(taskPrintout)
+        telemetry.addLine(taskPrintout)
     }
 
     data class AutoTask(val chassisTask: ChassisTask,
