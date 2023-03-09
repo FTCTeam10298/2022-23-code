@@ -101,17 +101,24 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
             U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
 
     //trained for yellow
-    val blueColor = ColorRange(
-            L_H = NamedVar("Low Hue", 90.0),
-            L_S = NamedVar("Low Saturation", 15.0),
-            L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 85.0),
-            U_H = NamedVar("Upper Hue", 255.0),
-            U_S = NamedVar("Upper Saturation", 255.0),
-            U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
+    val yellowColor = ColorRange(
+        L_H = NamedVar("Low Hue", 80.0),
+        L_S = NamedVar("Low Saturation", 105.0),
+        L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 105.0),
+        U_H = NamedVar("Upper Hue", 110.0),
+        U_S = NamedVar("Upper Saturation", 220.0),
+        U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 240.0))
+//    val blueColor = ColorRange(
+//        L_H = NamedVar("Low Hue", 90.0),
+//        L_S = NamedVar("Low Saturation", 15.0),
+//        L_V = NamedVar("Low Vanity/Variance/VolumentricVibacity", 85.0),
+//        U_H = NamedVar("Upper Hue", 255.0),
+//        U_S = NamedVar("Upper Saturation", 255.0),
+//        U_V = NamedVar("Upper Vanity/Variance/VolumentricVibracity", 255.0))
 
     val goalColor: ColorRange = when(CreamsicleConfig.targetHue){
         TargetHue.RED -> redColor
-        TargetHue.BLUE -> blueColor
+        TargetHue.BLUE -> yellowColor
         TargetHue.absRED -> redAbsoluteColor
     }
 
@@ -148,8 +155,8 @@ class CreamsicleGoalDetector(private val console: TelemetryConsole){
 
         Imgproc.cvtColor(frame, hsv, Imgproc.COLOR_BGR2HSV)
 
-        val lower = Scalar(blueColor.L_H.value, blueColor.L_S.value, blueColor.L_V.value)
-        val upper = Scalar(blueColor.U_H.value, blueColor.U_S.value, blueColor.U_V.value)
+        val lower = Scalar(yellowColor.L_H.value, yellowColor.L_S.value, yellowColor.L_V.value)
+        val upper = Scalar(yellowColor.U_H.value, yellowColor.U_S.value, yellowColor.U_V.value)
 //        val lower = Scalar(0.0, 0.0, 0.0)
 //        val upper = Scalar(225.0, 225.0, 225.0)
 
