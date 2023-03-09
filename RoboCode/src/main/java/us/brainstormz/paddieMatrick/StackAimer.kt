@@ -181,6 +181,7 @@ class StackAimer(private val telemetry: Telemetry, private val stackDetector: St
         ),
     )
 
+    // smth in here throws null in real auto
     private fun getAngleToStackRad(distanceFromStack: Double, detectionPixelValue:Double?): Double? {
         val centeredPixels = 120.0
         val pixels = detectionPixelValue
