@@ -47,11 +47,26 @@ class MulticamTest : LinearOpMode() {
             viewportContainerId = viewportContainerIds[1],
             pipeline = backPipeline)
 
+//        val webcamName = "Webcam 1"
+//
+////        val stackDetectorVars2 =
+////            StackDetectorVars(StackDetector.TargetHue.BLUE, StackDetector.Mode.FRAME)
+////        val stackDetector2 = StackDetector(stackDetectorVars2, telemetry)
+//        val webcamPipeline = PipelineAbstraction()
+////        webcamPipeline.userFun = stackDetector2::processFrame
+//
+//        val webcam: OpenCvCamera = dualCamAbstraction.startNewCamera(
+//            cameraName = webcamName,
+//            cameraRotation = OpenCvCameraRotation.UPSIDE_DOWN,
+//            viewportContainerId = viewportContainerIds[1],
+//            pipeline = webcamPipeline)
+//
         waitForStart()
 
 
         while (opModeIsActive()) {
             telemetry.addLine("$liftCamName FPS: ${liftCam.fps}")
+//            telemetry.addLine("$webcamName FPS: ${webcam.fps}")
             telemetry.addLine("$backCamName FPS: ${backCam.fps}")
             telemetry.update()
             sleep(100)
