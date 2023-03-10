@@ -152,7 +152,7 @@ class PaddieMatrickAuto: OpMode() {
 
                     val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
                     hardware.funnelLifter.position = Funnel.funnelDown
-                    timeSinceStart > 3000
+                    timeSinceStart > 100 // 50ms for each new frame at 20FPS, with 2x multiplier for safety
                 }, requiredForCompletion = true),
                 nextTaskIteration= ::alignToStack,
     //                timeoutSeconds = 2.0
