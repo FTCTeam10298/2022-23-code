@@ -17,7 +17,7 @@ import us.brainstormz.potatoBot.AlphOmegaHardware
 // Simplest test: check power pulled
 
 
-@Autonomous(name="potatoBotMotorMeter", group = "!")
+@Autonomous(name="potatoBotMotorMeter1", group = "!")
 class motorCurrentGetter/** Change Depending on robot */: LinearOpMode() {
 
     val hardware =  AlphOmegaHardware()
@@ -52,7 +52,7 @@ class motorCurrentGetter/** Change Depending on robot */: LinearOpMode() {
 
 }
 
-@Autonomous(name="potatoBotMotorMeter")
+@Autonomous(name="potatoBotMotorMeter2")
 class motorCurrentDemo/** Change Depending on robot */: LinearOpMode() {
 
     val hardware =  AlphOmegaHardware()
