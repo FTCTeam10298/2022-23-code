@@ -274,8 +274,7 @@ class PaddieMatrickAuto: OpMode() {
 
         telemetry.addLine("stackInchesY: $stackInchesY")
 
-        // FIXME: hard 3 inch offset to get us over or to left side of tape line.  Need to make this direction dependant (sidePolarity).
-        val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY-3.0)
+        val newPosition = previousTask.chassisTask.targetPosition.copy(y= stackInchesY - (2.0 * sidePolarity))
         prelinupCorrection = newPosition
         return previousTask
     }
