@@ -87,13 +87,13 @@ class ExperimentalTeleOp: OpMode() {
             else -> -gamepad1.left_stick_x.toDouble()
         }
 
-        val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
+//        val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.RADIANS)
 
         val y = -yInput / antiTipModifier
         val x = xInput / antiTipModifier
         val r = -rInput * abs(rInput)
 
-        movement.driveFieldCentric(x, y, -r, botHeading)
+//        movement.driveFieldCentric(x, y, -r, botHeading)
 
         // Four bar
         telemetry.addLine("fourbar position: ${fourBar.current4BarDegrees()}")

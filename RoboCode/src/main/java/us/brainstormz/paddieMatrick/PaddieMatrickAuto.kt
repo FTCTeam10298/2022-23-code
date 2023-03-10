@@ -532,8 +532,8 @@ class PaddieMatrickAuto: OpMode() {
             }
         } else {
 
-            val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.DEGREES)
-            multipleTelemetry.addLine("botHeading: $botHeading")
+//            val botHeading: Double = hardware.imu.robotYawPitchRollAngles.getYaw(AngleUnit.DEGREES)
+//            multipleTelemetry.addLine("botHeading: $botHeading")
             multipleTelemetry.addLine("odom wheels: \n" +
                     "   Left: ${hardware.lOdom.currentPosition},\n" +
                     "   Right: ${hardware.rOdom.currentPosition},\n" +

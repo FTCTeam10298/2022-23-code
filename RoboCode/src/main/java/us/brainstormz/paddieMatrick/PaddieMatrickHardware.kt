@@ -46,7 +46,7 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
     lateinit var lineSensor: ColorSensor
 
 
-    lateinit var imu: IMU
+//    lateinit var imu: IMU
 
     lateinit var allHubs: List<LynxModule>
 
@@ -57,12 +57,12 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
 
         allHubs = hwMap.getAll(LynxModule::class.java)
 
-        val imuOrientationOnRobot = RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)
-        val imuParameters = IMU.Parameters(imuOrientationOnRobot)
+//        val imuOrientationOnRobot = RevHubOrientationOnRobot(RevHubOrientationOnRobot.LogoFacingDirection.RIGHT, RevHubOrientationOnRobot.UsbFacingDirection.BACKWARD)
+//        val imuParameters = IMU.Parameters(imuOrientationOnRobot)
 
-        imu = hwMap["imu"] as IMU
-        imu.initialize(imuParameters)
-        imu.resetYaw()
+//        imu = hwMap["imu"] as IMU
+//        imu.initialize(imuParameters)
+//        imu.resetYaw()
 
         // Odom lifters
         odomRaiser1 = hwMap["rightOdomLifter"] as Servo
@@ -138,10 +138,10 @@ class PaddieMatrickHardware: MecanumHardware, ThreeWheelOdometry {
 
     }
     fun getVoltage(): Double = allHubs[0].getInputVoltage(VoltageUnit.VOLTS)
-    data class ImuOrientation(val x: Float, val y: Float, val z: Float)
-    fun getImuOrientation(): ImuOrientation {
-        val orientation = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES)
-        return ImuOrientation(orientation.firstAngle, orientation.secondAngle, orientation.thirdAngle)
-    }
+//    data class ImuOrientation(val x: Float, val y: Float, val z: Float)
+//    fun getImuOrientation(): ImuOrientation {
+//        val orientation = imu.getRobotOrientation(AxesReference.INTRINSIC, AxesOrder.XYZ, AngleUnit.DEGREES)
+//        return ImuOrientation(orientation.firstAngle, orientation.secondAngle, orientation.thirdAngle)
+//    }
 
 }
