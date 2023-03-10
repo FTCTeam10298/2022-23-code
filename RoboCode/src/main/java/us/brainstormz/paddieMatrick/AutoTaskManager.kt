@@ -7,7 +7,7 @@ import us.brainstormz.pid.PID
 
 class AutoTaskManager {
 
-    private lateinit var taskListIterator: ListIterator<AutoTask>
+    private lateinit var taskListIterator: ListIterator<AutoTask> // FIXME: Only initialized on line 28?  Potential use without init?
     fun getTask(previousTask: AutoTask?, autoTasks: List<AutoTask>, effectiveRuntimeSeconds: Double, telemetry: Telemetry): AutoTask {
         if (previousTask != null) {
 
@@ -15,10 +15,10 @@ class AutoTaskManager {
                     ?: (effectiveRuntimeSeconds + 1))
             val pastOrAtTaskTimeout: Boolean = if (previousTask.timeoutSeconds != null) previousTask.timeoutSeconds <= timeSinceTaskStart else false
 
-
+            if (!taskListIterator.hasNext()) {telemetry.addLine("No remaining tasks!!!")}
             return if ((previousTask.isFinished() || pastOrAtTaskTimeout) && taskListIterator.hasNext()) {
-                previousTask.taskStatus = TaskStatus.Completed
-                taskListIterator.next()
+                previousTask.taskStatus = TaskStatus.Completed // FIXME: Dupe of line 95?
+                taskListIterator.next() // FIXME: THIS LIKELY ISN'T GETTING CALLED WHILE IN WEIRD STUCK STATE
             } else {
                 previousTask.nextTaskIteration(previousTask)
             }
@@ -62,7 +62,7 @@ class AutoTaskManager {
 
 
         if (currentTask!!.taskStatus != TaskStatus.Running) {
-            currentTask!!.timeStartedSeconds = effectiveRuntimeSeconds
+            currentTask!!.timeStartedSeconds = effectiveRuntimeSeconds // Note: This value is being updated when stuck in the Completed task state
         }
         currentTask!!.taskStatus = TaskStatus.Running
         telemetry.addLine("timeStartedSeconds: ${currentTask!!.timeStartedSeconds}")
@@ -92,8 +92,8 @@ class AutoTaskManager {
         }
 
         if (isTaskCompleted) {
-            currentTask!!.taskStatus = TaskStatus.Completed
-            currentTask!!.timeFinishedSeconds = effectiveRuntimeSeconds
+            currentTask!!.taskStatus = TaskStatus.Completed // FIXME: Dupe of line 20?  Possible race condition?
+            currentTask!!.timeFinishedSeconds = effectiveRuntimeSeconds // Note: This value is being updated when stuck in the Completed task state
         }
 
         telemetry.addLine("Current task is : $currentTask")

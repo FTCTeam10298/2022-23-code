@@ -8,7 +8,7 @@ import us.brainstormz.telemetryWizard.TelemetryWizard
 class IterativeOpMode(private val opMode: OpMode) {
 
     private lateinit var autoTasks: List<AutoTask>
-    private lateinit var autoTaskIterator: ListIterator<AutoTask>
+    private lateinit var autoTaskIterator: ListIterator<AutoTask> // FIXME: Duplicate of AutoTaskManager's taskListIterator?  Potential race condition?
     private lateinit var currentTask: AutoTask
 
     fun init(tasksTodo: List<AutoTask>) {
