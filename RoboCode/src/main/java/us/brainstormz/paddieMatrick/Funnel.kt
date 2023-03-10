@@ -26,15 +26,15 @@ class Funnel {
         Neither
     }
 
-    data class ColorData(val colorLowThreshold: Int, val colorHighThreshold: Int) {
+    data class ColorData(val colorLowThreshold: Int, val colorHighThreshold: Int, val colorMinDifference: Int) {
         fun thisIsTheColor(lowColor: Int, highColor: Int): Boolean =
-                (lowColor <= colorLowThreshold) && (highColor >= colorHighThreshold)
+                (lowColor <= colorLowThreshold) && (highColor >= colorHighThreshold) && (highColor - lowColor > colorMinDifference)
 
         override fun toString(): String = "low threshold: $colorLowThreshold, high threshold: $colorHighThreshold"
     }
 
-    val dataWhenRed = ColorData(colorHighThreshold= 200, colorLowThreshold= 100)
-    val dataWhenBlue = ColorData(colorHighThreshold= 130, colorLowThreshold= 70)
+    val dataWhenRed = ColorData(colorHighThreshold= 200, colorLowThreshold= 200, colorMinDifference = 50)
+    val dataWhenBlue = ColorData(colorHighThreshold= 150, colorLowThreshold= 150, colorMinDifference = 50)
 
     fun getColor(): Color = when {
             dataWhenBlue.thisIsTheColor(lowColor = lineSensor.red(), highColor = lineSensor.blue()) -> Color.Blue
