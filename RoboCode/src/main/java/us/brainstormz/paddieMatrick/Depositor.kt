@@ -91,6 +91,7 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
 
     private val fourBarSafeDegrees = 50.0..300.0
     fun moveFourBar(targetDegrees: Double): Boolean {
+        println("Four bar is being moved")
         val fourBarTarget = MathHelps.wrap360(targetDegrees).coerceIn(fourBarSafeDegrees)
         fourBar.goToPosition(fourBarTarget)
         return fourBar.is4BarAtPosition(fourBarTarget)
