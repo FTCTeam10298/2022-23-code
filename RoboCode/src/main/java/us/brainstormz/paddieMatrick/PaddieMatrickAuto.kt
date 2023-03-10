@@ -167,7 +167,7 @@ class PaddieMatrickAuto: OpMode() {
 //                }, requiredForCompletion = true),
 //            ),
             AutoTask(
-                    ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true),
+                    ChassisTask(preCollectionPosition, accuracyInches= 2.0, requiredForCompletion = true, yTranslationPID = MecanumMovement.tapeYFollowPID),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     OtherTask(isDone = {false}, requiredForCompletion = true),
@@ -181,7 +181,7 @@ class PaddieMatrickAuto: OpMode() {
     private val cycleCollectAndDepo = listOf(
             /** Collecting */
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.5, accuracyInches= 0.1, accuracyDegrees = 1.0, xTranslationPID = MecanumMovement.fineMoveXTranslation, requiredForCompletion = true),
+                    ChassisTask(collectionPosition, power = 0.0..0.4, accuracyInches= 0.1, accuracyDegrees = 1.0, xTranslationPID = MecanumMovement.fineMoveXTranslation, yTranslationPID = MecanumMovement.tapeYFollowPID, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
@@ -198,7 +198,7 @@ class PaddieMatrickAuto: OpMode() {
                     timeoutSeconds = 2.0
             ),
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.2, yTranslationPID = MecanumMovement.tapeYFollowPID, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.Collection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
@@ -213,7 +213,7 @@ class PaddieMatrickAuto: OpMode() {
                     timeoutSeconds = 2.0
             ),
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.2, requiredForCompletion = false),
+                    ChassisTask(collectionPosition, power = 0.0..0.2, yTranslationPID = MecanumMovement.tapeYFollowPID, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
@@ -274,21 +274,36 @@ class PaddieMatrickAuto: OpMode() {
 
         telemetry.addLine("stackInchesY: $stackInchesY")
 
-        val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY)
+        // FIXME: hard 3 inch offset to get us over or to left side of tape line.  Need to make this direction dependant (sidePolarity).
+        val newPosition = previousTask.chassisTask.targetPosition.copy(y=stackInchesY-3.0)
         prelinupCorrection = newPosition
         return previousTask
     }
 
     private fun withPrelinupCorrection(t:AutoTask):AutoTask {
+
+        // If we see tape, ignore camera set position from here on out, we can just line-follow
+        if (funnel.getColor() == Funnel.Color.Red || funnel.getColor() == Funnel.Color.Blue) {
+            prelinupCorrection!!.y =
+                movement.localizer.currentPositionAndRotation().y + (-0.2 * sidePolarity)
+            telemetry.addLine("stackInchesY: Subtracting 0.2")
+        }
+        // Only line-follow when we already found tape or got to original target position regardless
+        else if (kotlin.math.abs(prelinupCorrection!!.y - movement.localizer.currentPositionAndRotation().y) < 1.0 )
+        {
+            prelinupCorrection!!.y =
+                movement.localizer.currentPositionAndRotation().y + (0.2 * sidePolarity)
+            telemetry.addLine("stackInchesY: Adding 0.2")
+        }
+
         return (prelinupCorrection?.let {
 //            changeTaskTargetPosition(it, previousTask)
             t.copy(
-                    chassisTask = t.chassisTask.copy(
-                            targetPosition = t.chassisTask.targetPosition.copy(y = it.y)
-                    )
+                chassisTask = t.chassisTask.copy(
+                    targetPosition = t.chassisTask.targetPosition.copy(y = it.y)
+                )
             )
         } ?: t)
-
     }
 
     fun withCollectionCorrections(t:AutoTask):AutoTask{
@@ -394,9 +409,14 @@ class PaddieMatrickAuto: OpMode() {
             1 -> cycle
             2 -> cycle + cycle
             3 -> cycle + cycle + cycle
+            4 -> cycle + cycle + cycle + cycle
+            5 -> cycle + cycle + cycle + cycle + cycle
             69 -> {cycle + cycle + cycle + cycle + cycle + cycle}
             else -> listOf()
         }
+//        val cycles = listOf<AutoTaskManager.AutoTask>().apply {
+//            repeat(numberOfCycles){ cycle }
+//        }
 
         return flopped(preloadDeposit + cycles, fieldSide) + (if(numberOfCycles == 69) listOf() else parkPath)
     }
@@ -455,7 +475,7 @@ class PaddieMatrickAuto: OpMode() {
 
         wizard.newMenu("alliance", "What alliance are we on?", listOf("Red", "Blue"),"program", firstMenu = true)
         wizard.newMenu("program", "Which auto are we starting?", listOf("Cycle Auto" to "cycles", "Park Auto" to null))
-        wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3", "debug"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
+        wizard.newMenu("cycles", "How many cycles are we doing?", listOf("1+0", "1+1", "1+2", "1+3", "1+4", "1+5", "debug"),"startPos")//listOf("1+4", "1+3", "1+2", "1+1", "1+0"),"startPos")
         wizard.newMenu("startPos", "Which side are we starting?", listOf("Right", "Left"))
 
 //        encoderLog = EncoderLog(hardware)
@@ -510,6 +530,8 @@ class PaddieMatrickAuto: OpMode() {
             wizard.wasItemChosen("cycles", "1+1") -> 1
             wizard.wasItemChosen("cycles", "1+2") -> 2
             wizard.wasItemChosen("cycles", "1+3") -> 3
+            wizard.wasItemChosen("cycles", "1+4") -> 4
+            wizard.wasItemChosen("cycles", "1+5") -> 5
             wizard.wasItemChosen("cycles", "debug") -> 69
             else -> 0
         }
