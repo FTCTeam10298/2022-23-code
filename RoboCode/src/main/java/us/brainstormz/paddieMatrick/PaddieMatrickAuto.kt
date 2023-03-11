@@ -169,8 +169,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     OtherTask(isDone = { false }, requiredForCompletion = true),
                     nextTaskIteration = {
-                        val withCorrection = tapeLineup(withPrelinupCorrection(it))
-                        withCorrection.copy(subassemblyTask = OtherTask(isDone = {true}, requiredForCompletion = false))
+                        tapeLineupNeseccary(withPrelinupCorrection(it))
                     }
             ),
     )
@@ -286,6 +285,24 @@ class PaddieMatrickAuto: OpMode() {
         val newPosition = previousTask.chassisTask.targetPosition.copy(y= stackInchesY - (1.0 * sidePolarity))
         prelinupCorrection = newPosition
         return previousTask
+    }
+
+    private fun tapeLineupNeseccary(t:AutoTask): AutoTask {
+        val previousTarget = t.chassisTask.targetPosition
+        // If we see tape, ignore camera set position from here on out, we can just line-follow
+        val tapeMove = if (funnel.getColor() == Funnel.Color.Red || funnel.getColor() == Funnel.Color.Blue) {
+            previousTarget.y + (-0.3 * sidePolarity)
+            // Only line-follow when we already found tape or got to original target position regardless
+        } else if (kotlin.math.abs(prelinupCorrection!!.y - movement.localizer.currentPositionAndRotation().y) < 1.0 ) {
+            previousTarget.y + (0.3 * sidePolarity)
+        } else previousTarget.y
+
+        return t.copy(
+            chassisTask = t.chassisTask.copy(
+                targetPosition = t.chassisTask.targetPosition.copy(y = tapeMove)
+            ),
+            subassemblyTask = OtherTask(isDone= {true}, requiredForCompletion = false)
+        )
     }
 
     private fun tapeLineup(t:AutoTask): AutoTask {
