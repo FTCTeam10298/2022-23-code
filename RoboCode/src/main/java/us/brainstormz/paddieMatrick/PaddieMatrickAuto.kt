@@ -150,6 +150,7 @@ class PaddieMatrickAuto: OpMode() {
                     if (alignToStackStartTimeMilis == null) {
                         alignToStackStartTimeMilis = System.currentTimeMillis()
                     }
+                    colorFirstSeen = null
                     val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
                     hardware.funnelLifter.position = Funnel.funnelDown
                     timeSinceStart > 100 // 50ms for each new frame at 20FPS, with 2x multiplier for safety
@@ -167,8 +168,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     OtherTask(isDone = { false }, requiredForCompletion = true),
                     nextTaskIteration = {
-                        val withCorrection = tapeLineup(withPrelinupCorrection(it))
-                        withCorrection.copy(subassemblyTask = OtherTask(isDone = {true}, requiredForCompletion = false))
+                        tapeLineupNeseccary(it, withPrelinupCorrection(it))
                     },
                     timeoutSeconds = 3.0
             ),
@@ -288,6 +288,47 @@ class PaddieMatrickAuto: OpMode() {
         return previousTask
     }
 
+    private var colorFirstSeen: Funnel.Color?  = null
+    private fun tapeLineupNeseccary(t:AutoTask, visionCorrection: AutoTask): AutoTask {
+        val applicablePrevtask = if (colorFirstSeen == null) {
+            colorFirstSeen = funnel.getColor()
+            visionCorrection
+        } else {
+            t
+        }
+
+        val previousTarget = applicablePrevtask.chassisTask.targetPosition
+
+        val isOnTapeThisCycle = funnel.getColor() != Funnel.Color.Neither
+        telemetry.addLine("isOnTapeThisCycle: $isOnTapeThisCycle")
+        val tapeMove = if (isOnTapeThisCycle) {
+            previousTarget.y + (-0.3 * sidePolarity)
+        } else  {
+            previousTarget.y + (0.3 * sidePolarity)
+        }
+
+        telemetry.addLine("colorFirstSeen: $colorFirstSeen")
+
+        val changedWhatWeSee = funnel.getColor() != colorFirstSeen
+        telemetry.addLine("changedWhatWeSee: $changedWhatWeSee")
+
+        val completionTask = if (changedWhatWeSee) {
+            OtherTask(isDone= {true}, requiredForCompletion = false)
+        } else {
+            OtherTask(isDone= {false}, requiredForCompletion = true)
+        }
+
+        val newTargetPos = applicablePrevtask.chassisTask.targetPosition.copy(y = tapeMove)
+        prelinupCorrection = newTargetPos
+
+        return applicablePrevtask.copy(
+            chassisTask = applicablePrevtask.chassisTask.copy(
+                targetPosition = newTargetPos
+            ),
+            subassemblyTask = completionTask,
+        )
+    }
+
     private fun tapeLineup(t:AutoTask): AutoTask {
         val previousTarget = t.chassisTask.targetPosition
 
@@ -308,7 +349,6 @@ class PaddieMatrickAuto: OpMode() {
     private fun withPrelinupCorrection(t:AutoTask):AutoTask {
 
         return (prelinupCorrection?.let {
-//            changeTaskTargetPosition(it, previousTask)
             t.copy(
                 chassisTask = t.chassisTask.copy(
                     targetPosition = t.chassisTask.targetPosition.copy(y = it.y)
