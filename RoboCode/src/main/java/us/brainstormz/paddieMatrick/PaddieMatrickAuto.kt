@@ -196,7 +196,7 @@ class PaddieMatrickAuto: OpMode() {
                         coneCollectionTime = null
                         funnel.coneIsInFrontOfNormalSensor(20.0)
                     }, requiredForCompletion = true),
-                    nextTaskIteration = { tapeLineup(withPrelinupCorrection(it)) },
+                    nextTaskIteration = ::withPrelinupCorrection,//{ tapeLineup(withPrelinupCorrection(it)) },
                     timeoutSeconds = 2.0
             ),
             AutoTask(
@@ -318,9 +318,11 @@ class PaddieMatrickAuto: OpMode() {
             OtherTask(isDone= {false}, requiredForCompletion = true)
         }
 
+        val newTargetPos = applicablePrevtask.chassisTask.targetPosition.copy(y = tapeMove)
+        prelinupCorrection = newTargetPos
         return applicablePrevtask.copy(
             chassisTask = applicablePrevtask.chassisTask.copy(
-                targetPosition = applicablePrevtask.chassisTask.targetPosition.copy(y = tapeMove)
+                targetPosition = newTargetPos
             ),
             subassemblyTask = completionTask,
         )
