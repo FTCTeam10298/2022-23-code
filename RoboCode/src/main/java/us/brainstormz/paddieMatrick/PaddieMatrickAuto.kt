@@ -66,7 +66,7 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false)
             ),
             AutoTask(
-                    ChassisTask(depositPosition, power= 0.0..0.2, rotationalPID = MecanumMovement.defaultRotationPID.copy(kp= 0.85) , accuracyInches = 0.4, accuracyDegrees = 2.0, requiredForCompletion = true),
+                    ChassisTask(depositPosition, power= 0.0..0.3, rotationalPID = MecanumMovement.defaultRotationPID.copy(kp= 0.85) , accuracyInches = 0.4, accuracyDegrees = 2.0, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Detection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     nextTaskIteration = ::alignWithPole,
@@ -124,66 +124,12 @@ class PaddieMatrickAuto: OpMode() {
     private val tapeFollowStart = cycleMidPoint.copy(x= cycleMidPoint.x + 5.0)
     private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
 
-//    private val collectionPosition = PositionAndRotation(x = 24.3, y = collectionY, r =  90.0)
     private val collectionPosition = PositionAndRotation(x = 28.0, y = collectionY, r =  90.0)
     private var actualCollectionX = collectionPosition.x
 
     private var alignToStackStartTimeMilis: Long? = null
     private var prelinupCorrection:PositionAndRotation? = null
 
-//    private val newCycleLineup = listOf(
-//        AutoTask(
-//            ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = true),
-//            LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-//            FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
-//            OtherTask(isDone= {
-//                alignToStackStartTimeMilis = null
-//                true
-//            }, requiredForCompletion = false)
-//        ),
-//        AutoTask(
-//            ChassisTask(cycleMidPoint, accuracyInches= midPointAccuracy, requiredForCompletion = false),
-//            LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-//            FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
-//            OtherTask(isDone = {
-//                if (alignToStackStartTimeMilis == null) {
-//                    alignToStackStartTimeMilis = System.currentTimeMillis()
-//                }
-//
-//                hardware.funnelLifter.position = Funnel.funnelDown
-//
-//                val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
-//                timeSinceStart > 100 // 50ms for each new frame at 20FPS, with 2x multiplier for safety
-//            }, requiredForCompletion = true),
-//            nextTaskIteration= ::alignToStack
-//        ),
-//        //follow line until the funnel see's a cone
-//        AutoTask(
-//            ChassisTask(tapeFollowStart, accuracyInches= midPointAccuracy, requiredForCompletion = false),
-//            LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = false),
-//            FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
-//            OtherTask(isDone = {
-//                               funnel.coneIsInFrontOfNormalSensor(20.0)
-//            }, requiredForCompletion = true),
-//            nextTaskIteration= ::followTape
-//        ),
-//    )
-
-//    private fun followTape(previousTask: AutoTask): AutoTask {
-//        val seeingTape = funnel.getColor() != Funnel.Color.Neither
-//        val newYTarget = previousTask.chassisTask.targetPosition.y +
-//                if (seeingTape) {
-//                    1.0
-//                } else {
-//                    -1.0
-//                }
-//
-//        val xTarget = preCollectionPosition.x
-//
-//        return previousTask.copy(chassisTask = previousTask.chassisTask.copy(targetPosition = previousTask.chassisTask.targetPosition.copy(
-//            x= xTarget, y= newYTarget, r= preCollectionPosition.r
-//        )))
-//    }
 
     private val cyclePreLinup = listOf(
             /** Prepare to collect */
