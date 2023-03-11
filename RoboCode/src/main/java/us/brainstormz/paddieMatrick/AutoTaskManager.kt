@@ -41,10 +41,11 @@ class AutoTaskManager {
         isChassisTaskCompleted: (ChassisTask) -> Boolean,
         isLiftTaskCompleted: (LiftTask) -> Boolean,
         isFourBarTaskCompleted: (FourBarTask) -> Boolean,
-        isOtherTaskCompleted: (OtherTask) -> Boolean
+        isOtherTaskCompleted: (OtherTask) -> Boolean,
+        now:Long = System.currentTimeMillis()
     ) {
-        val dt = System.currentTimeMillis() - prevTime
-        prevTime = System.currentTimeMillis()
+        val dt = now - prevTime
+        prevTime = now
         telemetry.addLine("dt: $dt")
 
         val nextDeadlinedTask = findNextDeadlinedTask(autoTasks)
@@ -55,6 +56,8 @@ class AutoTaskManager {
 //            multipleTelemetry.addLine("skipping ahead to deadline")
 //            failSkippedTasks(nextDeadlinedTask!!, autoTasks)
 
+
+            taskListIterator = emptyList<AutoTask>().listIterator()
             nextDeadlinedTask!!
         } else {
             getNextTask(currentTask, autoTasks, effectiveRuntimeSeconds, telemetry)
@@ -171,12 +174,13 @@ class AutoTaskManager {
     private var tasksWithDeadlines: List<AutoTask> = emptyList()
     private fun findNextDeadlinedTask(tasks: List<AutoTask>): AutoTask? {
         if (tasksWithDeadlines.isEmpty()) {
-            tasksWithDeadlines = tasks.filter{ it.startDeadlineSeconds != null && (it.taskStatus != TaskStatus.Completed || it.taskStatus != TaskStatus.Failed)}
+            tasksWithDeadlines = tasks.filter{ it.startDeadlineSeconds != null && it.taskStatus == TaskStatus.Todo}
             tasksWithDeadlines = tasksWithDeadlines.sortedBy { task ->
                 task.startDeadlineSeconds
             }
         }
-        tasksWithDeadlines.filter { task -> !task.isFinished() }
+
+        tasksWithDeadlines = tasksWithDeadlines.filter { task -> !task.isFinished() }
 
         return tasksWithDeadlines.firstOrNull()
     }
