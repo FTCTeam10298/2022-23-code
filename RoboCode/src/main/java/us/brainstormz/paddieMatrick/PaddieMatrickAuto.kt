@@ -388,33 +388,46 @@ class PaddieMatrickAuto: OpMode() {
     private val compensateForAbruptEnd = {
         hardware.funnelLifter.position = collector.funnelUp
         hardware.collector.power = 0.0
-        if (!fourBar.is4BarAtPosition(Depositor.FourBarDegrees.Vertical.degrees)) {
-            depositor.powerLift(0.0)
-        }
         true
     }
     private val zeroLift = {
         val isLimitPressed = !hardware.liftLimitSwitch.state
-        if (!isLimitPressed)
-            depositor.powerLift(-0.05)
-        else
-            depositor.powerLift(0.0)
+//        if (!isLimitPressed)
+//            depositor.powerLift(-0.05)
+//        else
+//            depositor.powerLift(0.0)
         isLimitPressed
     }
     private val parkTimeout = 28.0
     private val park = listOf(
             AutoTask(
-                    ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(isDone= compensateForAbruptEnd, requiredForCompletion = false),
-                    startDeadlineSeconds = parkTimeout
-            ),
-            AutoTask(
-                    ChassisTask(ParkPositions.One.pos, requiredForCompletion = true),
-                    LiftTask(Depositor.LiftCounts.Bottom.counts, requiredForCompletion = false),
-                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
-                    OtherTask(isDone= zeroLift, requiredForCompletion = true)))
+                    ChassisTask(ParkPositions.One.pos, requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
+                    FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true),
+                    OtherTask(
+                        isDone= {
+                            compensateForAbruptEnd()
+                            false
+                        },
+                        requiredForCompletion = true),
+                    nextTaskIteration= {
+                        val liftTarget = if (fourBar.current4BarDegrees() - 5 <= Depositor.FourBarDegrees.Vertical.degrees) {
+                            telemetry.addLine("Hey we're ready to move the lift to the bottom")
+                            Depositor.LiftCounts.Bottom.counts
+                        } else {
+                            hardware.rightLift.currentPosition
+                        }
+
+                        telemetry.addLine("iterating")
+
+                        it.copy(
+                            chassisTask= it.chassisTask.copy(power= 0.0..depositor.chassisSpeedRelativeToLiftHeight()),
+                            liftTask= LiftTask(liftTarget, requiredForCompletion = true)
+                        )
+                    },
+                    startDeadlineSeconds = parkTimeout,
+            )
+    )
 
     private fun generatePark(signalOrientation: SignalOrientation, fieldSide:FieldSide): List<AutoTask> {
         val parkPosition = when (signalOrientation) {
