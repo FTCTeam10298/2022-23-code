@@ -57,7 +57,7 @@ class PaddieMatrickAuto: OpMode() {
 
     /** Auto Tasks */
     private val midPointAccuracy = 5.0
-    private var depositPosition = PositionAndRotation(x= -5.0, y= -57.5, r= 45.0)
+    private var depositPosition = PositionAndRotation(x= -5.0, y= -57.5, r= 50.0)
     private val depositRoutine = listOf(
             /** Lineup */
             AutoTask(
@@ -99,7 +99,7 @@ class PaddieMatrickAuto: OpMode() {
     )
     private val preloadDeposit = listOf(
             AutoTask(
-                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.0..0.65, accuracyInches = midPointAccuracy, requiredForCompletion = true),
+                    ChassisTask(PositionAndRotation(x= 0.0, y= -49.0, r= 0.0), power= 0.2..1.0, accuracyInches = midPointAccuracy, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.Bottom.counts, accuracyCounts = 500, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.PreDeposit.degrees, requiredForCompletion = false)
             )) + depositRoutine + listOf(
@@ -233,7 +233,7 @@ class PaddieMatrickAuto: OpMode() {
             ),
             /** Drive to pole */
             AutoTask(
-                    ChassisTask(cycleMidPoint, power = 0.0..1.0, accuracyInches= midPointAccuracy, requiredForCompletion = true),
+                    ChassisTask(cycleMidPoint, power = 0.15..1.0, accuracyInches= midPointAccuracy, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
