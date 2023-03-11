@@ -150,7 +150,7 @@ class PaddieMatrickAuto: OpMode() {
                     if (alignToStackStartTimeMilis == null) {
                         alignToStackStartTimeMilis = System.currentTimeMillis()
                     }
-
+                    colorFirstSeen = null
                     val timeSinceStart = System.currentTimeMillis() - alignToStackStartTimeMilis!!
                     hardware.funnelLifter.position = Funnel.funnelDown
                     timeSinceStart > 100 // 50ms for each new frame at 20FPS, with 2x multiplier for safety
@@ -161,15 +161,16 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                     ChassisTask(
                         preCollectionPosition,
-                        accuracyInches= 2.0,
+                        accuracyInches= 0.0,
                         xTranslationPID = MecanumMovement.fineMoveXTranslation,
                         requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     OtherTask(isDone = { false }, requiredForCompletion = true),
                     nextTaskIteration = {
-                        tapeLineupNeseccary(withPrelinupCorrection(it))
-                    }
+                        tapeLineupNeseccary(it, withPrelinupCorrection(it))
+                    },
+                    timeoutSeconds = 3.0
             ),
     )
 
@@ -282,18 +283,21 @@ class PaddieMatrickAuto: OpMode() {
 
         telemetry.addLine("stackInchesY: $stackInchesY")
 
-        val newPosition = previousTask.chassisTask.targetPosition.copy(y= stackInchesY - (1.0 * sidePolarity))
+        val newPosition = previousTask.chassisTask.targetPosition.copy(y= stackInchesY - (2.0 * sidePolarity))
         prelinupCorrection = newPosition
         return previousTask
     }
 
     private var colorFirstSeen: Funnel.Color?  = null
-    private fun tapeLineupNeseccary(t:AutoTask): AutoTask {
-        if (colorFirstSeen == null) {
+    private fun tapeLineupNeseccary(t:AutoTask, visionCorrection: AutoTask): AutoTask {
+        val applicablePrevtask = if (colorFirstSeen == null) {
             colorFirstSeen = funnel.getColor()
+            visionCorrection
+        } else {
+            t
         }
 
-        val previousTarget = t.chassisTask.targetPosition
+        val previousTarget = applicablePrevtask.chassisTask.targetPosition
 
         val isOnTapeThisCycle = funnel.getColor() != Funnel.Color.Neither
         telemetry.addLine("isOnTapeThisCycle: $isOnTapeThisCycle")
@@ -303,16 +307,20 @@ class PaddieMatrickAuto: OpMode() {
             previousTarget.y + (0.3 * sidePolarity)
         }
 
+        telemetry.addLine("colorFirstSeen: $colorFirstSeen")
+
         val changedWhatWeSee = funnel.getColor() != colorFirstSeen
+        telemetry.addLine("changedWhatWeSee: $changedWhatWeSee")
+
         val completionTask = if (changedWhatWeSee) {
             OtherTask(isDone= {true}, requiredForCompletion = false)
         } else {
             OtherTask(isDone= {false}, requiredForCompletion = true)
         }
 
-        return t.copy(
-            chassisTask = t.chassisTask.copy(
-                targetPosition = t.chassisTask.targetPosition.copy(y = tapeMove)
+        return applicablePrevtask.copy(
+            chassisTask = applicablePrevtask.chassisTask.copy(
+                targetPosition = applicablePrevtask.chassisTask.targetPosition.copy(y = tapeMove)
             ),
             subassemblyTask = completionTask,
         )
@@ -324,9 +332,9 @@ class PaddieMatrickAuto: OpMode() {
         val seeTape = funnel.getColor() != Funnel.Color.Neither
         // If we see tape, ignore camera set position from here on out, we can just line-follow
         val tapeMove = if (seeTape) {
-            previousTarget.y + (-0.3 * sidePolarity)
+            previousTarget.y + (-0.1 * sidePolarity)
         } else  {
-            previousTarget.y + (0.3 * sidePolarity)
+            previousTarget.y + (0.1 * sidePolarity)
         }
 
         return t.copy(
