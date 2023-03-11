@@ -338,9 +338,9 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     enum class ParkPositions(val pos: PositionAndRotation) {
-        One(PositionAndRotation(x = -22.0, y = -52.0, r = 0.0)),
-        Two(PositionAndRotation(x = 0.0, y = -52.0, r = 0.0)),
-        Three(PositionAndRotation(x = 22.0, y = -52.0, r = 0.0)),
+        One(PositionAndRotation(x = -22.0, y = -52.0, r = 90.0)),
+        Two(PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)),
+        Three(PositionAndRotation(x = 22.0, y = -52.0, r = 90.0)),
     }
     private val compensateForAbruptEnd = {
         hardware.funnelLifter.position = collector.funnelUp
@@ -373,15 +373,17 @@ class PaddieMatrickAuto: OpMode() {
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(isDone= zeroLift, requiredForCompletion = true)))
 
-    private fun generatePark(signalOrientation: SignalOrientation): List<AutoTask> {
+    private fun generatePark(signalOrientation: SignalOrientation, fieldSide:FieldSide): List<AutoTask> {
         val parkPosition = when (signalOrientation) {
             SignalOrientation.One -> ParkPositions.One
             SignalOrientation.Two -> ParkPositions.Two
             SignalOrientation.Three -> ParkPositions.Three
         }
 
+        val sideMultiplier = if (fieldSide == FieldSide.Left) -1 else 1
+
         return park.map { task ->
-            task.copy(chassisTask= task.chassisTask.copy(targetPosition= parkPosition.pos))
+            task.copy(chassisTask= task.chassisTask.copy(targetPosition= parkPosition.pos.copy(r= parkPosition.pos.r * sideMultiplier)))
         }
     }
 
@@ -410,7 +412,7 @@ class PaddieMatrickAuto: OpMode() {
         Left, Right
     }
     private fun makePlanForAuto(signalOrientation:SignalOrientation, fieldSide:FieldSide, alliance: Alliance, numberOfCycles: Int):List<AutoTask> {
-        val parkPath = generatePark(signalOrientation)
+        val parkPath = generatePark(signalOrientation, fieldSide)
 
         val cycle = cyclePreLinup + cycleCollectAndDepo
 
