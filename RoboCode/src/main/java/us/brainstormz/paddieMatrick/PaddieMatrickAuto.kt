@@ -161,6 +161,7 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                 ChassisTask(
                     collectionApproachPosition,
+                    power= 0.0..0.8,
                     accuracyInches= 0.0,
                     xTranslationPID = MecanumMovement.fineMoveXTranslation,
                     requiredForCompletion = false),
@@ -175,6 +176,7 @@ class PaddieMatrickAuto: OpMode() {
             AutoTask(
                 ChassisTask(
                     collectionApproachPosition,
+                    power= 0.0..0.8,
                     accuracyInches= 0.0,
                     xTranslationPID = MecanumMovement.fineMoveXTranslation,
                     requiredForCompletion = false),
