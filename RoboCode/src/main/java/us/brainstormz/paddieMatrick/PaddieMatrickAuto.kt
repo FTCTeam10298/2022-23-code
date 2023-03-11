@@ -119,10 +119,9 @@ class PaddieMatrickAuto: OpMode() {
             )
     )
 
-    private val collectionY = -51.0
-    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 90.0)
-    private val tapeFollowStart = cycleMidPoint.copy(x= cycleMidPoint.x + 5.0)
-    private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 90.0)
+    private val collectionY = -52.0
+    private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 85.0)
+    private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY + 0.5, r = 85.0)
 
     private val collectionPosition = PositionAndRotation(x = 28.0, y = collectionY, r =  90.0)
     private var actualCollectionX = collectionPosition.x
@@ -283,7 +282,7 @@ class PaddieMatrickAuto: OpMode() {
 
         telemetry.addLine("stackInchesY: $stackInchesY")
 
-        val newPosition = previousTask.chassisTask.targetPosition.copy(y= stackInchesY - (2.0 * sidePolarity))
+        val newPosition = previousTask.chassisTask.targetPosition.copy(y= stackInchesY - (2.5 * sidePolarity))
         prelinupCorrection = newPosition
         return previousTask
     }
@@ -312,13 +311,15 @@ class PaddieMatrickAuto: OpMode() {
         val changedWhatWeSee = funnel.getColor() != colorFirstSeen
         telemetry.addLine("changedWhatWeSee: $changedWhatWeSee")
 
+        var newTargetPos = PositionAndRotation()
         val completionTask = if (changedWhatWeSee) {
+            newTargetPos = movement.localizer.currentPositionAndRotation()
             OtherTask(isDone= {true}, requiredForCompletion = false)
         } else {
+            newTargetPos = applicablePrevtask.chassisTask.targetPosition.copy(y = tapeMove)
             OtherTask(isDone= {false}, requiredForCompletion = true)
         }
 
-        val newTargetPos = applicablePrevtask.chassisTask.targetPosition.copy(y = tapeMove)
         prelinupCorrection = movement.localizer.currentPositionAndRotation()
 
         return applicablePrevtask.copy(
