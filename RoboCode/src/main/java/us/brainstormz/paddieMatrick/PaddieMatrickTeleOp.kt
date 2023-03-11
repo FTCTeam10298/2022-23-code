@@ -1,5 +1,6 @@
 package us.brainstormz.paddieMatrick
 
+import com.qualcomm.hardware.lynx.LynxModule
 import com.qualcomm.robotcore.eventloop.opmode.OpMode
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp
 import com.qualcomm.robotcore.hardware.DcMotor
@@ -33,6 +34,8 @@ class PaddieMatrickTeleOp: OpMode() {
     var liftTarget = 0.0
     val liftSpeed = 1800.0
 
+    lateinit var allHubs: List<LynxModule>
+
     override fun init() {
         /** INIT PHASE */
         hardware.init(hardwareMap)
@@ -42,6 +45,12 @@ class PaddieMatrickTeleOp: OpMode() {
         fourBarTarget = fourBar.current4BarDegrees()
         funnel.init(hardware.lineSensor, hardware.funnelSensor, hardware.funnelLifter)
 //        fourBar.pid = PID(kp= 0.011, kd= 0.001)//0000001)
+        allHubs = hardwareMap.getAll(
+            LynxModule::class.java
+        )
+        for (module in allHubs) {
+            module.bulkCachingMode = LynxModule.BulkCachingMode.MANUAL
+        }
     }
 
     override fun start() {
@@ -54,6 +63,10 @@ class PaddieMatrickTeleOp: OpMode() {
         val dt = System.currentTimeMillis() - prevTime
         prevTime = System.currentTimeMillis()
         telemetry.addLine("dt: $dt")
+
+        for (module in allHubs) {
+              module.clearBulkCache()
+        }
 
         telemetry.addLine("limit switch state: ${hardware.liftLimitSwitch.state}")
 
