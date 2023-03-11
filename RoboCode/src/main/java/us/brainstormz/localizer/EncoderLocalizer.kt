@@ -116,7 +116,7 @@ class PhoHardware(): MecOdometry {
     }
     val telemetry = PhoTelemetry()
 
-    class PhoTelemetry(): Telemetry {
+    open class PhoTelemetry(): Telemetry {
         private val phoItem = object: Item {
             override fun getCaption(): String = "This is a fake"
             override fun setCaption(caption: String?): Item = this

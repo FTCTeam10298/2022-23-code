@@ -180,7 +180,7 @@ class AutoTaskManager {
             }
         }
 
-        tasksWithDeadlines = tasksWithDeadlines.filter { task -> !task.isFinished() }
+        tasksWithDeadlines = tasksWithDeadlines.filter { task -> task.taskStatus == TaskStatus.Todo }
 
         return tasksWithDeadlines.firstOrNull()
     }
