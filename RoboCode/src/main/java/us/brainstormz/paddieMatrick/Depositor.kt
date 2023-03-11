@@ -89,6 +89,8 @@ class Depositor(private val hardware: PaddieMatrickHardware, private val fourBar
         }
     }
 
+    fun chassisSpeedRelativeToLiftHeight(): Double = MathHelps.scaleBetween(hardware.rightLift.currentPosition.toDouble() + 1, 0.0..3000.0, 1.0..1.8)
+
     private val fourBarSafeDegrees = 50.0..300.0
     fun moveFourBar(targetDegrees: Double): Boolean {
         val fourBarTarget = MathHelps.wrap360(targetDegrees).coerceIn(fourBarSafeDegrees)

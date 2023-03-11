@@ -233,7 +233,7 @@ class PaddieMatrickAuto: OpMode() {
             ),
             /** Drive to pole */
             AutoTask(
-                    ChassisTask(cycleMidPoint, power = 0.15..1.0, accuracyInches= midPointAccuracy, requiredForCompletion = true),
+                    ChassisTask(safeMidPoint, power = 0.15..1.0, accuracyInches= midPointAccuracy, requiredForCompletion = true),
                     LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
