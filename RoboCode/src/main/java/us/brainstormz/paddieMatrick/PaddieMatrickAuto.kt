@@ -287,33 +287,47 @@ class PaddieMatrickAuto: OpMode() {
         return previousTask
     }
 
+    private var colorFirstSeen: Funnel.Color?  = null
     private fun tapeLineupNeseccary(t:AutoTask): AutoTask {
+        if (colorFirstSeen == null) {
+            colorFirstSeen = funnel.getColor()
+        }
+
         val previousTarget = t.chassisTask.targetPosition
-        // If we see tape, ignore camera set position from here on out, we can just line-follow
-        val tapeMove = if (funnel.getColor() == Funnel.Color.Red || funnel.getColor() == Funnel.Color.Blue) {
+
+        val isOnTapeThisCycle = funnel.getColor() != Funnel.Color.Neither
+        telemetry.addLine("isOnTapeThisCycle: $isOnTapeThisCycle")
+        val tapeMove = if (isOnTapeThisCycle) {
             previousTarget.y + (-0.3 * sidePolarity)
-            // Only line-follow when we already found tape or got to original target position regardless
-        } else if (kotlin.math.abs(prelinupCorrection!!.y - movement.localizer.currentPositionAndRotation().y) < 1.0 ) {
+        } else  {
             previousTarget.y + (0.3 * sidePolarity)
-        } else previousTarget.y
+        }
+
+        val changedWhatWeSee = funnel.getColor() != colorFirstSeen
+        val completionTask = if (changedWhatWeSee) {
+            OtherTask(isDone= {true}, requiredForCompletion = false)
+        } else {
+            OtherTask(isDone= {false}, requiredForCompletion = true)
+        }
 
         return t.copy(
             chassisTask = t.chassisTask.copy(
                 targetPosition = t.chassisTask.targetPosition.copy(y = tapeMove)
             ),
-            subassemblyTask = OtherTask(isDone= {true}, requiredForCompletion = false)
+            subassemblyTask = completionTask,
         )
     }
 
     private fun tapeLineup(t:AutoTask): AutoTask {
         val previousTarget = t.chassisTask.targetPosition
+
+        val seeTape = funnel.getColor() != Funnel.Color.Neither
         // If we see tape, ignore camera set position from here on out, we can just line-follow
-        val tapeMove = if (funnel.getColor() == Funnel.Color.Red || funnel.getColor() == Funnel.Color.Blue) {
+        val tapeMove = if (seeTape) {
             previousTarget.y + (-0.3 * sidePolarity)
-            // Only line-follow when we already found tape or got to original target position regardless
-        } else if (kotlin.math.abs(prelinupCorrection!!.y - movement.localizer.currentPositionAndRotation().y) < 1.0 ) {
+        } else  {
             previousTarget.y + (0.3 * sidePolarity)
-        } else previousTarget.y
+        }
 
         return t.copy(
             chassisTask = t.chassisTask.copy(
