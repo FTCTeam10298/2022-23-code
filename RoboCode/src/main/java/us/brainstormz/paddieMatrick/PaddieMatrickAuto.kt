@@ -319,7 +319,7 @@ class PaddieMatrickAuto: OpMode() {
         }
 
         val newTargetPos = applicablePrevtask.chassisTask.targetPosition.copy(y = tapeMove)
-        prelinupCorrection = newTargetPos
+        prelinupCorrection = movement.localizer.currentPositionAndRotation()
 
         return applicablePrevtask.copy(
             chassisTask = applicablePrevtask.chassisTask.copy(
