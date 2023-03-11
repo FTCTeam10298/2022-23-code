@@ -164,7 +164,8 @@ class PaddieMatrickAuto: OpMode() {
                         accuracyInches= 2.0,
                         requiredForCompletion = true,
                         xTranslationPID = MecanumMovement.fineMoveXTranslation,
-                        yTranslationPID = MecanumMovement.tapeYFollowPID),
+//                        yTranslationPID = MecanumMovement.tapeYFollowPID),
+                        ),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
                     OtherTask(isDone = { false }, requiredForCompletion = true),
@@ -183,7 +184,7 @@ class PaddieMatrickAuto: OpMode() {
                         accuracyInches= 0.1,
                         accuracyDegrees = 1.0,
                         xTranslationPID = MecanumMovement.fineMoveXTranslation,
-                        yTranslationPID = MecanumMovement.tapeYFollowPID,
+//                        yTranslationPID = MecanumMovement.tapeYFollowPID,
                         requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.StackPreCollection.counts, accuracyCounts = 100, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
@@ -205,7 +206,7 @@ class PaddieMatrickAuto: OpMode() {
                         collectionPosition,
                         power = 0.0..0.2,
                         xTranslationPID = MecanumMovement.fineMoveXTranslation,
-                        yTranslationPID = MecanumMovement.tapeYFollowPID,
+//                        yTranslationPID = MecanumMovement.tapeYFollowPID,
                         requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.Collection.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
@@ -221,7 +222,11 @@ class PaddieMatrickAuto: OpMode() {
                     timeoutSeconds = 2.0
             ),
             AutoTask(
-                    ChassisTask(collectionPosition, power = 0.0..0.2, yTranslationPID = MecanumMovement.tapeYFollowPID, requiredForCompletion = false),
+                    ChassisTask(
+                        collectionPosition,
+                        power = 0.0..0.2,
+//                        yTranslationPID = MecanumMovement.tapeYFollowPID,
+                        requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.MidJunction.counts, requiredForCompletion = true),
                     FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, requiredForCompletion = false),
                     OtherTask(isDone= {
