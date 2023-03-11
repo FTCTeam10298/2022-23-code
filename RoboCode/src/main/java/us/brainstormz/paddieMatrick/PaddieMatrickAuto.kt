@@ -121,7 +121,8 @@ class PaddieMatrickAuto: OpMode() {
 
     private val collectionY = -52.0
     private val cycleMidPoint = PositionAndRotation(x = 7.0, y = collectionY, r = 85.0)
-    private val preCollectionPosition = PositionAndRotation(x = 20.0, y = collectionY + 0.5, r = 85.0)
+    private val collectionApproachPosition = PositionAndRotation(x = 20.0, y = collectionY, r = 85.0)
+    private val safeMidPoint = PositionAndRotation(x = 7.0, y = collectionY + 2.0, r = 85.0)
 
     private val collectionPosition = PositionAndRotation(x = 28.0, y = collectionY, r =  90.0)
     private var actualCollectionX = collectionPosition.x
@@ -155,11 +156,11 @@ class PaddieMatrickAuto: OpMode() {
                     timeSinceStart > 100 // 50ms for each new frame at 20FPS, with 2x multiplier for safety
                 }, requiredForCompletion = true),
                 nextTaskIteration= ::alignToStack,
-    //                timeoutSeconds = 2.0
+                timeoutSeconds = 2.0
             ),
             AutoTask(
                     ChassisTask(
-                        preCollectionPosition,
+                        collectionApproachPosition,
                         accuracyInches= 0.0,
                         xTranslationPID = MecanumMovement.fineMoveXTranslation,
                         requiredForCompletion = false),
@@ -380,9 +381,9 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     enum class ParkPositions(val pos: PositionAndRotation) {
-        One(PositionAndRotation(x = -22.0, y = -52.0, r = 90.0)),
+        One(PositionAndRotation(x = -24.0, y = -52.0, r = 90.0)),
         Two(PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)),
-        Three(PositionAndRotation(x = 22.0, y = -52.0, r = 90.0)),
+        Three(PositionAndRotation(x = 24.0, y = -52.0, r = 90.0)),
     }
     private val compensateForAbruptEnd = {
         hardware.funnelLifter.position = collector.funnelUp
