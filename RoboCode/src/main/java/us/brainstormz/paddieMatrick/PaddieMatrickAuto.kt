@@ -401,7 +401,7 @@ class PaddieMatrickAuto: OpMode() {
     private val parkTimeout = 28.0
     private val park = listOf(
             AutoTask(
-                    ChassisTask(ParkPositions.One.pos, requiredForCompletion = false),
+                    ChassisTask(ParkPositions.One.pos, power= 0.0..0.0, requiredForCompletion = false),
                     LiftTask(Depositor.LiftCounts.HighJunction.counts, requiredForCompletion = false),
                     FourBarTask(Depositor.FourBarDegrees.Vertical.degrees, requiredForCompletion = true),
                     OtherTask(
