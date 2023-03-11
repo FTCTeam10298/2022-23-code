@@ -486,7 +486,20 @@ class PaddieMatrickAuto: OpMode() {
 //            repeat(numberOfCycles){ cycle }
 //        }
 
-        return flopped(preloadDeposit + cycles, fieldSide) + (if(numberOfCycles == 69) listOf() else parkPath)
+        val cyclesFlopped = flopped(preloadDeposit + cycles, fieldSide)
+        val cyclesEnd = if (numberOfCycles == 0) {
+            slowDown(cyclesFlopped)
+        } else {
+            cyclesFlopped
+        }
+
+        return cyclesEnd + (if(numberOfCycles == 69) listOf() else parkPath)
+    }
+
+    private fun slowDown(tasks: List<AutoTask>): List<AutoTask> {
+        return tasks.map {
+            it.copy(chassisTask = it.chassisTask.copy(power= it.chassisTask.power.start..0.7))
+        }
     }
 
     private fun flopped(coreTasks: List<AutoTask>, side: FieldSide): List<AutoTask> {
