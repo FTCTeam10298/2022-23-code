@@ -381,9 +381,9 @@ class PaddieMatrickAuto: OpMode() {
     }
 
     enum class ParkPositions(val pos: PositionAndRotation) {
-        One(PositionAndRotation(x = -24.0, y = -52.0, r = 90.0)),
+        One(PositionAndRotation(x = -23.0, y = -52.0, r = 90.0)),
         Two(PositionAndRotation(x = 0.0, y = -52.0, r = 90.0)),
-        Three(PositionAndRotation(x = 24.0, y = -52.0, r = 90.0)),
+        Three(PositionAndRotation(x = 23.0, y = -52.0, r = 90.0)),
     }
     private val compensateForAbruptEnd = {
         hardware.funnelLifter.position = collector.funnelUp
