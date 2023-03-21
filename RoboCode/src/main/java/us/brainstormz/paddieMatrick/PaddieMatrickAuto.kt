@@ -159,34 +159,18 @@ class PaddieMatrickAuto: OpMode() {
                 timeoutSeconds = 2.0
             ),
             AutoTask(
-                ChassisTask(
-                    collectionApproachPosition,
-                    power= 0.0..0.8,
-                    accuracyInches= 0.0,
-                    xTranslationPID = MecanumMovement.fineMoveXTranslation,
-                    requiredForCompletion = false),
-                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
-                FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
-                OtherTask(isDone = { false }, requiredForCompletion = true),
-                nextTaskIteration = {
-                    tapeLineupNeseccary(it, withPrelinupCorrection(it))
-                },
-                timeoutSeconds = 3.0
-            ),
-            AutoTask(
-                ChassisTask(
-                    collectionApproachPosition,
-                    power= 0.0..0.8,
-                    accuracyInches= 0.0,
-                    xTranslationPID = MecanumMovement.fineMoveXTranslation,
-                    requiredForCompletion = false),
-                LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
-                FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
-                OtherTask(isDone = { false }, requiredForCompletion = true),
-                nextTaskIteration = {
-                    tapeLineupNeseccary(it, withPrelinupCorrection(it))
-                },
-                timeoutSeconds = 3.0
+                    ChassisTask(
+                        collectionApproachPosition,
+                        accuracyInches= 0.0,
+                        xTranslationPID = MecanumMovement.fineMoveXTranslation,
+                        requiredForCompletion = false),
+                    LiftTask(Depositor.LiftCounts.StackPreCollection.counts, requiredForCompletion = true),
+                    FourBarTask(Depositor.FourBarDegrees.StackCollecting.degrees, accuracyDegrees = 6.0, requiredForCompletion = true),
+                    OtherTask(isDone = { false }, requiredForCompletion = true),
+                    nextTaskIteration = {
+                        tapeLineupNeseccary(it, withPrelinupCorrection(it))
+                    },
+                    timeoutSeconds = 3.0
             ),
     )
 
@@ -330,7 +314,6 @@ class PaddieMatrickAuto: OpMode() {
 
         var newTargetPos = PositionAndRotation()
         val completionTask = if (changedWhatWeSee) {
-            colorFirstSeen = null
             newTargetPos = movement.localizer.currentPositionAndRotation()
             OtherTask(isDone= {true}, requiredForCompletion = false)
         } else {
